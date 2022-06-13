@@ -1,0 +1,62 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+## Outline
+
+1. general idea behind the package
+2. presentation of the package and its functionalities
+  + main function `estimate_popsize`
+  + diagnostics (residuals, leave-one-out diagnostics)
+  + testing  `marginalFreq`
+  + datasets `carcassubmission`, `netherlandsimmigrant`
+3. workplan
+4. discussion
+
+## Installation
+
+Installation of the package from github
+
+```{r}
+devtools::install_github("ncn-foreigners/singleRcapture")
+```
+
+```{r}
+library(singleRcapture)
+```
+
+
+
+```{r}
+A2 <- estimate_popsize(formula = TOTAL_SUB ~ (log_size + log_distance)*C_TYPE, 
+                       model = "ztpoisson", 
+                       method = "mle", 
+                       pop.var = "analytic", 
+                       data = farmsubmission)
+summary(A2)
+
+summary(marginalFreq(A2), dropl5 = "group", df=2)
+
+xtabs(~capture + age, netherlandsimmigrant)
+```
+
+```
+Population size estimation results: 
+Point estimate 17502.64
+Std. Error 193.8503
+95% CI:
+             lowerBound upperBound
+Studentized    17122.70   17882.58
+Logtransform   17135.72   17895.97
+
+
+Population size estimation results: 
+Point estimate 18344.63
+Std. Error 211.4285
+95% CI:
+             lowerBound upperBound
+Studentized    17930.23   18759.02
+Logtransform   17943.66   18772.81
+
+```
