@@ -16,47 +16,75 @@ output: html_notebook
 
 ## Installation
 
-Installation of the package from github
+Installation of the package from github [working branch]
 
 ```{r}
-devtools::install_github("ncn-foreigners/singleRcapture")
+remotes::install_github("ncn-foreigners/singleRcapture@working")
 ```
+
+Loading the package
 
 ```{r}
 library(singleRcapture)
 ```
 
+Main functions:
+
++ `estimate_popsize` -- declaration of formulae, type of model (i.e. distribution), estimation method, variance estimation and many other, under the hood:
+  + `estimate_popsize.fit` -- function to fit the model (in matrix notation)
+  + `populationEstimate` -- function to estimate the population size given input in `estimate_popsize`
++ `marginalFreq` -- function to verify esti
 
 
 ```{r}
-A2 <- estimate_popsize(formula = TOTAL_SUB ~ (log_size + log_distance)*C_TYPE, 
+m1 <- estimate_popsize(formula = capture ~ gender + age + nation, 
                        model = "ztpoisson", 
                        method = "mle", 
                        pop.var = "analytic", 
-                       data = farmsubmission)
-summary(A2)
-
-summary(marginalFreq(A2), dropl5 = "group", df=2)
-
-xtabs(~capture + age, netherlandsimmigrant)
+                       data = netherlandsimmigrant)
 ```
 
+Basic output
+
+```{r}
+m1
 ```
-Population size estimation results: 
-Point estimate 17502.64
-Std. Error 193.8503
-95% CI:
-             lowerBound upperBound
-Studentized    17122.70   17882.58
-Logtransform   17135.72   17895.97
 
+Detailed output
 
-Population size estimation results: 
-Point estimate 18344.63
-Std. Error 211.4285
-95% CI:
-             lowerBound upperBound
-Studentized    17930.23   18759.02
-Logtransform   17943.66   18772.81
-
+```{r}
+summary(m1)
 ```
+Basic, stats functions
+
+```{r}
+table(resid(m1))
+```
+
+Multiple models
+
+```{r}
+selected_models <- c("ztpoisson", "zelterman", "chao", "ztgeom")
+
+multiple_models <- lapply(selected_models, 
+                          function(x) {
+                            estimate_popsize(formula = capture ~ gender + age + nation, 
+                                             model = x, 
+                                             method = "mle", 
+                                             pop.var = "analytic",
+                                             data = netherlandsimmigrant)
+                            })
+
+pop_sizes <- lapply(multiple_models, "[[", "populationSize")
+```
+
+```{r}
+data.frame(x = selected_models,
+           N_hat = sapply(pop_sizes, "[[", "pointEstimate"))
+```
+
+```{r}
+data.frame(x = selected_models,
+           N_hat = do.call("rbind", lapply(pop_sizes, "[[", "confidenceInterval")))
+```
+
