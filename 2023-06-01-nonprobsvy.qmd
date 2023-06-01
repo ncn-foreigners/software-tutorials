@@ -1,7 +1,10 @@
 ---
 title: "Short software tutorial on `nonprobsvy` package"
 author: Maciej Beręsewicz
-format: html
+format: 
+  html:
+    number-sections: true
+    self-contained: true
 lang: en
 bibliography: references.bib
 biblio-style: apalike
@@ -58,6 +61,45 @@ In the empirical part we reproduce results from the following papers:
 
 ## @yang2020 paper 
 
+### Simulation from section 6
+
+In this section, we evaluate the finite sample performance of the procedure proposed. We first
+generate a finite population $\mathcal{F}_{N}=\left\{(X_{i}, Y_{i}): i=1, \ldots, N\right\}$ with $N=10000$, where $Y_{i}$ is a continuous or binary outcome variable, and $X_{i}=(1, X_{1, i}, \ldots, X_{p-1, i})^{\mathrm{T}}$ is a $p$-dimensional vector of covariates with the first component being 1 and other components independently generated from the standard normal distribution. We set $p=50$. From the finite population, we select a non-probability sample $\mathcal{B}$ of size $n_{\mathrm{B}} \approx 2000$, according to the selection indicator $I_{\mathrm{B}, i} \sim \operatorname{Ber}(\pi_{\mathrm{B}, i})$.
+
+We select a probability sample $\mathcal{A}$ of the average size $n_{\mathrm{A}}=500$ under Poisson sampling with $\pi_{\mathrm{A}, i} \propto(0.25+\left|X_{1 i}\right|+0.03\left|Y_{i}\right|)$. The parameter of interest is the population mean $\mu=N^{-1} \sum_{i=1}^{N} Y_{i}$.
+
+For the non-probability sampling probability, we consider both linear and non-linear sam-
+pling score models:
+
++ (a) $\operatorname{logit}(\pi_{\mathrm{B}, i})=\alpha_{0}^{\mathrm{T}} X_{i}$, where $\alpha_{0}=(-2,1,1,1,1,0,0,0, \ldots, 0)^{\mathrm{T}}($ model PSM I)
++ (b) $\operatorname{logit}(\pi_{\mathrm{B}, i})=3.5+\alpha_{0}^{\mathrm{T}} \log (X_{i}^{2})-\sin (X_{3, i}+X_{4, i})-X_{5, i}-X_{6, i}$, where $\alpha_{0}=(0,0,0,3,3,3,3$
+$0, \ldots, 0)^{\mathrm{T}}($ model PSM II).
+
+For generating a continuous outcome variable $Y_{i}$, we consider both linear and non-linear
+outcome models with $\beta_{0}=(1,0,0,1,1,1,1,0, \ldots, 0)^{\mathrm{T}}$ :
+
++ (a) $Y_{i}=\beta_{0}^{\mathrm{T}} X_{i}+\epsilon_{i}, \epsilon_{i} \sim \mathcal{N}(0,1)($ model OM I);
++ (b) $Y_{i}=1+\exp \left\{3 \sin (\beta_{0}^{\mathrm{T}} X_{i})\right\}+X_{5, i}+X_{6, i}+\epsilon_{i}, \epsilon_{i} \sim \mathcal{N}(0,1)$ (model OM II).
+
+For generating a binary outcome variable $Y_{i}$, we consider both linear and non-linear outcome
+models with $\beta_{0}=(1,0,0,3,3,3,3,0, \ldots, 0)^{\mathrm{T}}$,
+
++ (a) $Y \sim \operatorname{Ber}\left\{\pi_{Y}(X)\right\}$ with logit $\left\{\pi_{Y}(X)\right\}=\beta_{0}^{\mathrm{T}} X$ (model OM III);
++ (b) $Y \sim \operatorname{Ber}\left\{\pi_{Y}(X)\right\}$ with logit $\left\{\pi_{Y}(X)\right\}=2-\log \left\{(\beta_{0}^{\mathrm{T}} X)^{2}\right\}+2 X_{5, i}+2 X_{6, i}$ (model OM IV).
+
+We consider the following estimators
+
++ (a) naive, $\hat{\mu}_{\text {naive }}$, the naive estimator using the simple average of $Y_{i}$ from sample $\mathrm{B}$, which
+provides the degree of the selection bias of sample $\mathrm{B}$;
++ (b) oracle, $\hat{\mu}_{\text {ora }}$, the doubly robust estimator $\hat{\mu}_{\mathrm{dr}}(\hat{\alpha}_{\text {ora }}, \hat{\beta}_{\text {ora }})$, where $\hat{\alpha}_{\text {ora }}$ and $\hat{\beta}_{\text {ora }}$ are based
+on the joint estimator restricting to the known important covariates for comparison;
++ (c) $p-ipw$, $\hat{\mu}_{\mathrm{p} \text {-ipw }}$, the penalized inverse probability of sampling weighting estimator $\hat{\mu}_{\mathrm{IPW}}=$ $N^{-1} \Sigma_{i \in \mathcal{B}} \hat{\pi}_{\mathrm{B}, i}^{-1} Y_{i}$, where logit $(\hat{\pi}_{\mathrm{B}, i})=X_{i}^{\mathrm{T}} \hat{\alpha}$ using a logistic regression model, and $\hat{\alpha}$ is obtained by a weighted penalized regression of $I_{\mathrm{B}, i}$ on $X_{i}$ based on the combined data from sample $\mathrm{A}$ and sample $\mathrm{B}$, with the units in sample A weighted by the known sampling weights and the units in sample $\mathrm{B}$ weighted by 1 .
++ (d) $p-reg$, $\hat{\mu}_{\mathrm{p} \text {-reg }}$, the penalized regression estimator $\hat{\mu}_{\mathrm{p}-\mathrm{reg}}=N^{-1} \Sigma_{i \in \mathcal{A}} d_{\mathrm{A}, i} m(X ; \hat{\beta})$, where $\hat{\beta}$ is obtained by a penalized regression of $Y_{i}$ on $X_{i}$ based on sample $\mathrm{B}$;
++ (e) $p-dr0$, $\hat{\mu}_{\mathrm{p} \text {-dr } 0}$, the penalized double estimating equation estimator based on the set of outcome predictors $\hat{\mathcal{M}}_{\beta}$;
++ (f) $p-dr$, $\hat{\mu}_{\mathrm{p}-\mathrm{dr}}$, the proposed penalized double estimating equation estimator based on the
+union of sampling and outcome predictors $\hat{\mathcal{M}}_{\alpha} \cup \hat{\mathcal{M}}_{\beta}$.
+
+We also note that $\hat{\mu}_{\mathrm{dr}}$ without variable selection is severely biased and unstable and therefore is excluded for comparison.
 
 
 ## @chen2020 paper 
@@ -88,12 +130,12 @@ four estimators of $\theta_{N}=N^{-1} \sum_{i=1}^{N} y_{i}$ :
 1. The sample mean from sample $A$ : $\widehat{\theta}_{A}=n_{A}^{-1} \sum_{i \in A} y_{i}$.
 2. The naive estimator (sample mean) from sample $B: \widehat{\theta}_{B}=n_{B}^{-1} \sum_{i \in B} y_{i}$.
 3. The mass imputation estimator from sample $A$ given in Equation (6) using $\widehat{y}_{i}=\widehat{\beta}_{0}+\widehat{\beta}_{1} x_{i}$ where
-$\left(\widehat{\beta}_{0}, \widehat{\boldsymbol{\beta}}_{1}\right)$ are the estimated regression coefficients obtained from sample $B$.
+$(\widehat{\beta}_{0}, \widehat{\boldsymbol{\beta}}_{1})$ are the estimated regression coefficients obtained from sample $B$.
 4. The IPW estimator proposed by @chen2020: $\widehat{\theta}_{I P W}=N^{-1} \sum_{i \in B} \widehat{\pi}_{i}^{-1} y_{i}$, where the propensity
-scores, $\pi_{i}=\pi\left(\mathbf{x}_{i} ; \boldsymbol{\phi}\right)=\left\{1+\exp \left(-\phi_{0}-\phi_{1} x_{i}\right)\right\}^{-1}$ with $\mathbf{x}_{i}=\left(1, x_{i}\right)^{\prime}$ and $\boldsymbol{\phi}=\left(\phi_{0}, \phi_{1}\right)^{\prime}$, are estimated
+scores, $\pi_{i}=\pi(\mathbf{x}_{i} ; \boldsymbol{\phi})=\left\{1+\exp (-\phi_{0}-\phi_{1} x_{i})\right\}^{-1}$ with $\mathbf{x}_{i}=(1, x_{i})^{\prime}$ and $\boldsymbol{\phi}=(\phi_{0}, \phi_{1})^{\prime}$, are estimated
 by using $\widehat{\boldsymbol{\phi}}$ which solves the following score equations:
 $$
-U(\boldsymbol{\phi})=\sum_{i \in B} \mathbf{x}_{i}-\sum_{i \in A} w_{i} \pi\left(\mathbf{x}_{i} ; \boldsymbol{\phi}\right) \mathbf{x}_{i}=\mathbf{0}
+U(\boldsymbol{\phi})=\sum_{i \in B} \mathbf{x}_{i}-\sum_{i \in A} w_{i} \pi(\mathbf{x}_{i} ; \boldsymbol{\phi}) \mathbf{x}_{i}=\mathbf{0}
 $$
 
 
