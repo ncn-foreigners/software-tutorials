@@ -5,6 +5,7 @@ format:
   html:
     number-sections: true
     self-contained: true
+    toc: true
 lang: en
 bibliography: references.bib
 biblio-style: apalike
