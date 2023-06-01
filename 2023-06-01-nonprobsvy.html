@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.2.269">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Maciej Beręsewicz">
+
+<title>Short software tutorial on nonprobsvy package</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}
+</style>
+
+
+<script src="2023-06-01-nonprobsvy_files/libs/clipboard/clipboard.min.js"></script>
+<script src="2023-06-01-nonprobsvy_files/libs/quarto-html/quarto.js"></script>
+<script src="2023-06-01-nonprobsvy_files/libs/quarto-html/popper.min.js"></script>
+<script src="2023-06-01-nonprobsvy_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="2023-06-01-nonprobsvy_files/libs/quarto-html/anchor.min.js"></script>
+<link href="2023-06-01-nonprobsvy_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="2023-06-01-nonprobsvy_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="2023-06-01-nonprobsvy_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="2023-06-01-nonprobsvy_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="2023-06-01-nonprobsvy_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Short software tutorial on <code>nonprobsvy</code> package</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Maciej Beręsewicz </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<section id="basic-information" class="level1">
+<h1>Basic information</h1>
+<p>This tutorial shows basic usage of the <a href="https://github.com/ncn-foreigners/nonprobsvy">nonprobsvy</a> package developed in this project. This package implements mass imputation, inverse probability weighting and doubly robust estimators based on the following papers:</p>
+<ul>
+<li>Yang, S., Kim, J. K., &amp; Song, R. (2020). Doubly robust inference when combining probability and non-probability samples with high dimensional data. Journal of the Royal Statistical Society. Series B, Statistical Methodology, 82(2), 445.</li>
+<li>Kim, J. K., Park, S., Chen, Y., &amp; Wu, C. (2021). Combining non-probability and probability survey samples through mass imputation. Journal of the Royal Statistical Society Series A: Statistics in Society, 184(3), 941-963.</li>
+<li>Chen, Y., Li, P., &amp; Wu, C. (2020). Doubly robust inference with nonprobability survey samples. Journal of the American Statistical Association, 115(532), 2011-2021.</li>
+</ul>
+<p>Tutorial was prepared based on the development version of the <code>nonprobsvy</code> (31.05.2023, commit <code>748b20fc6c18b2889fce626a9742824d6fc1a34b</code>).</p>
+</section>
+<section id="install-and-load-the-required-packages" class="level1">
+<h1>Install and load the required packages</h1>
+<p>Install <code>remotes</code> package and then install <code>nonprobsvy</code> package from github repository.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">"remotes"</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"ncn-foreigners/nonprobsvy"</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">"survey"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Load required packages</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(survey)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(nonprobsvy)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>In the empirical part we reproduce results from the following papers: <span class="citation" data-cites="yang2020">Yang, Kim, and Song (<a href="#ref-yang2020" role="doc-biblioref">2020</a>)</span>; <span class="citation" data-cites="kim2021">Kim et al. (<a href="#ref-kim2021" role="doc-biblioref">2021</a>)</span>; <span class="citation" data-cites="chen2020">Chen, Li, and Wu (<a href="#ref-chen2020" role="doc-biblioref">2019</a>)</span>.</p>
+</section>
+<section id="empirical-examples" class="level1">
+<h1>Empirical examples</h1>
+<section id="yang2020-paper" class="level2">
+<h2 class="anchored" data-anchor-id="yang2020-paper"><span class="citation" data-cites="yang2020">Yang, Kim, and Song (<a href="#ref-yang2020" role="doc-biblioref">2020</a>)</span> paper</h2>
+</section>
+<section id="chen2020-paper" class="level2">
+<h2 class="anchored" data-anchor-id="chen2020-paper"><span class="citation" data-cites="chen2020">Chen, Li, and Wu (<a href="#ref-chen2020" role="doc-biblioref">2019</a>)</span> paper</h2>
+</section>
+<section id="kim2021-paper" class="level2">
+<h2 class="anchored" data-anchor-id="kim2021-paper"><span class="citation" data-cites="kim2021">Kim et al. (<a href="#ref-kim2021" role="doc-biblioref">2021</a>)</span> paper</h2>
+<section id="simulation-from-section-6" class="level3">
+<h3 class="anchored" data-anchor-id="simulation-from-section-6">Simulation from section 6</h3>
+<p>The setup for the simulation study employed a <span class="math inline">\(3 \times 2\)</span> factorial structure with two factors. The first factor is the superpopulation model that generates the finite population. The second factor is the sample size for sample B. We used two levels for <span class="math inline">\(n_{B}\)</span>, where <span class="math inline">\(n_{B}=500\)</span> or <span class="math inline">\(n_{B}=1000\)</span>. We generated the following three models for finite populations of size <span class="math inline">\(N=100,000\)</span>. The variables, <span class="math inline">\(x_{i}\)</span> and <span class="math inline">\(e_{i}\)</span>, are independently generated from <span class="math inline">\(N(2,1)\)</span> and <span class="math inline">\(N(0,1)\)</span>, respectively.</p>
+<p>The study variable <span class="math inline">\(y_{i}\)</span> are constructed differently for each model:</p>
+<ul>
+<li>Model I – <span class="math inline">\(y_{i}=1+2 x_{i}+e_{i}\)</span></li>
+<li>Model II – <span class="math inline">\(y_{i}=3+x_{i}+2e_{i}\)</span></li>
+<li>Model III – <span class="math inline">\(y_{i}=2.5 + 0.5x_{i}^2+e_{i}\)</span></li>
+</ul>
+<p>Model I generates a finite population with a high correlation between <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span> (<span class="math inline">\(r^{2}=0.8\)</span>), Model II generates a finite population with a low correlation (<span class="math inline">\(r^{2}=0.2\)</span>), and Model III generates a finite population where the linear relationship fails. Model III is included to check the effect of model mis-specification for the imputation model.</p>
+<p>From each of the three populations, we generated two independent samples. We use simple random sampling of size <span class="math inline">\(n_{A}=500\)</span> to obtain sample <span class="math inline">\(A\)</span>. In selecting sample <span class="math inline">\(B\)</span> of size <span class="math inline">\(n_{B}\)</span>, where <span class="math inline">\(n_{B} \in\{500,1000\}\)</span>, we create two strata where Stratum 1 consists of elements with <span class="math inline">\(x_{i} \leq 2\)</span> and Stratum 2 consists of elements with <span class="math inline">\(x_{i}&gt;2\)</span>. Within each stratum, we select <span class="math inline">\(n_{h}\)</span> elements by simple random sampling, in- dependent between the two strata, where <span class="math inline">\(n_{1}=0.7 n_{B}\)</span> and <span class="math inline">\(n_{2}=0.3 n_{B}\)</span>. We assume that the stratum information is unavailable at the time of data analysis. Using the two samples <span class="math inline">\(A\)</span> and <span class="math inline">\(B\)</span>, we compute four estimators of <span class="math inline">\(\theta_{N}=N^{-1} \sum_{i=1}^{N} y_{i}\)</span> :</p>
+<ol type="1">
+<li>The sample mean from sample <span class="math inline">\(A\)</span> : <span class="math inline">\(\widehat{\theta}_{A}=n_{A}^{-1} \sum_{i \in A} y_{i}\)</span>.</li>
+<li>The naive estimator (sample mean) from sample <span class="math inline">\(B: \widehat{\theta}_{B}=n_{B}^{-1} \sum_{i \in B} y_{i}\)</span>.</li>
+<li>The mass imputation estimator from sample <span class="math inline">\(A\)</span> given in Equation (6) using <span class="math inline">\(\widehat{y}_{i}=\widehat{\beta}_{0}+\widehat{\beta}_{1} x_{i}\)</span> where <span class="math inline">\(\left(\widehat{\beta}_{0}, \widehat{\boldsymbol{\beta}}_{1}\right)\)</span> are the estimated regression coefficients obtained from sample <span class="math inline">\(B\)</span>.</li>
+<li>The IPW estimator proposed by <span class="citation" data-cites="chen2020">Chen, Li, and Wu (<a href="#ref-chen2020" role="doc-biblioref">2019</a>)</span>: <span class="math inline">\(\widehat{\theta}_{I P W}=N^{-1} \sum_{i \in B} \widehat{\pi}_{i}^{-1} y_{i}\)</span>, where the propensity scores, <span class="math inline">\(\pi_{i}=\pi\left(\mathbf{x}_{i} ; \boldsymbol{\phi}\right)=\left\{1+\exp \left(-\phi_{0}-\phi_{1} x_{i}\right)\right\}^{-1}\)</span> with <span class="math inline">\(\mathbf{x}_{i}=\left(1, x_{i}\right)^{\prime}\)</span> and <span class="math inline">\(\boldsymbol{\phi}=\left(\phi_{0}, \phi_{1}\right)^{\prime}\)</span>, are estimated by using <span class="math inline">\(\widehat{\boldsymbol{\phi}}\)</span> which solves the following score equations: <span class="math display">\[
+U(\boldsymbol{\phi})=\sum_{i \in B} \mathbf{x}_{i}-\sum_{i \in A} w_{i} \pi\left(\mathbf{x}_{i} ; \boldsymbol{\phi}\right) \mathbf{x}_{i}=\mathbf{0}
+\]</span></li>
+</ol>
+</section>
+</section>
+</section>
+<section id="literature" class="level1 unnumbered">
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography"><h2 class="anchored quarto-appendix-heading">Literature</h2><div id="refs" class="references csl-bib-body hanging-indent" role="doc-bibliography">
+<div id="ref-chen2020" class="csl-entry" role="doc-biblioentry">
+Chen, Yilin, Pengfei Li, and Changbao Wu. 2019. <span>“Doubly Robust Inference With Nonprobability Survey Samples.”</span> <em>Journal of the American Statistical Association</em> 115 (532): 2011–21. <a href="https://doi.org/10.1080/01621459.2019.1677241">https://doi.org/10.1080/01621459.2019.1677241</a>.
+</div>
+<div id="ref-kim2021" class="csl-entry" role="doc-biblioentry">
+Kim, Jae Kwang, Seho Park, Yilin Chen, and Changbao Wu. 2021. <span>“Combining Non-Probability and Probability Survey Samples Through Mass Imputation.”</span> <em>Journal of the Royal Statistical Society Series A: Statistics in Society</em> 184 (3): 941–63. <a href="https://doi.org/10.1111/rssa.12696">https://doi.org/10.1111/rssa.12696</a>.
+</div>
+<div id="ref-yang2020" class="csl-entry" role="doc-biblioentry">
+Yang, Shu, Jae Kwang Kim, and Rui Song. 2020. <span>“Doubly Robust Inference When Combining Probability and Non-Probability Samples with High Dimensional Data.”</span> <em>Journal of the Royal Statistical Society Series B: Statistical Methodology</em> 82 (2): 445–65. <a href="https://doi.org/10.1111/rssb.12354">https://doi.org/10.1111/rssb.12354</a>.
+</div>
+</div></section></div></main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>

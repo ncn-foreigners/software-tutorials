@@ -1,0 +1,100 @@
+---
+title: "Short software tutorial on `nonprobsvy` package"
+author: Maciej Beręsewicz
+format: html
+lang: en
+bibliography: references.bib
+biblio-style: apalike
+execute: 
+  warning: false
+---
+
+# Basic information
+
+This tutorial shows basic usage of the
+[nonprobsvy](https://github.com/ncn-foreigners/nonprobsvy) package
+developed in this project. This package implements mass imputation,
+inverse probability weighting and doubly robust estimators based on the
+following papers:
+
+-   Yang, S., Kim, J. K., & Song, R. (2020). Doubly robust inference
+    when combining probability and non-probability samples with high
+    dimensional data. Journal of the Royal Statistical Society. Series
+    B, Statistical Methodology, 82(2), 445.
+-   Kim, J. K., Park, S., Chen, Y., & Wu, C. (2021). Combining
+    non-probability and probability survey samples through mass
+    imputation. Journal of the Royal Statistical Society Series A:
+    Statistics in Society, 184(3), 941-963.
+-   Chen, Y., Li, P., & Wu, C. (2020). Doubly robust inference with
+    nonprobability survey samples. Journal of the American Statistical
+    Association, 115(532), 2011-2021.
+
+Tutorial was prepared based on the development version of the
+`nonprobsvy` (31.05.2023, commit
+`748b20fc6c18b2889fce626a9742824d6fc1a34b`).
+
+# Install and load the required packages
+
+Install `remotes` package and then install `nonprobsvy` package from
+github repository.
+
+```{r install-packages, eval=FALSE}
+install.packages("remotes")
+remotes::install_github("ncn-foreigners/nonprobsvy")
+install.packages("survey")
+```
+
+Load required packages
+
+```{r load-packages}
+library(survey)
+library(nonprobsvy)
+```
+
+In the empirical part we reproduce results from the following papers:
+@yang2020; @kim2021; @chen2020.
+
+# Empirical examples 
+
+## @yang2020 paper 
+
+
+
+## @chen2020 paper 
+
+## @kim2021 paper
+
+### Simulation from section 6 
+
+The setup for the simulation study employed a $3 \times 2$ factorial structure with two factors. The first factor is the superpopulation model that generates the finite population. The second factor is the
+sample size for sample B. We used two levels for $n_{B}$, where $n_{B}=500$ or $n_{B}=1000$. We generated the following three models for finite populations of size $N=100,000$. The variables, $x_{i}$ and $e_{i}$, are independently generated from $N(2,1)$ and $N(0,1)$, respectively.
+
+The study variable $y_{i}$ are constructed differently for each model:
+
++ Model I -- $y_{i}=1+2 x_{i}+e_{i}$
++ Model II -- $y_{i}=3+x_{i}+2e_{i}$
++ Model III -- $y_{i}=2.5 + 0.5x_{i}^2+e_{i}$
+
+Model I generates a finite population with a high correlation between $x$ and $y$ ($r^{2}=0.8$), Model II generates a finite population with a low correlation ($r^{2}=0.2$), and Model III generates a finite population where the linear relationship fails. Model III is included to check the effect of model mis-specification for the imputation model.
+
+From each of the three populations, we generated two independent samples. We use simple random
+sampling of size $n_{A}=500$ to obtain sample $A$. In selecting sample $B$ of size $n_{B}$, where $n_{B} \in\{500,1000\}$,
+we create two strata where Stratum 1 consists of elements with $x_{i} \leq 2$ and Stratum 2 consists of
+elements with $x_{i}>2$. Within each stratum, we select $n_{h}$ elements by simple random sampling, in-
+dependent between the two strata, where $n_{1}=0.7 n_{B}$ and $n_{2}=0.3 n_{B}$. We assume that the stratum
+information is unavailable at the time of data analysis. Using the two samples $A$ and $B$, we compute
+four estimators of $\theta_{N}=N^{-1} \sum_{i=1}^{N} y_{i}$ :
+
+1. The sample mean from sample $A$ : $\widehat{\theta}_{A}=n_{A}^{-1} \sum_{i \in A} y_{i}$.
+2. The naive estimator (sample mean) from sample $B: \widehat{\theta}_{B}=n_{B}^{-1} \sum_{i \in B} y_{i}$.
+3. The mass imputation estimator from sample $A$ given in Equation (6) using $\widehat{y}_{i}=\widehat{\beta}_{0}+\widehat{\beta}_{1} x_{i}$ where
+$\left(\widehat{\beta}_{0}, \widehat{\boldsymbol{\beta}}_{1}\right)$ are the estimated regression coefficients obtained from sample $B$.
+4. The IPW estimator proposed by @chen2020: $\widehat{\theta}_{I P W}=N^{-1} \sum_{i \in B} \widehat{\pi}_{i}^{-1} y_{i}$, where the propensity
+scores, $\pi_{i}=\pi\left(\mathbf{x}_{i} ; \boldsymbol{\phi}\right)=\left\{1+\exp \left(-\phi_{0}-\phi_{1} x_{i}\right)\right\}^{-1}$ with $\mathbf{x}_{i}=\left(1, x_{i}\right)^{\prime}$ and $\boldsymbol{\phi}=\left(\phi_{0}, \phi_{1}\right)^{\prime}$, are estimated
+by using $\widehat{\boldsymbol{\phi}}$ which solves the following score equations:
+$$
+U(\boldsymbol{\phi})=\sum_{i \in B} \mathbf{x}_{i}-\sum_{i \in A} w_{i} \pi\left(\mathbf{x}_{i} ; \boldsymbol{\phi}\right) \mathbf{x}_{i}=\mathbf{0}
+$$
+
+
+# Literature
