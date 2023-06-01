@@ -46,6 +46,7 @@ github repository.
 install.packages("remotes")
 remotes::install_github("ncn-foreigners/nonprobsvy")
 install.packages("survey")
+install.packages("sampling")
 ```
 
 Load required packages
@@ -53,6 +54,31 @@ Load required packages
 ```{r load-packages}
 library(survey)
 library(nonprobsvy)
+library(survey)
+library(Rcpp)
+```
+
+Function for randomized systematic sampling based on prof. Changbao Wu's [webpage](https://sas.uwaterloo.ca/~cbwu/Rcodes/SystematicPPS.txt). One can also use an C++ version of this function available [here](https://gist.github.com/BERENZ/a143196692c6535218148c60c8db5211)
+
+```{r}
+syspps <- function(x,n){ 
+  N <- length(x)
+  U <- sample(N, N)
+  xx <- x[U]
+  z <- rep(0, N)
+  for (i in 1:N) z[i] <- n * sum(xx[1:i]) / sum(x)
+  r <- runif(1)
+  s <-  numeric(n)
+  j <- 1
+  for (i in 1:N) {
+    if (z[i] >= r) {
+      s[j] <- U[i]
+      r <- r + 1
+      j <- j + 1
+    }
+  }
+  return(s[order(s)])
+}
 ```
 
 In the empirical part we reproduce results from the following papers:
@@ -64,22 +90,22 @@ In the empirical part we reproduce results from the following papers:
 
 ### Simulation from section 6
 
-In this section, we evaluate the finite sample performance of the procedure proposed. We first
+> In this section, we evaluate the finite sample performance of the procedure proposed. We first
 generate a finite population $\mathcal{F}_{N}=\left\{(X_{i}, Y_{i}): i=1, \ldots, N\right\}$ with $N=10000$, where $Y_{i}$ is a continuous or binary outcome variable, and $X_{i}=(1, X_{1, i}, \ldots, X_{p-1, i})^{\mathrm{T}}$ is a $p$-dimensional vector of covariates with the first component being 1 and other components independently generated from the standard normal distribution. We set $p=50$. From the finite population, we select a non-probability sample $\mathcal{B}$ of size $n_{\mathrm{B}} \approx 2000$, according to the selection indicator $I_{\mathrm{B}, i} \sim \operatorname{Ber}(\pi_{\mathrm{B}, i})$.
 
-We select a probability sample $\mathcal{A}$ of the average size $n_{\mathrm{A}}=500$ under Poisson sampling with $\pi_{\mathrm{A}, i} \propto(0.25+\left|X_{1 i}\right|+0.03\left|Y_{i}\right|)$. The parameter of interest is the population mean $\mu=N^{-1} \sum_{i=1}^{N} Y_{i}$.
+>We select a probability sample $\mathcal{A}$ of the average size $n_{\mathrm{A}}=500$ under Poisson sampling with $\pi_{\mathrm{A}, i} \propto(0.25+\left|X_{1 i}\right|+0.03\left|Y_{i}\right|)$. The parameter of interest is the population mean $\mu=N^{-1} \sum_{i=1}^{N} Y_{i}$.
 
-For the non-probability sampling probability, we consider both linear and non-linear sam-
+> For the non-probability sampling probability, we consider both linear and non-linear sam-
 pling score models:
 
-+ (a) $\operatorname{logit}(\pi_{\mathrm{B}, i})=\alpha_{0}^{\mathrm{T}} X_{i}$, where $\alpha_{0}=(-2,1,1,1,1,0,0,0, \ldots, 0)^{\mathrm{T}}($ model PSM I)
-+ (b) $\operatorname{logit}(\pi_{\mathrm{B}, i})=3.5+\alpha_{0}^{\mathrm{T}} \log (X_{i}^{2})-\sin (X_{3, i}+X_{4, i})-X_{5, i}-X_{6, i}$, where $\alpha_{0}=(0,0,0,3,3,3,3$
-$0, \ldots, 0)^{\mathrm{T}}($ model PSM II).
+>  + $\operatorname{logit}(\pi_{\mathrm{B}, i})=\alpha_{0}^{\mathrm{T}} X_{i}$, where $\alpha_{0}=(-2,1,1,1,1,0,0,0, \ldots, 0)^{\mathrm{T}}$ (model PSM I)
+>  + $\operatorname{logit}(\pi_{\mathrm{B}, i})=3.5+\alpha_{0}^{\mathrm{T}} \log (X_{i}^{2})-\sin (X_{3, i}+X_{4, i})-X_{5, i}-X_{6, i}$, where $\alpha_{0}=(0,0,0,3,3,3,3$
+$0, \ldots, 0)^{\mathrm{T}}$ (model PSM II).
 
 For generating a continuous outcome variable $Y_{i}$, we consider both linear and non-linear
 outcome models with $\beta_{0}=(1,0,0,1,1,1,1,0, \ldots, 0)^{\mathrm{T}}$ :
 
-+ (a) $Y_{i}=\beta_{0}^{\mathrm{T}} X_{i}+\epsilon_{i}, \epsilon_{i} \sim \mathcal{N}(0,1)($ model OM I);
++ (a) $Y_{i}=\beta_{0}^{\mathrm{T}} X_{i}+\epsilon_{i}, \epsilon_{i} \sim \mathcal{N}(0,1)$ (model OM I);
 + (b) $Y_{i}=1+\exp \left\{3 \sin (\beta_{0}^{\mathrm{T}} X_{i})\right\}+X_{5, i}+X_{6, i}+\epsilon_{i}, \epsilon_{i} \sim \mathcal{N}(0,1)$ (model OM II).
 
 For generating a binary outcome variable $Y_{i}$, we consider both linear and non-linear outcome
@@ -104,6 +130,59 @@ We also note that $\hat{\mu}_{\mathrm{dr}}$ without variable selection is severe
 
 
 ## @chen2020 paper 
+
+### Simulation from section 5
+
+We consider finite populations of size $N=20,000$ with the
+response variable $y$ and auxiliary variables $x$ following the
+regression model $(\xi)$
+$$
+y_{i}=2+x_{1 i}+x_{2 i}+x_{3 i}+x_{4 i}+\sigma \varepsilon_{i}, \quad i=1,2, \ldots, N
+$$
+where $x_{1 i}=z_{1 i}, x_{2 i}=z_{2 i}+0.3 x_{1 i}, x_{3 i}=z_{3 i}+0.2(x_{1 i}+x_{2 i})$
+$x_{4 i}=z_{4 i}+0.1(x_{1 i}+x_{2 i}+x_{3 i})$, with $z_{1 i} \sim \operatorname{Bernoulli}(0.5)$
+$z_{2 i} \sim$ Uniform $(0,2), z_{3 i} \sim$ Exponential( $(1)$, and $z_{4 i} \sim \chi^{2}(4)$
+The error term $\varepsilon_{i}$ 's are independent and identically distributed (iid) as $N(0,1)$, with values of $\sigma$ chosen such that the corre-
+lation coefficient $\rho$ between $y$ and the linear predictor $\boldsymbol{x}^{\top} \boldsymbol{\beta}$ is
+controlled at $0.3,0.5$ and 0.8 for the simulation studies. The
+parameter of interest is the finite population mean $\mu_{y}$.
+The true propensity scores $\pi_{i}^{\mathrm{A}}$ for the nonprobability sample
+$\mathcal{S}_{\mathrm{A}}$ follow the logistic regression model (q)
+$$
+\log (\frac{\pi_{i}^{\mathrm{A}}}{1-\pi_{i}^{\mathrm{A}}})=\theta_{0}+0.1 x_{1 i}+0.2 x_{2 i}+0.1 x_{3 i}+0.2 x_{4 i}
+$$
+
+where $\theta_{0}$ is chosen such that $\sum_{i=1}^{N} \pi_{i}^{\mathrm{A}}=n_{\mathrm{A}}$ with the given
+target sample size $n_{\mathrm{A}}$. The nonprobability sample $\mathcal{S}_{\mathrm{A}}$ is selected
+by the Poisson sampling method with inclusion probabilities
+specified by $\pi_{i}^{\mathrm{A}}$ and the target sample size $n_{\mathrm{A}}$.
+
+The probability sample $\mathcal{S}_{\mathrm{B}}$ with the target size $n_{\mathrm{B}}$ is taken
+by the randomized systematic PPS sampling method (Good-
+man and Kish 1950 ; Hartley and Rao 1962) with the inclusion
+probabilities $\pi_{i}^{\mathrm{B}}$ proportional to $z_{i}=c+x_{3 i}$. The value of $c$ is
+chosen to control the variation of the survey weights such that
+$\max z_{i} / \min z_{i}=50$.
+
+
+We consider four scenarios for model specifications: (i) both
+models $\xi$ and $q$ are correctly specified, denoted as "TT"; (ii)
+the outcome regression model $\xi$ is misspecified but the propen-
+sity score model $q$ is correctly specified, denoted as "FT"” The
+working model for $\xi$ is chosen as $m(\boldsymbol{x}_{i}, \boldsymbol{\beta})=\beta_{0}+\beta_{1} x_{1 i}+$
+$\beta_{2} x_{2 i}+\beta_{3} x_{3 i}$, with $x_{4 i}$ omitted from the model; (iii) the outcome
+regression model $\xi$ is correctly specified but the propensity score
+model $q$ is misspecified, denoted as "TF" The working model
+for $q$ is given by $\log \left\{\pi_{i}^{\mathrm{A}} /(1-\pi_{i}^{\mathrm{A}}\right\}=\theta_{0}+\theta_{1} x_{1 i}+\theta_{2} x_{2 i}+\right.$
+$\theta_{3} x_{3 i}$, with $x_{4 i}$ omitted from the model. (iv) Both models are
+misspecified, denoted as "FF." The working model for $\xi$ is chosen
+as $m(\boldsymbol{x}_{i}, \boldsymbol{\beta})=\beta_{0}+\beta_{1} x_{1 i}+\beta_{2} x_{2 i}+\beta_{3} x_{3 i}$, and for $q$ is given by
+$\log \left\{\pi_{i}^{\mathrm{A}} /(1-\pi_{i}^{\mathrm{A}}\right\}=\theta_{0}+\theta_{1} x_{1 i}+\theta_{2} x_{2 i}+\theta_{3} x_{3 i}\right.$. We consider four
+different sample size combinations for $(n_{\mathrm{A}}, n_{\mathrm{B}})$ with $n_{\mathrm{A}}$ and $n_{\mathrm{B}}$ equaling either 500 or 1000 .
+
+
+
+
 
 ## @kim2021 paper
 

@@ -2645,7 +2645,10 @@ vertical-align: -.125em;
   <ul class="collapse">
   <li><a href="#simulation-from-section-6" id="toc-simulation-from-section-6" class="nav-link" data-scroll-target="#simulation-from-section-6"><span class="toc-section-number">3.1.1</span>  Simulation from section 6</a></li>
   </ul></li>
-  <li><a href="#chen2020-paper" id="toc-chen2020-paper" class="nav-link" data-scroll-target="#chen2020-paper"><span class="toc-section-number">3.2</span>  <span class="citation" data-cites="chen2020">Chen, Li, and Wu (2019)</span> paper</a></li>
+  <li><a href="#chen2020-paper" id="toc-chen2020-paper" class="nav-link" data-scroll-target="#chen2020-paper"><span class="toc-section-number">3.2</span>  <span class="citation" data-cites="chen2020">Chen, Li, and Wu (2019)</span> paper</a>
+  <ul class="collapse">
+  <li><a href="#simulation-from-section-5" id="toc-simulation-from-section-5" class="nav-link" data-scroll-target="#simulation-from-section-5"><span class="toc-section-number">3.2.1</span>  Simulation from section 5</a></li>
+  </ul></li>
   <li><a href="#kim2021-paper" id="toc-kim2021-paper" class="nav-link" data-scroll-target="#kim2021-paper"><span class="toc-section-number">3.3</span>  <span class="citation" data-cites="kim2021">Kim et al. (2021)</span> paper</a>
   <ul class="collapse">
   <li><a href="#simulation-from-section-6-1" id="toc-simulation-from-section-6-1" class="nav-link" data-scroll-target="#simulation-from-section-6-1"><span class="toc-section-number">3.3.1</span>  Simulation from section 6</a></li>
@@ -2696,12 +2699,36 @@ vertical-align: -.125em;
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">&quot;remotes&quot;</span>)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">&quot;ncn-foreigners/nonprobsvy&quot;</span>)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">&quot;survey&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">&quot;survey&quot;</span>)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">&quot;sampling&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Load required packages</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(survey)</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(nonprobsvy)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(nonprobsvy)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(survey)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(Rcpp)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Function for randomized systematic sampling based on prof. Changbao Wu’s <a href="https://sas.uwaterloo.ca/~cbwu/Rcodes/SystematicPPS.txt">webpage</a>. One can also use an C++ version of this function available <a href="https://gist.github.com/BERENZ/a143196692c6535218148c60c8db5211">here</a></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>syspps <span class="ot">&lt;-</span> <span class="cf">function</span>(x,n){ </span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  N <span class="ot">&lt;-</span> <span class="fu">length</span>(x)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  U <span class="ot">&lt;-</span> <span class="fu">sample</span>(N, N)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  xx <span class="ot">&lt;-</span> x[U]</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  z <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">0</span>, N)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>N) z[i] <span class="ot">&lt;-</span> n <span class="sc">*</span> <span class="fu">sum</span>(xx[<span class="dv">1</span><span class="sc">:</span>i]) <span class="sc">/</span> <span class="fu">sum</span>(x)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  r <span class="ot">&lt;-</span> <span class="fu">runif</span>(<span class="dv">1</span>)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  s <span class="ot">&lt;-</span>  <span class="fu">numeric</span>(n)</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  j <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>N) {</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (z[i] <span class="sc">&gt;=</span> r) {</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>      s[j] <span class="ot">&lt;-</span> U[i]</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>      r <span class="ot">&lt;-</span> r <span class="sc">+</span> <span class="dv">1</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>      j <span class="ot">&lt;-</span> j <span class="sc">+</span> <span class="dv">1</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(s[<span class="fu">order</span>(s)])</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>In the empirical part we reproduce results from the following papers: <span class="citation" data-cites="yang2020">Yang, Kim, and Song (<a href="#ref-yang2020" role="doc-biblioref">2020</a>)</span>; <span class="citation" data-cites="kim2021">Kim et al. (<a href="#ref-kim2021" role="doc-biblioref">2021</a>)</span>; <span class="citation" data-cites="chen2020">Chen, Li, and Wu (<a href="#ref-chen2020" role="doc-biblioref">2019</a>)</span>.</p>
 </section>
@@ -2711,21 +2738,25 @@ vertical-align: -.125em;
 <h2 data-number="3.1" class="anchored" data-anchor-id="yang2020-paper"><span class="header-section-number">3.1</span> <span class="citation" data-cites="yang2020">Yang, Kim, and Song (<a href="#ref-yang2020" role="doc-biblioref">2020</a>)</span> paper</h2>
 <section id="simulation-from-section-6" class="level3" data-number="3.1.1">
 <h3 data-number="3.1.1" class="anchored" data-anchor-id="simulation-from-section-6"><span class="header-section-number">3.1.1</span> Simulation from section 6</h3>
+<blockquote class="blockquote">
 <p>In this section, we evaluate the finite sample performance of the procedure proposed. We first generate a finite population <span class="math inline">\(\mathcal{F}_{N}=\left\{(X_{i}, Y_{i}): i=1, \ldots, N\right\}\)</span> with <span class="math inline">\(N=10000\)</span>, where <span class="math inline">\(Y_{i}\)</span> is a continuous or binary outcome variable, and <span class="math inline">\(X_{i}=(1, X_{1, i}, \ldots, X_{p-1, i})^{\mathrm{T}}\)</span> is a <span class="math inline">\(p\)</span>-dimensional vector of covariates with the first component being 1 and other components independently generated from the standard normal distribution. We set <span class="math inline">\(p=50\)</span>. From the finite population, we select a non-probability sample <span class="math inline">\(\mathcal{B}\)</span> of size <span class="math inline">\(n_{\mathrm{B}} \approx 2000\)</span>, according to the selection indicator <span class="math inline">\(I_{\mathrm{B}, i} \sim \operatorname{Ber}(\pi_{\mathrm{B}, i})\)</span>.</p>
+</blockquote>
+<blockquote class="blockquote">
 <p>We select a probability sample <span class="math inline">\(\mathcal{A}\)</span> of the average size <span class="math inline">\(n_{\mathrm{A}}=500\)</span> under Poisson sampling with <span class="math inline">\(\pi_{\mathrm{A}, i} \propto(0.25+\left|X_{1 i}\right|+0.03\left|Y_{i}\right|)\)</span>. The parameter of interest is the population mean <span class="math inline">\(\mu=N^{-1} \sum_{i=1}^{N} Y_{i}\)</span>.</p>
+</blockquote>
+<blockquote class="blockquote">
 <p>For the non-probability sampling probability, we consider both linear and non-linear sam- pling score models:</p>
+</blockquote>
+<blockquote class="blockquote">
 <ul>
-<li><ol type="a">
-<li><span class="math inline">\(\operatorname{logit}(\pi_{\mathrm{B}, i})=\alpha_{0}^{\mathrm{T}} X_{i}\)</span>, where <span class="math inline">\(\alpha_{0}=(-2,1,1,1,1,0,0,0, \ldots, 0)^{\mathrm{T}}(\)</span> model PSM I)</li>
-</ol></li>
-<li><ol start="2" type="a">
-<li><span class="math inline">\(\operatorname{logit}(\pi_{\mathrm{B}, i})=3.5+\alpha_{0}^{\mathrm{T}} \log (X_{i}^{2})-\sin (X_{3, i}+X_{4, i})-X_{5, i}-X_{6, i}\)</span>, where <span class="math inline">\(\alpha_{0}=(0,0,0,3,3,3,3\)</span> <span class="math inline">\(0, \ldots, 0)^{\mathrm{T}}(\)</span> model PSM II).</li>
-</ol></li>
+<li><span class="math inline">\(\operatorname{logit}(\pi_{\mathrm{B}, i})=\alpha_{0}^{\mathrm{T}} X_{i}\)</span>, where <span class="math inline">\(\alpha_{0}=(-2,1,1,1,1,0,0,0, \ldots, 0)^{\mathrm{T}}\)</span> (model PSM I)</li>
+<li><span class="math inline">\(\operatorname{logit}(\pi_{\mathrm{B}, i})=3.5+\alpha_{0}^{\mathrm{T}} \log (X_{i}^{2})-\sin (X_{3, i}+X_{4, i})-X_{5, i}-X_{6, i}\)</span>, where <span class="math inline">\(\alpha_{0}=(0,0,0,3,3,3,3\)</span> <span class="math inline">\(0, \ldots, 0)^{\mathrm{T}}\)</span> (model PSM II).</li>
 </ul>
+</blockquote>
 <p>For generating a continuous outcome variable <span class="math inline">\(Y_{i}\)</span>, we consider both linear and non-linear outcome models with <span class="math inline">\(\beta_{0}=(1,0,0,1,1,1,1,0, \ldots, 0)^{\mathrm{T}}\)</span> :</p>
 <ul>
 <li><ol type="a">
-<li><span class="math inline">\(Y_{i}=\beta_{0}^{\mathrm{T}} X_{i}+\epsilon_{i}, \epsilon_{i} \sim \mathcal{N}(0,1)(\)</span> model OM I);</li>
+<li><span class="math inline">\(Y_{i}=\beta_{0}^{\mathrm{T}} X_{i}+\epsilon_{i}, \epsilon_{i} \sim \mathcal{N}(0,1)\)</span> (model OM I);</li>
 </ol></li>
 <li><ol start="2" type="a">
 <li><span class="math inline">\(Y_{i}=1+\exp \left\{3 \sin (\beta_{0}^{\mathrm{T}} X_{i})\right\}+X_{5, i}+X_{6, i}+\epsilon_{i}, \epsilon_{i} \sim \mathcal{N}(0,1)\)</span> (model OM II).</li>
@@ -2766,6 +2797,17 @@ vertical-align: -.125em;
 </section>
 <section id="chen2020-paper" class="level2" data-number="3.2">
 <h2 data-number="3.2" class="anchored" data-anchor-id="chen2020-paper"><span class="header-section-number">3.2</span> <span class="citation" data-cites="chen2020">Chen, Li, and Wu (<a href="#ref-chen2020" role="doc-biblioref">2019</a>)</span> paper</h2>
+<section id="simulation-from-section-5" class="level3" data-number="3.2.1">
+<h3 data-number="3.2.1" class="anchored" data-anchor-id="simulation-from-section-5"><span class="header-section-number">3.2.1</span> Simulation from section 5</h3>
+<p>We consider finite populations of size <span class="math inline">\(N=20,000\)</span> with the response variable <span class="math inline">\(y\)</span> and auxiliary variables <span class="math inline">\(x\)</span> following the regression model <span class="math inline">\((\xi)\)</span> <span class="math display">\[
+y_{i}=2+x_{1 i}+x_{2 i}+x_{3 i}+x_{4 i}+\sigma \varepsilon_{i}, \quad i=1,2, \ldots, N
+\]</span> where <span class="math inline">\(x_{1 i}=z_{1 i}, x_{2 i}=z_{2 i}+0.3 x_{1 i}, x_{3 i}=z_{3 i}+0.2(x_{1 i}+x_{2 i})\)</span> <span class="math inline">\(x_{4 i}=z_{4 i}+0.1(x_{1 i}+x_{2 i}+x_{3 i})\)</span>, with <span class="math inline">\(z_{1 i} \sim \operatorname{Bernoulli}(0.5)\)</span> <span class="math inline">\(z_{2 i} \sim\)</span> Uniform <span class="math inline">\((0,2), z_{3 i} \sim\)</span> Exponential( <span class="math inline">\((1)\)</span>, and <span class="math inline">\(z_{4 i} \sim \chi^{2}(4)\)</span> The error term <span class="math inline">\(\varepsilon_{i}\)</span> ’s are independent and identically distributed (iid) as <span class="math inline">\(N(0,1)\)</span>, with values of <span class="math inline">\(\sigma\)</span> chosen such that the corre- lation coefficient <span class="math inline">\(\rho\)</span> between <span class="math inline">\(y\)</span> and the linear predictor <span class="math inline">\(\boldsymbol{x}^{\top} \boldsymbol{\beta}\)</span> is controlled at <span class="math inline">\(0.3,0.5\)</span> and 0.8 for the simulation studies. The parameter of interest is the finite population mean <span class="math inline">\(\mu_{y}\)</span>. The true propensity scores <span class="math inline">\(\pi_{i}^{\mathrm{A}}\)</span> for the nonprobability sample <span class="math inline">\(\mathcal{S}_{\mathrm{A}}\)</span> follow the logistic regression model (q) <span class="math display">\[
+\log (\frac{\pi_{i}^{\mathrm{A}}}{1-\pi_{i}^{\mathrm{A}}})=\theta_{0}+0.1 x_{1 i}+0.2 x_{2 i}+0.1 x_{3 i}+0.2 x_{4 i}
+\]</span></p>
+<p>where <span class="math inline">\(\theta_{0}\)</span> is chosen such that <span class="math inline">\(\sum_{i=1}^{N} \pi_{i}^{\mathrm{A}}=n_{\mathrm{A}}\)</span> with the given target sample size <span class="math inline">\(n_{\mathrm{A}}\)</span>. The nonprobability sample <span class="math inline">\(\mathcal{S}_{\mathrm{A}}\)</span> is selected by the Poisson sampling method with inclusion probabilities specified by <span class="math inline">\(\pi_{i}^{\mathrm{A}}\)</span> and the target sample size <span class="math inline">\(n_{\mathrm{A}}\)</span>.</p>
+<p>The probability sample <span class="math inline">\(\mathcal{S}_{\mathrm{B}}\)</span> with the target size <span class="math inline">\(n_{\mathrm{B}}\)</span> is taken by the randomized systematic PPS sampling method (Good- man and Kish 1950 ; Hartley and Rao 1962) with the inclusion probabilities <span class="math inline">\(\pi_{i}^{\mathrm{B}}\)</span> proportional to <span class="math inline">\(z_{i}=c+x_{3 i}\)</span>. The value of <span class="math inline">\(c\)</span> is chosen to control the variation of the survey weights such that <span class="math inline">\(\max z_{i} / \min z_{i}=50\)</span>.</p>
+<p>We consider four scenarios for model specifications: (i) both models <span class="math inline">\(\xi\)</span> and <span class="math inline">\(q\)</span> are correctly specified, denoted as “TT”; (ii) the outcome regression model <span class="math inline">\(\xi\)</span> is misspecified but the propen- sity score model <span class="math inline">\(q\)</span> is correctly specified, denoted as “FT”” The working model for <span class="math inline">\(\xi\)</span> is chosen as <span class="math inline">\(m(\boldsymbol{x}_{i}, \boldsymbol{\beta})=\beta_{0}+\beta_{1} x_{1 i}+\)</span> <span class="math inline">\(\beta_{2} x_{2 i}+\beta_{3} x_{3 i}\)</span>, with <span class="math inline">\(x_{4 i}\)</span> omitted from the model; (iii) the outcome regression model <span class="math inline">\(\xi\)</span> is correctly specified but the propensity score model <span class="math inline">\(q\)</span> is misspecified, denoted as “TF” The working model for <span class="math inline">\(q\)</span> is given by <span class="math inline">\(\log \left\{\pi_{i}^{\mathrm{A}} /(1-\pi_{i}^{\mathrm{A}}\right\}=\theta_{0}+\theta_{1} x_{1 i}+\theta_{2} x_{2 i}+\right.\)</span> <span class="math inline">\(\theta_{3} x_{3 i}\)</span>, with <span class="math inline">\(x_{4 i}\)</span> omitted from the model. (iv) Both models are misspecified, denoted as “FF.” The working model for <span class="math inline">\(\xi\)</span> is chosen as <span class="math inline">\(m(\boldsymbol{x}_{i}, \boldsymbol{\beta})=\beta_{0}+\beta_{1} x_{1 i}+\beta_{2} x_{2 i}+\beta_{3} x_{3 i}\)</span>, and for <span class="math inline">\(q\)</span> is given by <span class="math inline">\(\log \left\{\pi_{i}^{\mathrm{A}} /(1-\pi_{i}^{\mathrm{A}}\right\}=\theta_{0}+\theta_{1} x_{1 i}+\theta_{2} x_{2 i}+\theta_{3} x_{3 i}\right.\)</span>. We consider four different sample size combinations for <span class="math inline">\((n_{\mathrm{A}}, n_{\mathrm{B}})\)</span> with <span class="math inline">\(n_{\mathrm{A}}\)</span> and <span class="math inline">\(n_{\mathrm{B}}\)</span> equaling either 500 or 1000 .</p>
+</section>
 </section>
 <section id="kim2021-paper" class="level2" data-number="3.3">
 <h2 data-number="3.3" class="anchored" data-anchor-id="kim2021-paper"><span class="header-section-number">3.3</span> <span class="citation" data-cites="kim2021">Kim et al. (<a href="#ref-kim2021" role="doc-biblioref">2021</a>)</span> paper</h2>
