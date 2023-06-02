@@ -391,7 +391,7 @@ for (b in 1:B) {
 Bias, variance, mse and relative MSE calculated as
 
 $$
-RelMSE = \frac{MSE(\theta)}{MSE(\theta_A)},
+RelMSE = \frac{MSE(\hat{\theta})}{MSE(\hat{\theta}_A)},
 $$ where $\theta_A$ is the target parameter calculated if random sample
 would be available for $y1,y2$ and $y3$.
 
