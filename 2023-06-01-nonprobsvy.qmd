@@ -323,7 +323,7 @@ n_b2 <- 0.3*n_b
 x <- rnorm(N, 2, 1)
 e <- rnorm(N)
 y1 <- 1 + 2*x + e
-y2 <- 3 + x + e
+y2 <- 3 + x + 2*e
 y3 <- 2.5 + 0.5*x^2 + e
 strata <- x <= 2
 pop <- data.frame(x, y1, y2, y3, strata)
@@ -338,50 +338,15 @@ sample_b <- rbind(pop1[sample(1:nrow(pop1), n_b1), ],
 sample_b$w_b <- N/n_b
 
 ## mass imputation
-res_y1 <- nonprob(outcome = y1 ~ x, 
-                  data = sample_b,
-                  weights = sample_b$w_b,
-                  svydesign = svy_a)
-
-res_y2 <- nonprob(outcome= y2 ~ x, 
-                  data = sample_b,
-                  weights = sample_b$w_b,
-                  svydesign = svy_a)
-
-res_y3 <- nonprob(outcome= y3 ~ x, 
-                  data = sample_b,
-                  weights = sample_b$w_b,
-                  svydesign = svy_a)
-
-res_y1_ps <- nonprob(selection = ~ x,
-                     target = ~ y1,
-                     data = sample_b,
-                     svydesign = svy_a)
-
-res_y2_ps <- nonprob(selection = ~ x,
-                     target = ~ y3,
-                     data = sample_b,
-                     svydesign = svy_a)
-
-res_y3_ps <- nonprob(selection = ~ x,
-                     target = ~ y3,
-                     data = sample_b,
-                     svydesign = svy_a)
-
-# res_y1_ps <- nonprob(selection = ~ x,
-#                      target = ~ y1,
-#                      data = sample_b,
-#                      svydesign = svy_a, 
-#                      pop_size = N,
-#                      weights = sample_b$w_b,
-#                      control_selection = controlSel(est_method_sel = "gee"))
+res_y1 <- nonprob(outcome = y1 ~ x,  data = sample_b, weights = sample_b$w_b, svydesign = svy_a)
+res_y2 <- nonprob(outcome= y2 ~ x,  data = sample_b, weights = sample_b$w_b, svydesign = svy_a)
+res_y3 <- nonprob(outcome= y3 ~ x,  data = sample_b, weights = sample_b$w_b, svydesign = svy_a)
 
 
-lapply(list("mi_y1"=res_y1, "mi_y2"=res_y2, "mi_y3"=res_y3), "[[", "confidence_interval") |>
-  do.call("rbind", args = _) |>
-  transform(true = c(mean(y1), mean(y2), mean(y3)),
-            naive = c(mean(sample_b$y1),mean(sample_b$y2), mean(sample_b$y3)),
-            mi = c(res_y1$output$mean, res_y2$output$mean, res_y3$output$mean))
+data.frame(est = c("mi_y1","mi_y2", "mi_y3"),
+           true = c(mean(y1), mean(y2), mean(y3)),
+           naive_B = c(mean(sample_b$y1),mean(sample_b$y2), mean(sample_b$y3)),
+           mi = c(res_y1$output$mean, res_y2$output$mean, res_y3$output$mean))
 ```
 
 Run the simulation and compare results with the paper
@@ -390,7 +355,7 @@ Run the simulation and compare results with the paper
 #| cache: true
 set.seed(20230602)
 B <- 1000
-results <- matrix(data = 0, nrow = B, ncol = 6)
+results <- matrix(data = 0, nrow = B, ncol = 9)
 results_ci <- matrix(data = 0, nrow = B, ncol = 6)
 for (b in 1:B) {
   sample_a <- pop[sample(1:N, n_a),]
@@ -410,6 +375,9 @@ for (b in 1:B) {
   results[b, 4] <- mean(sample_a$y1)
   results[b, 5] <- mean(sample_a$y2)
   results[b, 6] <- mean(sample_a$y3)
+  results[b, 7] <- mean(sample_b$y1)
+  results[b, 8] <- mean(sample_b$y2)
+  results[b, 9] <- mean(sample_b$y3)
   
   results_ci[b, 1] <- res_y1$confidence_interval$lower_bound
   results_ci[b, 2] <- res_y1$confidence_interval$upper_bound
@@ -420,18 +388,24 @@ for (b in 1:B) {
 }
 ```
 
-Bias, variance, mse and relative mse
+Bias, variance, mse and relative MSE calculated as
+
+$$
+RelMSE = \frac{MSE(\theta)}{MSE(\theta_A)},
+$$ where $\theta_A$ is the target parameter calculated if random sample
+would be available for $y1,y2$ and $y3$.
 
 ```{r mi-sim-bias-reports}
 results_mi <- data.frame(
-  est = c("mi_y1", "mi_y2", "mi_y3", "naive_y1", "naive_y2", "naive_y3"),
-  bias = colMeans(results) - c(colMeans(pop[, 2:4]),colMeans(pop[, 2:4])),
-  var = apply(results, 2, var)*1000
+  est = c("mi_y1", "mi_y2", "mi_y3", "naiveA_y1", "naiveA_y2", "naiveA_y3",
+          "naiveB_y1", "naiveB_y2", "naiveB_y3"),
+  bias = colMeans(results) - c(colMeans(pop[, 2:4]), colMeans(pop[, 2:4]), colMeans(pop[, 2:4])),
+  var = apply(results, 2, var)
 ) 
 
 results_mi$mse <- with(results_mi, bias^2+var)
-results_mi$relMSE <- results_mi$mse/results_mi$mse[c(4,5,6,4,5,6)]*100
-results_mi 
+results_mi$relMSE <- results_mi$mse/results_mi$mse[c(4,5,6,4,5,6,4,5,6)]*100
+results_mi[c(4:nrow(results_mi), 1:3),]
 ```
 
 We can compare the results with table 3 from @kim2021
