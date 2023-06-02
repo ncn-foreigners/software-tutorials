@@ -6,6 +6,7 @@ format:
     number-sections: true
     self-contained: true
     toc: true
+    df-print: kable
 lang: en
 bibliography: references.bib
 biblio-style: apalike
@@ -53,12 +54,14 @@ Load required packages
 
 ```{r load-packages}
 library(survey)
+library(sampling)
 library(nonprobsvy)
-library(survey)
-library(Rcpp)
 ```
 
-Function for randomized systematic sampling based on prof. Changbao Wu's [webpage](https://sas.uwaterloo.ca/~cbwu/Rcodes/SystematicPPS.txt). One can also use an C++ version of this function available [here](https://gist.github.com/BERENZ/a143196692c6535218148c60c8db5211)
+Function for randomized systematic sampling based on prof. Changbao Wu's
+[webpage](https://sas.uwaterloo.ca/~cbwu/Rcodes/SystematicPPS.txt). One
+can also use an C++ version of this function available
+[here](https://gist.github.com/BERENZ/a143196692c6535218148c60c8db5211)
 
 ```{r}
 syspps <- function(x,n){ 
@@ -84,139 +87,365 @@ syspps <- function(x,n){
 In the empirical part we reproduce results from the following papers:
 @yang2020; @kim2021; @chen2020.
 
-# Empirical examples 
+# Empirical examples
 
-## @yang2020 paper 
+## @yang2020 paper
 
 ### Simulation from section 6
 
-> In this section, we evaluate the finite sample performance of the procedure proposed. We first
-generate a finite population $\mathcal{F}_{N}=\left\{(X_{i}, Y_{i}): i=1, \ldots, N\right\}$ with $N=10000$, where $Y_{i}$ is a continuous or binary outcome variable, and $X_{i}=(1, X_{1, i}, \ldots, X_{p-1, i})^{\mathrm{T}}$ is a $p$-dimensional vector of covariates with the first component being 1 and other components independently generated from the standard normal distribution. We set $p=50$. From the finite population, we select a non-probability sample $\mathcal{B}$ of size $n_{\mathrm{B}} \approx 2000$, according to the selection indicator $I_{\mathrm{B}, i} \sim \operatorname{Ber}(\pi_{\mathrm{B}, i})$.
+> In this section, we evaluate the finite sample performance of the
+> procedure proposed. We first generate a finite population
+> $\mathcal{F}_{N}=\left\{(X_{i}, Y_{i}): i=1, \ldots, N\right\}$ with
+> $N=10000$, where $Y_{i}$ is a continuous or binary outcome variable,
+> and $X_{i}=(1, X_{1, i}, \ldots, X_{p-1, i})^{\mathrm{T}}$ is a
+> $p$-dimensional vector of covariates with the first component being 1
+> and other components independently generated from the standard normal
+> distribution. We set $p=50$. From the finite population, we select a
+> non-probability sample $\mathcal{B}$ of size
+> $n_{\mathrm{B}} \approx 2000$, according to the selection indicator
+> $I_{\mathrm{B}, i} \sim \operatorname{Ber}(\pi_{\mathrm{B}, i})$.
 
->We select a probability sample $\mathcal{A}$ of the average size $n_{\mathrm{A}}=500$ under Poisson sampling with $\pi_{\mathrm{A}, i} \propto(0.25+\left|X_{1 i}\right|+0.03\left|Y_{i}\right|)$. The parameter of interest is the population mean $\mu=N^{-1} \sum_{i=1}^{N} Y_{i}$.
+> We select a probability sample $\mathcal{A}$ of the average size
+> $n_{\mathrm{A}}=500$ under Poisson sampling with
+> $\pi_{\mathrm{A}, i} \propto(0.25+\left|X_{1 i}\right|+0.03\left|Y_{i}\right|)$.
+> The parameter of interest is the population mean
+> $\mu=N^{-1} \sum_{i=1}^{N} Y_{i}$.
 
-> For the non-probability sampling probability, we consider both linear and non-linear sam-
-pling score models:
+> For the non-probability sampling probability, we consider both linear
+> and non-linear sam- pling score models:
 
->  + $\operatorname{logit}(\pi_{\mathrm{B}, i})=\alpha_{0}^{\mathrm{T}} X_{i}$, where $\alpha_{0}=(-2,1,1,1,1,0,0,0, \ldots, 0)^{\mathrm{T}}$ (model PSM I)
->  + $\operatorname{logit}(\pi_{\mathrm{B}, i})=3.5+\alpha_{0}^{\mathrm{T}} \log (X_{i}^{2})-\sin (X_{3, i}+X_{4, i})-X_{5, i}-X_{6, i}$, where $\alpha_{0}=(0,0,0,3,3,3,3$
-$0, \ldots, 0)^{\mathrm{T}}$ (model PSM II).
+> -   $\operatorname{logit}(\pi_{\mathrm{B}, i})=\alpha_{0}^{\mathrm{T}} X_{i}$,
+>     where $\alpha_{0}=(-2,1,1,1,1,0,0,0, \ldots, 0)^{\mathrm{T}}$
+>     (model PSM I)
+> -   $\operatorname{logit}(\pi_{\mathrm{B}, i})=3.5+\alpha_{0}^{\mathrm{T}} \log (X_{i}^{2})-\sin (X_{3, i}+X_{4, i})-X_{5, i}-X_{6, i}$,
+>     where $\alpha_{0}=(0,0,0,3,3,3,3$ $0, \ldots, 0)^{\mathrm{T}}$
+>     (model PSM II).
 
-For generating a continuous outcome variable $Y_{i}$, we consider both linear and non-linear
-outcome models with $\beta_{0}=(1,0,0,1,1,1,1,0, \ldots, 0)^{\mathrm{T}}$ :
+For generating a continuous outcome variable $Y_{i}$, we consider both
+linear and non-linear outcome models with
+$\beta_{0}=(1,0,0,1,1,1,1,0, \ldots, 0)^{\mathrm{T}}$ :
 
-+ (a) $Y_{i}=\beta_{0}^{\mathrm{T}} X_{i}+\epsilon_{i}, \epsilon_{i} \sim \mathcal{N}(0,1)$ (model OM I);
-+ (b) $Y_{i}=1+\exp \left\{3 \sin (\beta_{0}^{\mathrm{T}} X_{i})\right\}+X_{5, i}+X_{6, i}+\epsilon_{i}, \epsilon_{i} \sim \mathcal{N}(0,1)$ (model OM II).
+-   
 
-For generating a binary outcome variable $Y_{i}$, we consider both linear and non-linear outcome
-models with $\beta_{0}=(1,0,0,3,3,3,3,0, \ldots, 0)^{\mathrm{T}}$,
+    (a) $Y_{i}=\beta_{0}^{\mathrm{T}} X_{i}+\epsilon_{i}, \epsilon_{i} \sim \mathcal{N}(0,1)$
+        (model OM I);
 
-+ (a) $Y \sim \operatorname{Ber}\left\{\pi_{Y}(X)\right\}$ with logit $\left\{\pi_{Y}(X)\right\}=\beta_{0}^{\mathrm{T}} X$ (model OM III);
-+ (b) $Y \sim \operatorname{Ber}\left\{\pi_{Y}(X)\right\}$ with logit $\left\{\pi_{Y}(X)\right\}=2-\log \left\{(\beta_{0}^{\mathrm{T}} X)^{2}\right\}+2 X_{5, i}+2 X_{6, i}$ (model OM IV).
+-   
+
+    (b) $Y_{i}=1+\exp \left\{3 \sin (\beta_{0}^{\mathrm{T}} X_{i})\right\}+X_{5, i}+X_{6, i}+\epsilon_{i}, \epsilon_{i} \sim \mathcal{N}(0,1)$
+        (model OM II).
+
+For generating a binary outcome variable $Y_{i}$, we consider both
+linear and non-linear outcome models with
+$\beta_{0}=(1,0,0,3,3,3,3,0, \ldots, 0)^{\mathrm{T}}$,
+
+-   
+
+    (a) $Y \sim \operatorname{Ber}\left\{\pi_{Y}(X)\right\}$ with logit
+        $\left\{\pi_{Y}(X)\right\}=\beta_{0}^{\mathrm{T}} X$ (model OM
+        III);
+
+-   
+
+    (b) $Y \sim \operatorname{Ber}\left\{\pi_{Y}(X)\right\}$ with logit
+        $\left\{\pi_{Y}(X)\right\}=2-\log \left\{(\beta_{0}^{\mathrm{T}} X)^{2}\right\}+2 X_{5, i}+2 X_{6, i}$
+        (model OM IV).
 
 We consider the following estimators
 
-+ (a) naive, $\hat{\mu}_{\text {naive }}$, the naive estimator using the simple average of $Y_{i}$ from sample $\mathrm{B}$, which
-provides the degree of the selection bias of sample $\mathrm{B}$;
-+ (b) oracle, $\hat{\mu}_{\text {ora }}$, the doubly robust estimator $\hat{\mu}_{\mathrm{dr}}(\hat{\alpha}_{\text {ora }}, \hat{\beta}_{\text {ora }})$, where $\hat{\alpha}_{\text {ora }}$ and $\hat{\beta}_{\text {ora }}$ are based
-on the joint estimator restricting to the known important covariates for comparison;
-+ (c) $p-ipw$, $\hat{\mu}_{\mathrm{p} \text {-ipw }}$, the penalized inverse probability of sampling weighting estimator $\hat{\mu}_{\mathrm{IPW}}=$ $N^{-1} \Sigma_{i \in \mathcal{B}} \hat{\pi}_{\mathrm{B}, i}^{-1} Y_{i}$, where logit $(\hat{\pi}_{\mathrm{B}, i})=X_{i}^{\mathrm{T}} \hat{\alpha}$ using a logistic regression model, and $\hat{\alpha}$ is obtained by a weighted penalized regression of $I_{\mathrm{B}, i}$ on $X_{i}$ based on the combined data from sample $\mathrm{A}$ and sample $\mathrm{B}$, with the units in sample A weighted by the known sampling weights and the units in sample $\mathrm{B}$ weighted by 1 .
-+ (d) $p-reg$, $\hat{\mu}_{\mathrm{p} \text {-reg }}$, the penalized regression estimator $\hat{\mu}_{\mathrm{p}-\mathrm{reg}}=N^{-1} \Sigma_{i \in \mathcal{A}} d_{\mathrm{A}, i} m(X ; \hat{\beta})$, where $\hat{\beta}$ is obtained by a penalized regression of $Y_{i}$ on $X_{i}$ based on sample $\mathrm{B}$;
-+ (e) $p-dr0$, $\hat{\mu}_{\mathrm{p} \text {-dr } 0}$, the penalized double estimating equation estimator based on the set of outcome predictors $\hat{\mathcal{M}}_{\beta}$;
-+ (f) $p-dr$, $\hat{\mu}_{\mathrm{p}-\mathrm{dr}}$, the proposed penalized double estimating equation estimator based on the
-union of sampling and outcome predictors $\hat{\mathcal{M}}_{\alpha} \cup \hat{\mathcal{M}}_{\beta}$.
+-   
 
-We also note that $\hat{\mu}_{\mathrm{dr}}$ without variable selection is severely biased and unstable and therefore is excluded for comparison.
+    (a) naive, $\hat{\mu}_{\text {naive }}$, the naive estimator using
+        the simple average of $Y_{i}$ from sample $\mathrm{B}$, which
+        provides the degree of the selection bias of sample
+        $\mathrm{B}$;
 
+-   
 
-## @chen2020 paper 
+    (b) oracle, $\hat{\mu}_{\text {ora }}$, the doubly robust estimator
+        $\hat{\mu}_{\mathrm{dr}}(\hat{\alpha}_{\text {ora }}, \hat{\beta}_{\text {ora }})$,
+        where $\hat{\alpha}_{\text {ora }}$ and
+        $\hat{\beta}_{\text {ora }}$ are based on the joint estimator
+        restricting to the known important covariates for comparison;
+
+-   
+
+    (c) $p-ipw$, $\hat{\mu}_{\mathrm{p} \text {-ipw }}$, the penalized
+        inverse probability of sampling weighting estimator
+        $\hat{\mu}_{\mathrm{IPW}}=$
+        $N^{-1} \Sigma_{i \in \mathcal{B}} \hat{\pi}_{\mathrm{B}, i}^{-1} Y_{i}$,
+        where logit
+        $(\hat{\pi}_{\mathrm{B}, i})=X_{i}^{\mathrm{T}} \hat{\alpha}$
+        using a logistic regression model, and $\hat{\alpha}$ is
+        obtained by a weighted penalized regression of
+        $I_{\mathrm{B}, i}$ on $X_{i}$ based on the combined data from
+        sample $\mathrm{A}$ and sample $\mathrm{B}$, with the units in
+        sample A weighted by the known sampling weights and the units in
+        sample $\mathrm{B}$ weighted by 1 .
+
+-   
+
+    (d) $p-reg$, $\hat{\mu}_{\mathrm{p} \text {-reg }}$, the penalized
+        regression estimator
+        $\hat{\mu}_{\mathrm{p}-\mathrm{reg}}=N^{-1} \Sigma_{i \in \mathcal{A}} d_{\mathrm{A}, i} m(X ; \hat{\beta})$,
+        where $\hat{\beta}$ is obtained by a penalized regression of
+        $Y_{i}$ on $X_{i}$ based on sample $\mathrm{B}$;
+
+-   
+
+    (e) $p-dr0$, $\hat{\mu}_{\mathrm{p} \text {-dr } 0}$, the penalized
+        double estimating equation estimator based on the set of outcome
+        predictors $\hat{\mathcal{M}}_{\beta}$;
+
+-   
+
+    (f) $p-dr$, $\hat{\mu}_{\mathrm{p}-\mathrm{dr}}$, the proposed
+        penalized double estimating equation estimator based on the
+        union of sampling and outcome predictors
+        $\hat{\mathcal{M}}_{\alpha} \cup \hat{\mathcal{M}}_{\beta}$.
+
+We also note that $\hat{\mu}_{\mathrm{dr}}$ without variable selection
+is severely biased and unstable and therefore is excluded for
+comparison.
+
+## @chen2020 paper
 
 ### Simulation from section 5
 
-We consider finite populations of size $N=20,000$ with the
-response variable $y$ and auxiliary variables $x$ following the
-regression model $(\xi)$
-$$
+We consider finite populations of size $N=20,000$ with the response
+variable $y$ and auxiliary variables $x$ following the regression model
+$(\xi)$ $$
 y_{i}=2+x_{1 i}+x_{2 i}+x_{3 i}+x_{4 i}+\sigma \varepsilon_{i}, \quad i=1,2, \ldots, N
-$$
-where $x_{1 i}=z_{1 i}, x_{2 i}=z_{2 i}+0.3 x_{1 i}, x_{3 i}=z_{3 i}+0.2(x_{1 i}+x_{2 i})$
-$x_{4 i}=z_{4 i}+0.1(x_{1 i}+x_{2 i}+x_{3 i})$, with $z_{1 i} \sim \operatorname{Bernoulli}(0.5)$
-$z_{2 i} \sim$ Uniform $(0,2), z_{3 i} \sim$ Exponential( $(1)$, and $z_{4 i} \sim \chi^{2}(4)$
-The error term $\varepsilon_{i}$ 's are independent and identically distributed (iid) as $N(0,1)$, with values of $\sigma$ chosen such that the corre-
-lation coefficient $\rho$ between $y$ and the linear predictor $\boldsymbol{x}^{\top} \boldsymbol{\beta}$ is
-controlled at $0.3,0.5$ and 0.8 for the simulation studies. The
-parameter of interest is the finite population mean $\mu_{y}$.
-The true propensity scores $\pi_{i}^{\mathrm{A}}$ for the nonprobability sample
-$\mathcal{S}_{\mathrm{A}}$ follow the logistic regression model (q)
-$$
+$$ where
+$x_{1 i}=z_{1 i}, x_{2 i}=z_{2 i}+0.3 x_{1 i}, x_{3 i}=z_{3 i}+0.2(x_{1 i}+x_{2 i})$
+$x_{4 i}=z_{4 i}+0.1(x_{1 i}+x_{2 i}+x_{3 i})$, with
+$z_{1 i} \sim \operatorname{Bernoulli}(0.5)$ $z_{2 i} \sim$ Uniform
+$(0,2), z_{3 i} \sim$ Exponential( $(1)$, and $z_{4 i} \sim \chi^{2}(4)$
+The error term $\varepsilon_{i}$ 's are independent and identically
+distributed (iid) as $N(0,1)$, with values of $\sigma$ chosen such that
+the corre- lation coefficient $\rho$ between $y$ and the linear
+predictor $\boldsymbol{x}^{\top} \boldsymbol{\beta}$ is controlled at
+$0.3,0.5$ and 0.8 for the simulation studies. The parameter of interest
+is the finite population mean $\mu_{y}$. The true propensity scores
+$\pi_{i}^{\mathrm{A}}$ for the nonprobability sample
+$\mathcal{S}_{\mathrm{A}}$ follow the logistic regression model (q) $$
 \log (\frac{\pi_{i}^{\mathrm{A}}}{1-\pi_{i}^{\mathrm{A}}})=\theta_{0}+0.1 x_{1 i}+0.2 x_{2 i}+0.1 x_{3 i}+0.2 x_{4 i}
 $$
 
-where $\theta_{0}$ is chosen such that $\sum_{i=1}^{N} \pi_{i}^{\mathrm{A}}=n_{\mathrm{A}}$ with the given
-target sample size $n_{\mathrm{A}}$. The nonprobability sample $\mathcal{S}_{\mathrm{A}}$ is selected
-by the Poisson sampling method with inclusion probabilities
-specified by $\pi_{i}^{\mathrm{A}}$ and the target sample size $n_{\mathrm{A}}$.
+where $\theta_{0}$ is chosen such that
+$\sum_{i=1}^{N} \pi_{i}^{\mathrm{A}}=n_{\mathrm{A}}$ with the given
+target sample size $n_{\mathrm{A}}$. The nonprobability sample
+$\mathcal{S}_{\mathrm{A}}$ is selected by the Poisson sampling method
+with inclusion probabilities specified by $\pi_{i}^{\mathrm{A}}$ and the
+target sample size $n_{\mathrm{A}}$.
 
-The probability sample $\mathcal{S}_{\mathrm{B}}$ with the target size $n_{\mathrm{B}}$ is taken
-by the randomized systematic PPS sampling method (Good-
-man and Kish 1950 ; Hartley and Rao 1962) with the inclusion
-probabilities $\pi_{i}^{\mathrm{B}}$ proportional to $z_{i}=c+x_{3 i}$. The value of $c$ is
-chosen to control the variation of the survey weights such that
-$\max z_{i} / \min z_{i}=50$.
+The probability sample $\mathcal{S}_{\mathrm{B}}$ with the target size
+$n_{\mathrm{B}}$ is taken by the randomized systematic PPS sampling
+method (Good- man and Kish 1950 ; Hartley and Rao 1962) with the
+inclusion probabilities $\pi_{i}^{\mathrm{B}}$ proportional to
+$z_{i}=c+x_{3 i}$. The value of $c$ is chosen to control the variation
+of the survey weights such that $\max z_{i} / \min z_{i}=50$.
 
-
-We consider four scenarios for model specifications: (i) both
-models $\xi$ and $q$ are correctly specified, denoted as "TT"; (ii)
-the outcome regression model $\xi$ is misspecified but the propen-
-sity score model $q$ is correctly specified, denoted as "FT"” The
-working model for $\xi$ is chosen as $m(\boldsymbol{x}_{i}, \boldsymbol{\beta})=\beta_{0}+\beta_{1} x_{1 i}+$
-$\beta_{2} x_{2 i}+\beta_{3} x_{3 i}$, with $x_{4 i}$ omitted from the model; (iii) the outcome
-regression model $\xi$ is correctly specified but the propensity score
-model $q$ is misspecified, denoted as "TF" The working model
-for $q$ is given by $\log \left\{\pi_{i}^{\mathrm{A}} /(1-\pi_{i}^{\mathrm{A}}\right\}=\theta_{0}+\theta_{1} x_{1 i}+\theta_{2} x_{2 i}+\right.$
-$\theta_{3} x_{3 i}$, with $x_{4 i}$ omitted from the model. (iv) Both models are
-misspecified, denoted as "FF." The working model for $\xi$ is chosen
-as $m(\boldsymbol{x}_{i}, \boldsymbol{\beta})=\beta_{0}+\beta_{1} x_{1 i}+\beta_{2} x_{2 i}+\beta_{3} x_{3 i}$, and for $q$ is given by
-$\log \left\{\pi_{i}^{\mathrm{A}} /(1-\pi_{i}^{\mathrm{A}}\right\}=\theta_{0}+\theta_{1} x_{1 i}+\theta_{2} x_{2 i}+\theta_{3} x_{3 i}\right.$. We consider four
-different sample size combinations for $(n_{\mathrm{A}}, n_{\mathrm{B}})$ with $n_{\mathrm{A}}$ and $n_{\mathrm{B}}$ equaling either 500 or 1000 .
-
-
-
-
+We consider four scenarios for model specifications: (i) both models
+$\xi$ and $q$ are correctly specified, denoted as "TT"; (ii) the outcome
+regression model $\xi$ is misspecified but the propen- sity score model
+$q$ is correctly specified, denoted as "FT"" The working model for $\xi$
+is chosen as
+$m(\boldsymbol{x}_{i}, \boldsymbol{\beta})=\beta_{0}+\beta_{1} x_{1 i}+$
+$\beta_{2} x_{2 i}+\beta_{3} x_{3 i}$, with $x_{4 i}$ omitted from the
+model; (iii) the outcome regression model $\xi$ is correctly specified
+but the propensity score model $q$ is misspecified, denoted as "TF" The
+working model for $q$ is given by
+$\log \left\{\pi_{i}^{\mathrm{A}} /(1-\pi_{i}^{\mathrm{A}}\right\}=\theta_{0}+\theta_{1} x_{1 i}+\theta_{2} x_{2 i}+\right.$
+$\theta_{3} x_{3 i}$, with $x_{4 i}$ omitted from the model. (iv) Both
+models are misspecified, denoted as "FF." The working model for $\xi$ is
+chosen as
+$m(\boldsymbol{x}_{i}, \boldsymbol{\beta})=\beta_{0}+\beta_{1} x_{1 i}+\beta_{2} x_{2 i}+\beta_{3} x_{3 i}$,
+and for $q$ is given by
+$\log \left\{\pi_{i}^{\mathrm{A}} /(1-\pi_{i}^{\mathrm{A}}\right\}=\theta_{0}+\theta_{1} x_{1 i}+\theta_{2} x_{2 i}+\theta_{3} x_{3 i}\right.$.
+We consider four different sample size combinations for
+$(n_{\mathrm{A}}, n_{\mathrm{B}})$ with $n_{\mathrm{A}}$ and
+$n_{\mathrm{B}}$ equaling either 500 or 1000 .
 
 ## @kim2021 paper
 
-### Simulation from section 6 
+### Simulation from section 6
 
-The setup for the simulation study employed a $3 \times 2$ factorial structure with two factors. The first factor is the superpopulation model that generates the finite population. The second factor is the
-sample size for sample B. We used two levels for $n_{B}$, where $n_{B}=500$ or $n_{B}=1000$. We generated the following three models for finite populations of size $N=100,000$. The variables, $x_{i}$ and $e_{i}$, are independently generated from $N(2,1)$ and $N(0,1)$, respectively.
+#### Description of the simulation
 
-The study variable $y_{i}$ are constructed differently for each model:
+The simulation is based on the following assumptions:
 
-+ Model I -- $y_{i}=1+2 x_{i}+e_{i}$
-+ Model II -- $y_{i}=3+x_{i}+2e_{i}$
-+ Model III -- $y_{i}=2.5 + 0.5x_{i}^2+e_{i}$
+-   population size $N=100,000$,
+-   probability sample $A$ of $500$ size,
+-   non-probability sample $B$ of size $500$ and $1000$,
+-   $x_{i} \sim N(2,1)$ and $e_{i} \sim (0,1)$,
+-   the study variable $y_{i}$ is constructed differently for each
+    model:
+    -   Model I -- $y_{i}=1+2 x_{i}+e_{i}$ ($R^2=0.8$),
+    -   Model II -- $y_{i}=3+x_{i}+2e_{i}$ ($R^2=0.2$),
+    -   Model III -- $y_{i}=2.5 + 0.5x_{i}^2+e_{i}$,
+-   SRS to obtain $A$ from each of three populations,
+-   Sample $B$ is obtained by SRS within two strata:
+    -   Strata 1: $x_i <= 2$ with size $n_1=0.7n_b$,
+    -   Strata 2: $x_i > 2$ with size $n_2 = 0.3n_b$
+-   Using the two samples $A$ and $B$, for estimators of
+    $\theta_{N}=N^{-1} \sum_{i=1}^{N} y_{i}$ are computed:
+    -   The sample mean from sample $A$ :
+        $\widehat{\theta}_{A}=n_{A}^{-1} \sum_{i \in A} y_{i}$,
+    -   The naive estimator (sample mean) from sample
+        $B: \widehat{\theta}_{B}=n_{B}^{-1} \sum_{i \in B} y_{i}$.
+    -   The mass imputation estimator from sample $A$ given in
+        Equation (6) using
+        $\widehat{y}_{i}=\widehat{\beta}_{0}+\widehat{\beta}_{1} x_{i}$
+        where $(\widehat{\beta}_{0}, \widehat{\boldsymbol{\beta}}_{1})$
+        are the estimated regression coefficients obtained from sample
+        $B$.
+    -   The IPW estimator proposed by @chen2020:
+        $\widehat{\theta}_{I P W}=N^{-1} \sum_{i \in B} \widehat{\pi}_{i}^{-1} y_{i}$,
+        where the propensity scores,
+        $\pi_{i}=\pi(\mathbf{x}_{i} ; \boldsymbol{\phi})=\left\{1+\exp (-\phi_{0}-\phi_{1} x_{i})\right\}^{-1}$
+        with $\mathbf{x}_{i}=(1, x_{i})^{\prime}$ and
+        $\boldsymbol{\phi}=(\phi_{0}, \phi_{1})^{\prime}$, are estimated
+        by using $\widehat{\boldsymbol{\phi}}$ which solves the
+        following score equations: $$
+        U(\boldsymbol{\phi})=\sum_{i \in B} \mathbf{x}_{i}-\sum_{i \in A} w_{i} \pi(\mathbf{x}_{i} ; \boldsymbol{\phi}) \mathbf{x}_{i}=\mathbf{0}
+        $$
 
-Model I generates a finite population with a high correlation between $x$ and $y$ ($r^{2}=0.8$), Model II generates a finite population with a low correlation ($r^{2}=0.2$), and Model III generates a finite population where the linear relationship fails. Model III is included to check the effect of model mis-specification for the imputation model.
+#### Implementation
 
-From each of the three populations, we generated two independent samples. We use simple random
-sampling of size $n_{A}=500$ to obtain sample $A$. In selecting sample $B$ of size $n_{B}$, where $n_{B} \in\{500,1000\}$,
-we create two strata where Stratum 1 consists of elements with $x_{i} \leq 2$ and Stratum 2 consists of
-elements with $x_{i}>2$. Within each stratum, we select $n_{h}$ elements by simple random sampling, in-
-dependent between the two strata, where $n_{1}=0.7 n_{B}$ and $n_{2}=0.3 n_{B}$. We assume that the stratum
-information is unavailable at the time of data analysis. Using the two samples $A$ and $B$, we compute
-four estimators of $\theta_{N}=N^{-1} \sum_{i=1}^{N} y_{i}$ :
+```{r mi-sim-data}
+set.seed(20230602)
+N <- 100000
+n_a <- 500
+n_b <- 1000
+n_b1 <- 0.7*n_b
+n_b2 <- 0.3*n_b
+x <- rnorm(N, 2, 1)
+e <- rnorm(N)
+y1 <- 1 + 2*x + e
+y2 <- 3 + x + e
+y3 <- 2.5 + 0.5*x^2 + e
+strata <- x <= 2
+pop <- data.frame(x, y1, y2, y3, strata)
+sample_a <- pop[sample(1:N, n_a),]
+sample_a$w_a <- N/n_a
+svy_a <- svydesign(ids= ~1, weights = ~ w_a, data = sample_a)
+svy_a_cal <- calibrate(svy_a, formula=~ x, population=c(`(Intercept)`=N, x = sum(x)))
+pop1 <- subset(pop, strata == TRUE)
+pop2 <- subset(pop, strata == FALSE)
+sample_b <- rbind(pop1[sample(1:nrow(pop1), n_b1), ],
+                  pop2[sample(1:nrow(pop2), n_b2), ])
+sample_b$w_b <- N/n_b
 
-1. The sample mean from sample $A$ : $\widehat{\theta}_{A}=n_{A}^{-1} \sum_{i \in A} y_{i}$.
-2. The naive estimator (sample mean) from sample $B: \widehat{\theta}_{B}=n_{B}^{-1} \sum_{i \in B} y_{i}$.
-3. The mass imputation estimator from sample $A$ given in Equation (6) using $\widehat{y}_{i}=\widehat{\beta}_{0}+\widehat{\beta}_{1} x_{i}$ where
-$(\widehat{\beta}_{0}, \widehat{\boldsymbol{\beta}}_{1})$ are the estimated regression coefficients obtained from sample $B$.
-4. The IPW estimator proposed by @chen2020: $\widehat{\theta}_{I P W}=N^{-1} \sum_{i \in B} \widehat{\pi}_{i}^{-1} y_{i}$, where the propensity
-scores, $\pi_{i}=\pi(\mathbf{x}_{i} ; \boldsymbol{\phi})=\left\{1+\exp (-\phi_{0}-\phi_{1} x_{i})\right\}^{-1}$ with $\mathbf{x}_{i}=(1, x_{i})^{\prime}$ and $\boldsymbol{\phi}=(\phi_{0}, \phi_{1})^{\prime}$, are estimated
-by using $\widehat{\boldsymbol{\phi}}$ which solves the following score equations:
-$$
-U(\boldsymbol{\phi})=\sum_{i \in B} \mathbf{x}_{i}-\sum_{i \in A} w_{i} \pi(\mathbf{x}_{i} ; \boldsymbol{\phi}) \mathbf{x}_{i}=\mathbf{0}
-$$
+## mass imputation
+res_y1 <- nonprob(outcome = y1 ~ x, 
+                  data = sample_b,
+                  weights = sample_b$w_b,
+                  svydesign = svy_a)
 
+res_y2 <- nonprob(outcome= y2 ~ x, 
+                  data = sample_b,
+                  weights = sample_b$w_b,
+                  svydesign = svy_a)
+
+res_y3 <- nonprob(outcome= y3 ~ x, 
+                  data = sample_b,
+                  weights = sample_b$w_b,
+                  svydesign = svy_a)
+
+res_y1_ps <- nonprob(selection = ~ x,
+                     target = ~ y1,
+                     data = sample_b,
+                     svydesign = svy_a)
+
+res_y2_ps <- nonprob(selection = ~ x,
+                     target = ~ y3,
+                     data = sample_b,
+                     svydesign = svy_a)
+
+res_y3_ps <- nonprob(selection = ~ x,
+                     target = ~ y3,
+                     data = sample_b,
+                     svydesign = svy_a)
+
+# res_y1_ps <- nonprob(selection = ~ x,
+#                      target = ~ y1,
+#                      data = sample_b,
+#                      svydesign = svy_a, 
+#                      pop_size = N,
+#                      weights = sample_b$w_b,
+#                      control_selection = controlSel(est_method_sel = "gee"))
+
+
+lapply(list("mi_y1"=res_y1, "mi_y2"=res_y2, "mi_y3"=res_y3), "[[", "confidence_interval") |>
+  do.call("rbind", args = _) |>
+  transform(true = c(mean(y1), mean(y2), mean(y3)),
+            naive = c(mean(sample_b$y1),mean(sample_b$y2), mean(sample_b$y3)),
+            mi = c(res_y1$output$mean, res_y2$output$mean, res_y3$output$mean))
+```
+
+Run the simulation and compare results with the paper
+
+```{r mi-simulation-1000}
+#| cache: true
+set.seed(20230602)
+B <- 1000
+results <- matrix(data = 0, nrow = B, ncol = 6)
+results_ci <- matrix(data = 0, nrow = B, ncol = 6)
+for (b in 1:B) {
+  sample_a <- pop[sample(1:N, n_a),]
+  sample_a$w_a <- N/n_a
+  svy_a <- svydesign(ids= ~1, weights = ~ w_a, data = sample_a)
+  pop1 <- subset(pop, strata == TRUE)
+  pop2 <- subset(pop, strata == FALSE)
+  sample_b <- rbind(pop1[sample(1:nrow(pop1), n_b1), ],
+                    pop2[sample(1:nrow(pop2), n_b2), ])
+  sample_b$w_b <- N/n_b
+  res_y1 <- nonprob(outcome = y1 ~ x, data = sample_b, weights = sample_b$w_b, svydesign = svy_a)
+  res_y2 <- nonprob(outcome = y2 ~ x, data = sample_b, weights = sample_b$w_b, svydesign = svy_a)
+  res_y3 <- nonprob(outcome = y3 ~ x, data = sample_b, weights = sample_b$w_b, svydesign = svy_a)
+  results[b, 1] <- res_y1$output$mean
+  results[b, 2] <- res_y2$output$mean
+  results[b, 3] <- res_y3$output$mean
+  results[b, 4] <- mean(sample_a$y1)
+  results[b, 5] <- mean(sample_a$y2)
+  results[b, 6] <- mean(sample_a$y3)
+  
+  results_ci[b, 1] <- res_y1$confidence_interval$lower_bound
+  results_ci[b, 2] <- res_y1$confidence_interval$upper_bound
+  results_ci[b, 3] <- res_y2$confidence_interval$lower_bound
+  results_ci[b, 4] <- res_y2$confidence_interval$upper_bound
+  results_ci[b, 5] <- res_y3$confidence_interval$lower_bound
+  results_ci[b, 6] <- res_y3$confidence_interval$upper_bound
+}
+```
+
+Bias, variance, mse and relative mse
+
+```{r mi-sim-bias-reports}
+results_mi <- data.frame(
+  est = c("mi_y1", "mi_y2", "mi_y3", "naive_y1", "naive_y2", "naive_y3"),
+  bias = colMeans(results) - c(colMeans(pop[, 2:4]),colMeans(pop[, 2:4])),
+  var = apply(results, 2, var)*1000
+) 
+
+results_mi$mse <- with(results_mi, bias^2+var)
+results_mi$relMSE <- results_mi$mse/results_mi$mse[c(4,5,6,4,5,6)]*100
+results_mi 
+```
+
+We can compare the results with table 3 from @kim2021
+
+![](figs/jrssa-mi-paper-tab3.png){fig-align="center" width="700"}
+
+Check the coverage of confidence interval
+
+```{r mi-sim-ci-report}
+c("mi_y1"=mean(results_ci[, 1] < mean(y1) & results_ci[, 2] > mean(y1))*100,
+  "mi_y2"=mean(results_ci[, 3] < mean(y2) & results_ci[, 4] > mean(y2))*100,
+  "mi_y3"=mean(results_ci[, 5] < mean(y3) & results_ci[, 6] > mean(y3))*100) 
+```
+
+### Real dataset from section 7
 
 # Literature
