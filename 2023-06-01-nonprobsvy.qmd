@@ -45,7 +45,7 @@ github repository.
 
 ```{r install-packages, eval=FALSE}
 install.packages("remotes")
-remotes::install_github("ncn-foreigners/nonprobsvy")
+remotes::install_github("ncn-foreigners/nonprobsvy@748b20fc6c18b2889fce626a9742824d6fc1a34b")
 install.packages("survey")
 install.packages("sampling")
 ```
