@@ -2692,19 +2692,19 @@ vertical-align: -.125em;
 <li>Kim, J. K., Park, S., Chen, Y., &amp; Wu, C. (2021). Combining non-probability and probability survey samples through mass imputation. Journal of the Royal Statistical Society Series A: Statistics in Society, 184(3), 941-963.</li>
 <li>Chen, Y., Li, P., &amp; Wu, C. (2020). Doubly robust inference with nonprobability survey samples. Journal of the American Statistical Association, 115(532), 2011-2021.</li>
 </ul>
-<p>Tutorial was prepared based on the development version of the <code>nonprobsvy</code> (31.05.2023, commit <code>748b20fc6c18b2889fce626a9742824d6fc1a34b</code>).</p>
+<p>Tutorial was prepared based on the development version of the <code>nonprobsvy</code> (21.06.2023, commit <code>5ab78e476555ac527f9387d2f4c67637b7b38650</code>).</p>
 </section>
 <section id="install-and-load-the-required-packages" class="level1" data-number="2">
 <h1 data-number="2"><span class="header-section-number">2</span> Install and load the required packages</h1>
 <p>Install <code>remotes</code> package and then install <code>nonprobsvy</code> package from github repository.</p>
-<div class="cell">
+<div class="cell" data-hash="2023-06-01-nonprobsvy_cache/html/install-packages_45799a4e277095a8d602277f496ae2ec">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">&quot;remotes&quot;</span>)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">&quot;ncn-foreigners/nonprobsvy@748b20fc6c18b2889fce626a9742824d6fc1a34b&quot;</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">&quot;ncn-foreigners/nonprobsvy@5ab78e476555ac527f9387d2f4c67637b7b38650&quot;</span>)</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">&quot;survey&quot;</span>)</span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">&quot;sampling&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Load required packages</p>
-<div class="cell">
+<div class="cell" data-hash="2023-06-01-nonprobsvy_cache/html/load-packages_f90196e83986fa1f5b93407aaa96ff3f">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(survey)</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sampling)</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sps)</span>
@@ -2713,7 +2713,7 @@ vertical-align: -.125em;
 <span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(Rcpp)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Function for randomized systematic sampling based on prof. Changbao Wu’s <a href="https://sas.uwaterloo.ca/~cbwu/Rcodes/SystematicPPS.txt">webpage</a>.</p>
-<div class="cell">
+<div class="cell" data-hash="2023-06-01-nonprobsvy_cache/html/unnamed-chunk-1_519c0ef0933e954cf9fd3dfb0f011e7a">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>syspps <span class="ot">&lt;-</span> <span class="cf">function</span>(x,n){ </span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  N <span class="ot">&lt;-</span> <span class="fu">length</span>(x)</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  U <span class="ot">&lt;-</span> <span class="fu">sample</span>(N, N)</span>
@@ -2734,13 +2734,13 @@ vertical-align: -.125em;
 <span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>One can also use an C++ version of this function available in the <code>codes/syspps.cpp</code> file.</p>
-<div class="cell">
+<div class="cell" data-hash="2023-06-01-nonprobsvy_cache/html/unnamed-chunk-2_cc3dff7eb81de451bd7e006fcbce9390">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sourceCpp</span>(<span class="st">&quot;codes/syspps.cpp&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>In the empirical part we reproduce results from the following papers: <span class="citation" data-cites="yang2020">Yang, Kim, and Song (<a href="#ref-yang2020" role="doc-biblioref">2020</a>)</span>; <span class="citation" data-cites="kim2021">Kim et al. (<a href="#ref-kim2021" role="doc-biblioref">2021</a>)</span>; <span class="citation" data-cites="chen2020">Chen, Li, and Wu (<a href="#ref-chen2020" role="doc-biblioref">2020</a>)</span>.</p>
 <p>Seed for all simulations</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>seed_for_sim <span class="ot">&lt;-</span> <span class="dv">20230602</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-hash="2023-06-01-nonprobsvy_cache/html/unnamed-chunk-3_2fb8699ea2cdf360390c24a768156c70">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>seed_for_sim <span class="ot">&lt;-</span> <span class="dv">2023-06-23</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="empirical-examples" class="level1" data-number="3">
@@ -2857,7 +2857,7 @@ y_{i}=2+x_{1 i}+x_{2 i}+x_{3 i}+x_{4 i}+\sigma \varepsilon_{i}, \quad i=1,2, \ld
 <section id="implementation" class="level4" data-number="3.2.1.2">
 <h4 data-number="3.2.1.2" class="anchored" data-anchor-id="implementation"><span class="header-section-number">3.2.1.2</span> Implementation</h4>
 <p>Simulate data</p>
-<div class="cell">
+<div class="cell" data-hash="2023-06-01-nonprobsvy_cache/html/unnamed-chunk-4_7ba210f2d2dcef9637d913b1ecf6ba24">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(seed_for_sim)</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>N <span class="ot">&lt;-</span> <span class="dv">20000</span></span>
@@ -2903,8 +2903,6 @@ y_{i}=2+x_{1 i}+x_{2 i}+x_{3 i}+x_{4 i}+\sigma \varepsilon_{i}, \quad i=1,2, \ld
 <table class="table table-sm table-striped">
 <colgroup>
 <col style="width: 2%">
-<col style="width: 7%">
-<col style="width: 7%">
 <col style="width: 6%">
 <col style="width: 7%">
 <col style="width: 7%">
@@ -2912,6 +2910,8 @@ y_{i}=2+x_{1 i}+x_{2 i}+x_{3 i}+x_{4 i}+\sigma \varepsilon_{i}, \quad i=1,2, \ld
 <col style="width: 7%">
 <col style="width: 7%">
 <col style="width: 7%">
+<col style="width: 7%">
+<col style="width: 6%">
 <col style="width: 6%">
 <col style="width: 7%">
 <col style="width: 7%">
@@ -2940,105 +2940,105 @@ y_{i}=2+x_{1 i}+x_{2 i}+x_{3 i}+x_{4 i}+\sigma \varepsilon_{i}, \quad i=1,2, \ld
 <tbody>
 <tr class="odd">
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1.3246840</td>
-<td style="text-align: right;">1.1535860</td>
-<td style="text-align: right;">5.436900</td>
-<td style="text-align: right;">21.235059</td>
-<td style="text-align: right;">16.138147</td>
-<td style="text-align: right;">12.626796</td>
-<td style="text-align: right;">0.0223605</td>
-<td style="text-align: right;">0.0461359</td>
-<td style="text-align: right;">44.72163</td>
-<td style="text-align: right;">21.67511</td>
-<td style="text-align: right;">0.0220813</td>
-<td style="text-align: right;">0.0441625</td>
-<td style="text-align: right;">45.28725</td>
-<td style="text-align: right;">22.643625</td>
+<td style="text-align: right;">1.662308</td>
+<td style="text-align: right;">3.3646116</td>
+<td style="text-align: right;">5.1931902</td>
+<td style="text-align: right;">17.795015</td>
+<td style="text-align: right;">15.272528</td>
+<td style="text-align: right;">13.546510</td>
+<td style="text-align: right;">0.0436629</td>
+<td style="text-align: right;">0.0880233</td>
+<td style="text-align: right;">22.90272</td>
+<td style="text-align: right;">11.36062</td>
+<td style="text-align: right;">0.0576634</td>
+<td style="text-align: right;">0.1153267</td>
+<td style="text-align: right;">17.34203</td>
+<td style="text-align: right;">8.671017</td>
 </tr>
 <tr class="even">
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">0.4212603</td>
-<td style="text-align: right;">1.3308528</td>
-<td style="text-align: right;">3.993758</td>
-<td style="text-align: right;">6.647405</td>
-<td style="text-align: right;">7.142002</td>
-<td style="text-align: right;">7.482738</td>
-<td style="text-align: right;">0.0148620</td>
-<td style="text-align: right;">0.0309164</td>
-<td style="text-align: right;">67.28583</td>
-<td style="text-align: right;">32.34528</td>
-<td style="text-align: right;">0.0249568</td>
-<td style="text-align: right;">0.0499136</td>
-<td style="text-align: right;">40.06926</td>
-<td style="text-align: right;">20.034631</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">0.8036951</td>
-<td style="text-align: right;">1.1067474</td>
-<td style="text-align: right;">4.031121</td>
-<td style="text-align: right;">27.700238</td>
-<td style="text-align: right;">18.803665</td>
-<td style="text-align: right;">12.674661</td>
-<td style="text-align: right;">0.0151089</td>
-<td style="text-align: right;">0.0314215</td>
-<td style="text-align: right;">66.18622</td>
-<td style="text-align: right;">31.82530</td>
-<td style="text-align: right;">0.0213215</td>
-<td style="text-align: right;">0.0426430</td>
-<td style="text-align: right;">46.90105</td>
-<td style="text-align: right;">23.450527</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">0.8193722</td>
-<td style="text-align: right;">3.2088726</td>
-<td style="text-align: right;">4.743179</td>
-<td style="text-align: right;">22.567016</td>
-<td style="text-align: right;">17.255914</td>
-<td style="text-align: right;">13.597002</td>
-<td style="text-align: right;">0.0322622</td>
-<td style="text-align: right;">0.0658565</td>
-<td style="text-align: right;">30.99599</td>
-<td style="text-align: right;">15.18452</td>
-<td style="text-align: right;">0.0554209</td>
-<td style="text-align: right;">0.1108418</td>
-<td style="text-align: right;">18.04373</td>
-<td style="text-align: right;">9.021866</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.514563</td>
+<td style="text-align: right;">1.0500322</td>
+<td style="text-align: right;">4.5610609</td>
+<td style="text-align: right;">9.942838</td>
+<td style="text-align: right;">10.025558</td>
+<td style="text-align: right;">10.082159</td>
+<td style="text-align: right;">0.0211041</td>
+<td style="text-align: right;">0.0435899</td>
+<td style="text-align: right;">47.38423</td>
+<td style="text-align: right;">22.94109</td>
+<td style="text-align: right;">0.0205959</td>
+<td style="text-align: right;">0.0411917</td>
+<td style="text-align: right;">48.55342</td>
+<td style="text-align: right;">24.276709</td>
 </tr>
 <tr class="odd">
 <td style="text-align: right;">1</td>
-<td style="text-align: right;">1.1119815</td>
-<td style="text-align: right;">0.5616447</td>
-<td style="text-align: right;">1.182827</td>
-<td style="text-align: right;">6.209740</td>
-<td style="text-align: right;">6.050669</td>
-<td style="text-align: right;">5.941082</td>
-<td style="text-align: right;">0.0085879</td>
-<td style="text-align: right;">0.0179885</td>
-<td style="text-align: right;">116.44341</td>
-<td style="text-align: right;">55.59095</td>
-<td style="text-align: right;">0.0124792</td>
-<td style="text-align: right;">0.0249583</td>
-<td style="text-align: right;">80.13366</td>
-<td style="text-align: right;">40.066831</td>
+<td style="text-align: right;">1.546992</td>
+<td style="text-align: right;">0.6907585</td>
+<td style="text-align: right;">4.5116034</td>
+<td style="text-align: right;">9.689191</td>
+<td style="text-align: right;">9.716413</td>
+<td style="text-align: right;">9.735039</td>
+<td style="text-align: right;">0.0189253</td>
+<td style="text-align: right;">0.0391827</td>
+<td style="text-align: right;">52.83924</td>
+<td style="text-align: right;">25.52147</td>
+<td style="text-align: right;">0.0148422</td>
+<td style="text-align: right;">0.0296844</td>
+<td style="text-align: right;">67.37554</td>
+<td style="text-align: right;">33.687770</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.533501</td>
+<td style="text-align: right;">2.7010957</td>
+<td style="text-align: right;">0.7724867</td>
+<td style="text-align: right;">14.722555</td>
+<td style="text-align: right;">11.683994</td>
+<td style="text-align: right;">9.604850</td>
+<td style="text-align: right;">0.0163737</td>
+<td style="text-align: right;">0.0339945</td>
+<td style="text-align: right;">61.07344</td>
+<td style="text-align: right;">29.41648</td>
+<td style="text-align: right;">0.0470373</td>
+<td style="text-align: right;">0.0940746</td>
+<td style="text-align: right;">21.25973</td>
+<td style="text-align: right;">10.629863</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.799219</td>
+<td style="text-align: right;">0.8965291</td>
+<td style="text-align: right;">1.9617198</td>
+<td style="text-align: right;">11.943962</td>
+<td style="text-align: right;">10.004445</td>
+<td style="text-align: right;">8.677325</td>
+<td style="text-align: right;">0.0127934</td>
+<td style="text-align: right;">0.0266657</td>
+<td style="text-align: right;">78.16512</td>
+<td style="text-align: right;">37.50134</td>
+<td style="text-align: right;">0.0181376</td>
+<td style="text-align: right;">0.0362751</td>
+<td style="text-align: right;">55.13423</td>
+<td style="text-align: right;">27.567114</td>
 </tr>
 <tr class="even">
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">0.5779818</td>
-<td style="text-align: right;">0.7029996</td>
-<td style="text-align: right;">1.939698</td>
-<td style="text-align: right;">3.205084</td>
-<td style="text-align: right;">4.112629</td>
-<td style="text-align: right;">4.737853</td>
-<td style="text-align: right;">0.0084777</td>
-<td style="text-align: right;">0.0177600</td>
-<td style="text-align: right;">117.95624</td>
-<td style="text-align: right;">56.30634</td>
-<td style="text-align: right;">0.0147721</td>
-<td style="text-align: right;">0.0295442</td>
-<td style="text-align: right;">67.69507</td>
-<td style="text-align: right;">33.847535</td>
+<td style="text-align: right;">1.000485</td>
+<td style="text-align: right;">0.6723271</td>
+<td style="text-align: right;">3.4694840</td>
+<td style="text-align: right;">9.218398</td>
+<td style="text-align: right;">8.279021</td>
+<td style="text-align: right;">7.636249</td>
+<td style="text-align: right;">0.0124759</td>
+<td style="text-align: right;">0.0260129</td>
+<td style="text-align: right;">80.15454</td>
+<td style="text-align: right;">38.44240</td>
+<td style="text-align: right;">0.0145470</td>
+<td style="text-align: right;">0.0290940</td>
+<td style="text-align: right;">68.74267</td>
+<td style="text-align: right;">34.371333</td>
 </tr>
 </tbody>
 </table>
@@ -3046,36 +3046,37 @@ y_{i}=2+x_{1 i}+x_{2 i}+x_{3 i}+x_{4 i}+\sigma \varepsilon_{i}, \quad i=1,2, \ld
 </div>
 </div>
 <p>One simulation</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>sample_nonprob <span class="ot">&lt;-</span> pop_data[<span class="fu">which</span>(sampling<span class="sc">::</span><span class="fu">UPpoisson</span>(pop_data<span class="sc">$</span>pA_1)<span class="sc">==</span><span class="dv">1</span>),]</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>sample_nonprob<span class="sc">$</span>w_naive <span class="ot">&lt;-</span> N<span class="sc">/</span>n_1</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>sample_prob <span class="ot">&lt;-</span> pop_data[<span class="fu">syspps_cpp</span>(pop_data<span class="sc">$</span>pB_1, n_1), ]</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>sample_prob_svy <span class="ot">&lt;-</span> <span class="fu">svydesign</span>(<span class="at">ids=</span><span class="sc">~</span><span class="dv">1</span>, <span class="at">probs =</span><span class="sc">~</span>pB_1, <span class="at">data =</span> sample_prob, <span class="at">pps =</span> <span class="st">&quot;brewer&quot;</span>)</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>res_s1 <span class="ot">&lt;-</span> <span class="fu">nonprob</span>(<span class="at">selection =</span> <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3 <span class="sc">+</span> x4,</span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>                  <span class="at">outcome =</span> y1 <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3 <span class="sc">+</span> x4,</span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>                  <span class="at">svydesign =</span> sample_prob_svy,</span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>                  <span class="at">data =</span> sample_nonprob)</span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>res_s2 <span class="ot">&lt;-</span> <span class="fu">nonprob</span>(<span class="at">selection =</span> <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3 <span class="sc">+</span> x4,</span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>                  <span class="at">outcome =</span> y1 <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3,</span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>                  <span class="at">svydesign =</span> sample_prob_svy,</span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>                  <span class="at">data =</span> sample_nonprob)</span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>res_s3 <span class="ot">&lt;-</span> <span class="fu">nonprob</span>(<span class="at">selection =</span> <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3 ,</span>
-<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>                  <span class="at">outcome =</span> y1 <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3 <span class="sc">+</span> x4,</span>
-<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>                  <span class="at">svydesign =</span> sample_prob_svy,</span>
-<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>                  <span class="at">data =</span> sample_nonprob)</span>
-<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>res_s4 <span class="ot">&lt;-</span> <span class="fu">nonprob</span>(<span class="at">selection =</span> <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3 ,</span>
-<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>                  <span class="at">outcome =</span> y1 <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3 ,</span>
-<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>                  <span class="at">svydesign =</span> sample_prob_svy,</span>
-<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>                  <span class="at">data =</span> sample_nonprob)</span>
-<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a><span class="fu">cbind</span>(</span>
-<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lapply</span>(<span class="fu">list</span>(res_s1,res_s2,res_s3,res_s4), <span class="st">&quot;[[&quot;</span>, <span class="st">&quot;output&quot;</span>) <span class="sc">|&gt;</span> <span class="fu">rbindlist</span>(),</span>
-<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lapply</span>(<span class="fu">list</span>(res_s1,res_s2,res_s3,res_s4), <span class="st">&quot;[[&quot;</span>, <span class="st">&quot;confidence_interval&quot;</span>) <span class="sc">|&gt;</span> <span class="fu">rbindlist</span>()</span>
-<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-hash="2023-06-01-nonprobsvy_cache/html/unnamed-chunk-5_142e0d4c9ced37cda08eb59c14c6a6a3">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(seed_for_sim<span class="sc">+</span><span class="dv">1</span>)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>sample_nonprob <span class="ot">&lt;-</span> pop_data[<span class="fu">which</span>(sampling<span class="sc">::</span><span class="fu">UPpoisson</span>(pop_data<span class="sc">$</span>pA_1)<span class="sc">==</span><span class="dv">1</span>),]</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>sample_nonprob<span class="sc">$</span>w_naive <span class="ot">&lt;-</span> N<span class="sc">/</span>n_1</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>sample_prob <span class="ot">&lt;-</span> pop_data[<span class="fu">syspps_cpp</span>(pop_data<span class="sc">$</span>pB_1, n_1), ]</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>sample_prob_svy <span class="ot">&lt;-</span> <span class="fu">svydesign</span>(<span class="at">ids=</span><span class="sc">~</span><span class="dv">1</span>, <span class="at">probs =</span><span class="sc">~</span>pB_1, <span class="at">data =</span> sample_prob)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>res_s1 <span class="ot">&lt;-</span> <span class="fu">nonprob</span>(<span class="at">selection =</span> <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3 <span class="sc">+</span> x4,</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>                  <span class="at">outcome =</span> y1 <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3 <span class="sc">+</span> x4,</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>                  <span class="at">svydesign =</span> sample_prob_svy,</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>                  <span class="at">data =</span> sample_nonprob)</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>res_s2 <span class="ot">&lt;-</span> <span class="fu">nonprob</span>(<span class="at">selection =</span> <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3 <span class="sc">+</span> x4,</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>                  <span class="at">outcome =</span> y1 <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3,</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>                  <span class="at">svydesign =</span> sample_prob_svy,</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>                  <span class="at">data =</span> sample_nonprob)</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>res_s3 <span class="ot">&lt;-</span> <span class="fu">nonprob</span>(<span class="at">selection =</span> <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3 ,</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>                  <span class="at">outcome =</span> y1 <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3 <span class="sc">+</span> x4,</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>                  <span class="at">svydesign =</span> sample_prob_svy,</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>                  <span class="at">data =</span> sample_nonprob)</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>res_s4 <span class="ot">&lt;-</span> <span class="fu">nonprob</span>(<span class="at">selection =</span> <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3 ,</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>                  <span class="at">outcome =</span> y1 <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3 ,</span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>                  <span class="at">svydesign =</span> sample_prob_svy,</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>                  <span class="at">data =</span> sample_nonprob)</span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a><span class="fu">cbind</span>(</span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lapply</span>(<span class="fu">list</span>(res_s1,res_s2,res_s3,res_s4), <span class="st">&quot;[[&quot;</span>, <span class="st">&quot;output&quot;</span>) <span class="sc">|&gt;</span> <span class="fu">rbindlist</span>(),</span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lapply</span>(<span class="fu">list</span>(res_s1,res_s2,res_s3,res_s4), <span class="st">&quot;[[&quot;</span>, <span class="st">&quot;confidence_interval&quot;</span>) <span class="sc">|&gt;</span> <span class="fu">rbindlist</span>()</span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div class="kable-table">
 <table class="table table-sm table-striped">
@@ -3089,28 +3090,28 @@ y_{i}=2+x_{1 i}+x_{2 i}+x_{3 i}+x_{4 i}+\sigma \varepsilon_{i}, \quad i=1,2, \ld
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: right;">9.186402</td>
-<td style="text-align: right;">0.5436178</td>
-<td style="text-align: right;">8.120931</td>
-<td style="text-align: right;">10.251874</td>
+<td style="text-align: right;">9.498047</td>
+<td style="text-align: right;">0.6026119</td>
+<td style="text-align: right;">8.316950</td>
+<td style="text-align: right;">10.67914</td>
 </tr>
 <tr class="even">
-<td style="text-align: right;">9.462612</td>
-<td style="text-align: right;">0.5763437</td>
-<td style="text-align: right;">8.332999</td>
-<td style="text-align: right;">10.592225</td>
+<td style="text-align: right;">9.454869</td>
+<td style="text-align: right;">0.6376437</td>
+<td style="text-align: right;">8.205111</td>
+<td style="text-align: right;">10.70463</td>
 </tr>
 <tr class="odd">
-<td style="text-align: right;">8.912348</td>
-<td style="text-align: right;">0.4847917</td>
-<td style="text-align: right;">7.962173</td>
-<td style="text-align: right;">9.862522</td>
+<td style="text-align: right;">9.597422</td>
+<td style="text-align: right;">0.4985245</td>
+<td style="text-align: right;">8.620332</td>
+<td style="text-align: right;">10.57451</td>
 </tr>
 <tr class="even">
-<td style="text-align: right;">11.197643</td>
-<td style="text-align: right;">0.4941038</td>
-<td style="text-align: right;">10.229217</td>
-<td style="text-align: right;">12.166068</td>
+<td style="text-align: right;">11.534954</td>
+<td style="text-align: right;">0.5084546</td>
+<td style="text-align: right;">10.538402</td>
+<td style="text-align: right;">12.53151</td>
 </tr>
 </tbody>
 </table>
@@ -3118,49 +3119,131 @@ y_{i}=2+x_{1 i}+x_{2 i}+x_{3 i}+x_{4 i}+\sigma \varepsilon_{i}, \quad i=1,2, \ld
 </div>
 </div>
 <p>Whole simulation using <span class="math inline">\(B=5000\)</span> as in the original paper</p>
-<div class="cell">
+<div class="cell" data-hash="2023-06-01-nonprobsvy_cache/html/sim-chen2020-5000_2c4c4eb689e1aea1ac95530bcd924360">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(seed_for_sim)</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>sim_y1 <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>B <span class="ot">&lt;-</span> <span class="dv">5000</span></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (b <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>B) {</span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (b <span class="sc">%%</span> <span class="dv">500</span> <span class="sc">==</span> <span class="dv">0</span>) <span class="fu">print</span>(b)</span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  sample_nonprob <span class="ot">&lt;-</span> pop_data[<span class="fu">which</span>(sampling<span class="sc">::</span><span class="fu">UPpoisson</span>(pop_data<span class="sc">$</span>pA_1)<span class="sc">==</span><span class="dv">1</span>),]</span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  sample_nonprob<span class="sc">$</span>w_naive <span class="ot">&lt;-</span> N<span class="sc">/</span>n_1</span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>  sample_prob <span class="ot">&lt;-</span> pop_data[<span class="fu">syspps_cpp</span>(pop_data<span class="sc">$</span>pB_1, n_2), ]</span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>  sample_prob_svy <span class="ot">&lt;-</span> <span class="fu">svydesign</span>(<span class="at">ids=</span><span class="sc">~</span><span class="dv">1</span>, <span class="at">probs =</span><span class="sc">~</span>pB_1, <span class="at">data =</span> sample_prob)</span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>res_s1 <span class="ot">&lt;-</span> <span class="fu">nonprob</span>(<span class="at">selection =</span> <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3 <span class="sc">+</span> x4,</span>
-<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>                  <span class="at">outcome =</span> y1 <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3 <span class="sc">+</span> x4,</span>
-<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>                  <span class="at">svydesign =</span> sample_prob_svy,</span>
-<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>                  <span class="at">data =</span> sample_nonprob)</span>
-<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>res_s2 <span class="ot">&lt;-</span> <span class="fu">nonprob</span>(<span class="at">selection =</span> <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3 <span class="sc">+</span> x4,</span>
-<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>                  <span class="at">outcome =</span> y1 <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3,</span>
-<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>                  <span class="at">svydesign =</span> sample_prob_svy,</span>
-<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>                  <span class="at">data =</span> sample_nonprob)</span>
-<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>res_s3 <span class="ot">&lt;-</span> <span class="fu">nonprob</span>(<span class="at">selection =</span> <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3 ,</span>
-<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>                  <span class="at">outcome =</span> y1 <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3 <span class="sc">+</span> x4,</span>
-<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>                  <span class="at">svydesign =</span> sample_prob_svy,</span>
-<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>                  <span class="at">data =</span> sample_nonprob)</span>
-<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>res_s4 <span class="ot">&lt;-</span> <span class="fu">nonprob</span>(<span class="at">selection =</span> <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3 ,</span>
-<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>                  <span class="at">outcome =</span> y1 <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3 ,</span>
-<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>                  <span class="at">svydesign =</span> sample_prob_svy,</span>
-<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>                  <span class="at">data =</span> sample_nonprob)</span>
-<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a>sim_y1[[b]] <span class="ot">&lt;-</span> <span class="fu">cbind</span>(<span class="fu">lapply</span>(<span class="fu">list</span>(res_s1,res_s2,res_s3,res_s4), <span class="st">&quot;[[&quot;</span>, <span class="st">&quot;output&quot;</span>) <span class="sc">|&gt;</span> <span class="fu">rbindlist</span>(),</span>
-<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a>                     <span class="fu">lapply</span>(<span class="fu">list</span>(res_s1,res_s2,res_s3,res_s4), <span class="st">&quot;[[&quot;</span>, <span class="st">&quot;confidence_interval&quot;</span>) <span class="sc">|&gt;</span> <span class="fu">rbindlist</span>()) </span>
-<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>braki <span class="ot">&lt;-</span> <span class="fu">numeric</span>(B)</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (b <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>B) {</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (b <span class="sc">%%</span> <span class="dv">500</span> <span class="sc">==</span> <span class="dv">0</span>) <span class="fu">print</span>(b)</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  sample_nonprob <span class="ot">&lt;-</span> pop_data[<span class="fu">which</span>(sampling<span class="sc">::</span><span class="fu">UPpoisson</span>(pop_data<span class="sc">$</span>pA_1)<span class="sc">==</span><span class="dv">1</span>),]</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>  sample_nonprob<span class="sc">$</span>w_naive <span class="ot">&lt;-</span> N<span class="sc">/</span>n_1</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>  sample_prob <span class="ot">&lt;-</span> pop_data[<span class="fu">syspps_cpp</span>(pop_data<span class="sc">$</span>pB_1, n_2), ]</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>  sample_prob_svy <span class="ot">&lt;-</span> <span class="fu">svydesign</span>(<span class="at">ids=</span><span class="sc">~</span><span class="dv">1</span>, <span class="at">probs =</span><span class="sc">~</span>pB_1, <span class="at">data =</span> sample_prob)</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>  res_s1 <span class="ot">&lt;-</span> <span class="fu">nonprob</span>(<span class="at">selection =</span> <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3 <span class="sc">+</span> x4,</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>                    <span class="at">outcome =</span> y1 <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3 <span class="sc">+</span> x4,</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>                    <span class="at">svydesign =</span> sample_prob_svy,</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>                    <span class="at">data =</span> sample_nonprob)</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>  res_s2 <span class="ot">&lt;-</span> <span class="fu">nonprob</span>(<span class="at">selection =</span> <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3 <span class="sc">+</span> x4,</span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>                    <span class="at">outcome =</span> y1 <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3,</span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>                    <span class="at">svydesign =</span> sample_prob_svy,</span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>                    <span class="at">data =</span> sample_nonprob)</span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>  res_s3 <span class="ot">&lt;-</span> <span class="fu">nonprob</span>(<span class="at">selection =</span> <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3 ,</span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>                    <span class="at">outcome =</span> y1 <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3 <span class="sc">+</span> x4,</span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>                    <span class="at">svydesign =</span> sample_prob_svy,</span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>                    <span class="at">data =</span> sample_nonprob)</span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>  res_s4 <span class="ot">&lt;-</span> <span class="fu">nonprob</span>(<span class="at">selection =</span> <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3 ,</span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>                    <span class="at">outcome =</span> y1 <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3 ,</span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>                    <span class="at">svydesign =</span> sample_prob_svy,</span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a>                    <span class="at">data =</span> sample_nonprob)</span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a>sim_y1[[b]] <span class="ot">&lt;-</span> <span class="fu">cbind</span>(<span class="fu">lapply</span>(<span class="fu">list</span>(res_s1,res_s2,res_s3,res_s4), <span class="st">&quot;[[&quot;</span>, <span class="st">&quot;output&quot;</span>) <span class="sc">|&gt;</span> <span class="fu">rbindlist</span>(),</span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a>                     <span class="fu">lapply</span>(<span class="fu">list</span>(res_s1,res_s2,res_s3,res_s4), <span class="st">&quot;[[&quot;</span>, <span class="st">&quot;confidence_interval&quot;</span>) <span class="sc">|&gt;</span> <span class="fu">rbindlist</span>()) </span>
+<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 500
+[1] 1000
+[1] 1500
+[1] 2000
+[1] 2500
+[1] 3000
+[1] 3500
+[1] 4000
+[1] 4500
+[1] 5000</code></pre>
 </div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>sim_y1_all <span class="ot">&lt;-</span> <span class="fu">rbindlist</span>(sim_y1) <span class="sc">|&gt;</span> <span class="fu">na.omit</span>()</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>sim_y1_all[, sim <span class="sc">:</span><span class="er">=</span> <span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>, <span class="at">times =</span> <span class="dv">4999</span>)]</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>sim_y1_all[, .(<span class="at">bias=</span>(<span class="fu">mean</span>(mean)<span class="sc">-</span> <span class="fu">mean</span>(y1))<span class="sc">/</span><span class="fu">mean</span>(y1)<span class="sc">*</span><span class="dv">100</span>, <span class="at">var =</span> <span class="fu">var</span>(mean)), sim][, mse<span class="sc">:</span><span class="er">=</span>bias<span class="sc">^</span><span class="dv">2</span><span class="sc">+</span>var][]</span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>sim_y1_all[, .(<span class="at">ci=</span><span class="fu">mean</span>(lower_bound <span class="sc">&lt;</span> <span class="fu">mean</span>(y1) <span class="sc">&amp;</span> <span class="fu">mean</span>(y1) <span class="sc">&lt;</span> upper_bound)), sim]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-hash="2023-06-01-nonprobsvy_cache/html/sim-chen2020-5000-results_61b2de22ed39475df6870cb536e077ca">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>sim_y1_all <span class="ot">&lt;-</span> <span class="fu">rbindlist</span>(sim_y1) <span class="sc">|&gt;</span> <span class="fu">na.omit</span>()</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>sim_y1_all[, sim <span class="sc">:</span><span class="er">=</span> <span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>, <span class="at">times =</span> <span class="fu">nrow</span>(sim_y1_all)<span class="sc">/</span><span class="dv">4</span>)]</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>sim_y1_all[, .(<span class="at">bias=</span>(<span class="fu">mean</span>(mean)<span class="sc">-</span> <span class="fu">mean</span>(y1))<span class="sc">/</span><span class="fu">mean</span>(y1)<span class="sc">*</span><span class="dv">100</span>, <span class="at">var =</span> <span class="fu">var</span>(mean)), sim][, mse<span class="sc">:</span><span class="er">=</span>bias<span class="sc">^</span><span class="dv">2</span><span class="sc">+</span>var][]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="kable-table">
+<table class="table table-sm table-striped">
+<thead>
+<tr class="header">
+<th style="text-align: right;">sim</th>
+<th style="text-align: right;">bias</th>
+<th style="text-align: right;">var</th>
+<th style="text-align: right;">mse</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">-0.0195384</td>
+<td style="text-align: right;">0.3567033</td>
+<td style="text-align: right;">0.3570850</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">0.1616655</td>
+<td style="text-align: right;">0.3870125</td>
+<td style="text-align: right;">0.4131482</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0.0817838</td>
+<td style="text-align: right;">0.3195848</td>
+<td style="text-align: right;">0.3262734</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">25.6823341</td>
+<td style="text-align: right;">0.2741561</td>
+<td style="text-align: right;">659.8564389</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>sim_y1_all[, .(<span class="at">ci=</span><span class="fu">mean</span>(lower_bound <span class="sc">&lt;</span> <span class="fu">mean</span>(y1) <span class="sc">&amp;</span> <span class="fu">mean</span>(y1) <span class="sc">&lt;</span> upper_bound)), sim]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="kable-table">
+<table class="table table-sm table-striped">
+<thead>
+<tr class="header">
+<th style="text-align: right;">sim</th>
+<th style="text-align: right;">ci</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0.9453891</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">0.9489898</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0.9171834</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">0.0064013</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 </div>
 </section>
 </section>
@@ -3202,40 +3285,40 @@ U(\boldsymbol{\phi})=\sum_{i \in B} \mathbf{x}_{i}-\sum_{i \in A} w_{i} \pi(\mat
 </section>
 <section id="implementation-1" class="level4" data-number="3.3.1.2">
 <h4 data-number="3.3.1.2" class="anchored" data-anchor-id="implementation-1"><span class="header-section-number">3.3.1.2</span> Implementation</h4>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(seed_for_sim)</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>N <span class="ot">&lt;-</span> <span class="dv">100000</span></span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>n_a <span class="ot">&lt;-</span> <span class="dv">500</span></span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>n_b <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>n_b1 <span class="ot">&lt;-</span> <span class="fl">0.7</span><span class="sc">*</span>n_b</span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>n_b2 <span class="ot">&lt;-</span> <span class="fl">0.3</span><span class="sc">*</span>n_b</span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(N, <span class="dv">2</span>, <span class="dv">1</span>)</span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>e <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(N)</span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>y1 <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">+</span> <span class="dv">2</span><span class="sc">*</span>x <span class="sc">+</span> e</span>
-<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>y2 <span class="ot">&lt;-</span> <span class="dv">3</span> <span class="sc">+</span> x <span class="sc">+</span> <span class="dv">2</span><span class="sc">*</span>e</span>
-<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>y3 <span class="ot">&lt;-</span> <span class="fl">2.5</span> <span class="sc">+</span> <span class="fl">0.5</span><span class="sc">*</span>x<span class="sc">^</span><span class="dv">2</span> <span class="sc">+</span> e</span>
-<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>strata <span class="ot">&lt;-</span> x <span class="sc">&lt;=</span> <span class="dv">2</span></span>
-<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>pop <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(x, y1, y2, y3, strata)</span>
-<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>sample_a <span class="ot">&lt;-</span> pop[<span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span>N, n_a),]</span>
-<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>sample_a<span class="sc">$</span>w_a <span class="ot">&lt;-</span> N<span class="sc">/</span>n_a</span>
-<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>svy_a <span class="ot">&lt;-</span> <span class="fu">svydesign</span>(<span class="at">ids=</span> <span class="sc">~</span><span class="dv">1</span>, <span class="at">weights =</span> <span class="sc">~</span> w_a, <span class="at">data =</span> sample_a)</span>
-<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>svy_a_cal <span class="ot">&lt;-</span> <span class="fu">calibrate</span>(svy_a, <span class="at">formula=</span><span class="sc">~</span> x, <span class="at">population=</span><span class="fu">c</span>(<span class="st">`</span><span class="at">(Intercept)</span><span class="st">`</span><span class="ot">=</span>N, <span class="at">x =</span> <span class="fu">sum</span>(x)))</span>
-<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>pop1 <span class="ot">&lt;-</span> <span class="fu">subset</span>(pop, strata <span class="sc">==</span> <span class="cn">TRUE</span>)</span>
-<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>pop2 <span class="ot">&lt;-</span> <span class="fu">subset</span>(pop, strata <span class="sc">==</span> <span class="cn">FALSE</span>)</span>
-<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>sample_b <span class="ot">&lt;-</span> <span class="fu">rbind</span>(pop1[<span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(pop1), n_b1), ],</span>
-<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>                  pop2[<span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(pop2), n_b2), ])</span>
-<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>sample_b<span class="sc">$</span>w_b <span class="ot">&lt;-</span> N<span class="sc">/</span>n_b</span>
-<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a><span class="do">## mass imputation</span></span>
-<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>res_y1 <span class="ot">&lt;-</span> <span class="fu">nonprob</span>(<span class="at">outcome =</span> y1 <span class="sc">~</span> x,  <span class="at">data =</span> sample_b, <span class="at">weights =</span> sample_b<span class="sc">$</span>w_b, <span class="at">svydesign =</span> svy_a)</span>
-<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>res_y2 <span class="ot">&lt;-</span> <span class="fu">nonprob</span>(<span class="at">outcome=</span> y2 <span class="sc">~</span> x,  <span class="at">data =</span> sample_b, <span class="at">weights =</span> sample_b<span class="sc">$</span>w_b, <span class="at">svydesign =</span> svy_a)</span>
-<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>res_y3 <span class="ot">&lt;-</span> <span class="fu">nonprob</span>(<span class="at">outcome=</span> y3 <span class="sc">~</span> x,  <span class="at">data =</span> sample_b, <span class="at">weights =</span> sample_b<span class="sc">$</span>w_b, <span class="at">svydesign =</span> svy_a)</span>
-<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">est =</span> <span class="fu">c</span>(<span class="st">&quot;mi_y1&quot;</span>,<span class="st">&quot;mi_y2&quot;</span>, <span class="st">&quot;mi_y3&quot;</span>),</span>
-<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a>           <span class="at">true =</span> <span class="fu">c</span>(<span class="fu">mean</span>(y1), <span class="fu">mean</span>(y2), <span class="fu">mean</span>(y3)),</span>
-<span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a>           <span class="at">naive_B =</span> <span class="fu">c</span>(<span class="fu">mean</span>(sample_b<span class="sc">$</span>y1),<span class="fu">mean</span>(sample_b<span class="sc">$</span>y2), <span class="fu">mean</span>(sample_b<span class="sc">$</span>y3)),</span>
-<span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a>           <span class="at">mi =</span> <span class="fu">c</span>(res_y1<span class="sc">$</span>output<span class="sc">$</span>mean, res_y2<span class="sc">$</span>output<span class="sc">$</span>mean, res_y3<span class="sc">$</span>output<span class="sc">$</span>mean))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-hash="2023-06-01-nonprobsvy_cache/html/mi-sim-data_2f2df8db3b644d9b7c54202ce1fdf6e9">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(seed_for_sim)</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>N <span class="ot">&lt;-</span> <span class="dv">100000</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>n_a <span class="ot">&lt;-</span> <span class="dv">500</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>n_b <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>n_b1 <span class="ot">&lt;-</span> <span class="fl">0.7</span><span class="sc">*</span>n_b</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>n_b2 <span class="ot">&lt;-</span> <span class="fl">0.3</span><span class="sc">*</span>n_b</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(N, <span class="dv">2</span>, <span class="dv">1</span>)</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>e <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(N)</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>y1 <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">+</span> <span class="dv">2</span><span class="sc">*</span>x <span class="sc">+</span> e</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>y2 <span class="ot">&lt;-</span> <span class="dv">3</span> <span class="sc">+</span> x <span class="sc">+</span> <span class="dv">2</span><span class="sc">*</span>e</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>y3 <span class="ot">&lt;-</span> <span class="fl">2.5</span> <span class="sc">+</span> <span class="fl">0.5</span><span class="sc">*</span>x<span class="sc">^</span><span class="dv">2</span> <span class="sc">+</span> e</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>strata <span class="ot">&lt;-</span> x <span class="sc">&lt;=</span> <span class="dv">2</span></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>pop <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(x, y1, y2, y3, strata)</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>sample_a <span class="ot">&lt;-</span> pop[<span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span>N, n_a),]</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>sample_a<span class="sc">$</span>w_a <span class="ot">&lt;-</span> N<span class="sc">/</span>n_a</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>svy_a <span class="ot">&lt;-</span> <span class="fu">svydesign</span>(<span class="at">ids=</span> <span class="sc">~</span><span class="dv">1</span>, <span class="at">weights =</span> <span class="sc">~</span> w_a, <span class="at">data =</span> sample_a)</span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>svy_a_cal <span class="ot">&lt;-</span> <span class="fu">calibrate</span>(svy_a, <span class="at">formula=</span><span class="sc">~</span> x, <span class="at">population=</span><span class="fu">c</span>(<span class="st">`</span><span class="at">(Intercept)</span><span class="st">`</span><span class="ot">=</span>N, <span class="at">x =</span> <span class="fu">sum</span>(x)))</span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>pop1 <span class="ot">&lt;-</span> <span class="fu">subset</span>(pop, strata <span class="sc">==</span> <span class="cn">TRUE</span>)</span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>pop2 <span class="ot">&lt;-</span> <span class="fu">subset</span>(pop, strata <span class="sc">==</span> <span class="cn">FALSE</span>)</span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>sample_b <span class="ot">&lt;-</span> <span class="fu">rbind</span>(pop1[<span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(pop1), n_b1), ],</span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>                  pop2[<span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(pop2), n_b2), ])</span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>sample_b<span class="sc">$</span>w_b <span class="ot">&lt;-</span> N<span class="sc">/</span>n_b</span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a><span class="do">## mass imputation</span></span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>res_y1 <span class="ot">&lt;-</span> <span class="fu">nonprob</span>(<span class="at">outcome =</span> y1 <span class="sc">~</span> x,  <span class="at">data =</span> sample_b, <span class="at">svydesign =</span> svy_a)</span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>res_y2 <span class="ot">&lt;-</span> <span class="fu">nonprob</span>(<span class="at">outcome=</span> y2 <span class="sc">~</span> x,  <span class="at">data =</span> sample_b,  <span class="at">svydesign =</span> svy_a)</span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>res_y3 <span class="ot">&lt;-</span> <span class="fu">nonprob</span>(<span class="at">outcome=</span> y3 <span class="sc">~</span> x,  <span class="at">data =</span> sample_b,<span class="at">svydesign =</span> svy_a)</span>
+<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">est =</span> <span class="fu">c</span>(<span class="st">&quot;mi_y1&quot;</span>,<span class="st">&quot;mi_y2&quot;</span>, <span class="st">&quot;mi_y3&quot;</span>),</span>
+<span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a>           <span class="at">true =</span> <span class="fu">c</span>(<span class="fu">mean</span>(y1), <span class="fu">mean</span>(y2), <span class="fu">mean</span>(y3)),</span>
+<span id="cb12-32"><a href="#cb12-32" aria-hidden="true" tabindex="-1"></a>           <span class="at">naive_B =</span> <span class="fu">c</span>(<span class="fu">mean</span>(sample_b<span class="sc">$</span>y1),<span class="fu">mean</span>(sample_b<span class="sc">$</span>y2), <span class="fu">mean</span>(sample_b<span class="sc">$</span>y3)),</span>
+<span id="cb12-33"><a href="#cb12-33" aria-hidden="true" tabindex="-1"></a>           <span class="at">mi =</span> <span class="fu">c</span>(res_y1<span class="sc">$</span>output<span class="sc">$</span>mean, res_y2<span class="sc">$</span>output<span class="sc">$</span>mean, res_y3<span class="sc">$</span>output<span class="sc">$</span>mean))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div class="kable-table">
 <table class="table table-sm table-striped">
@@ -3250,21 +3333,21 @@ U(\boldsymbol{\phi})=\sum_{i \in B} \mathbf{x}_{i}-\sum_{i \in A} w_{i} \pi(\mat
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">mi_y1</td>
-<td style="text-align: right;">5.004311</td>
-<td style="text-align: right;">4.337530</td>
-<td style="text-align: right;">5.056360</td>
+<td style="text-align: right;">4.992528</td>
+<td style="text-align: right;">4.306995</td>
+<td style="text-align: right;">4.829822</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">mi_y2</td>
-<td style="text-align: right;">5.002783</td>
-<td style="text-align: right;">4.569394</td>
-<td style="text-align: right;">4.934186</td>
+<td style="text-align: right;">4.991651</td>
+<td style="text-align: right;">4.569270</td>
+<td style="text-align: right;">4.826860</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">mi_y3</td>
-<td style="text-align: right;">5.008768</td>
-<td style="text-align: right;">4.287333</td>
-<td style="text-align: right;">4.939599</td>
+<td style="text-align: right;">4.993413</td>
+<td style="text-align: right;">4.329142</td>
+<td style="text-align: right;">4.806091</td>
 </tr>
 </tbody>
 </table>
@@ -3272,56 +3355,65 @@ U(\boldsymbol{\phi})=\sum_{i \in B} \mathbf{x}_{i}-\sum_{i \in A} w_{i} \pi(\mat
 </div>
 </div>
 <p>Run the simulation and compare results with the paper</p>
-<div class="cell" data-hash="2023-06-01-nonprobsvy_cache/html/mi-simulation-1000_e7183b1c57931087f853e931fa1f2250">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">20230602</span>)</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>B <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>results <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="at">data =</span> <span class="dv">0</span>, <span class="at">nrow =</span> B, <span class="at">ncol =</span> <span class="dv">9</span>)</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>results_ci <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="at">data =</span> <span class="dv">0</span>, <span class="at">nrow =</span> B, <span class="at">ncol =</span> <span class="dv">6</span>)</span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (b <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>B) {</span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  sample_a <span class="ot">&lt;-</span> pop[<span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span>N, n_a),]</span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  sample_a<span class="sc">$</span>w_a <span class="ot">&lt;-</span> N<span class="sc">/</span>n_a</span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>  svy_a <span class="ot">&lt;-</span> <span class="fu">svydesign</span>(<span class="at">ids=</span> <span class="sc">~</span><span class="dv">1</span>, <span class="at">weights =</span> <span class="sc">~</span> w_a, <span class="at">data =</span> sample_a)</span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>  pop1 <span class="ot">&lt;-</span> <span class="fu">subset</span>(pop, strata <span class="sc">==</span> <span class="cn">TRUE</span>)</span>
-<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>  pop2 <span class="ot">&lt;-</span> <span class="fu">subset</span>(pop, strata <span class="sc">==</span> <span class="cn">FALSE</span>)</span>
-<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>  sample_b <span class="ot">&lt;-</span> <span class="fu">rbind</span>(pop1[<span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(pop1), n_b1), ],</span>
-<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>                    pop2[<span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(pop2), n_b2), ])</span>
-<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>  sample_b<span class="sc">$</span>w_b <span class="ot">&lt;-</span> N<span class="sc">/</span>n_b</span>
-<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>  res_y1 <span class="ot">&lt;-</span> <span class="fu">nonprob</span>(<span class="at">outcome =</span> y1 <span class="sc">~</span> x, <span class="at">data =</span> sample_b, <span class="at">weights =</span> sample_b<span class="sc">$</span>w_b, <span class="at">svydesign =</span> svy_a)</span>
-<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>  res_y2 <span class="ot">&lt;-</span> <span class="fu">nonprob</span>(<span class="at">outcome =</span> y2 <span class="sc">~</span> x, <span class="at">data =</span> sample_b, <span class="at">weights =</span> sample_b<span class="sc">$</span>w_b, <span class="at">svydesign =</span> svy_a)</span>
-<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>  res_y3 <span class="ot">&lt;-</span> <span class="fu">nonprob</span>(<span class="at">outcome =</span> y3 <span class="sc">~</span> x, <span class="at">data =</span> sample_b, <span class="at">weights =</span> sample_b<span class="sc">$</span>w_b, <span class="at">svydesign =</span> svy_a)</span>
-<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>  results[b, <span class="dv">1</span>] <span class="ot">&lt;-</span> res_y1<span class="sc">$</span>output<span class="sc">$</span>mean</span>
-<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>  results[b, <span class="dv">2</span>] <span class="ot">&lt;-</span> res_y2<span class="sc">$</span>output<span class="sc">$</span>mean</span>
-<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>  results[b, <span class="dv">3</span>] <span class="ot">&lt;-</span> res_y3<span class="sc">$</span>output<span class="sc">$</span>mean</span>
-<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>  results[b, <span class="dv">4</span>] <span class="ot">&lt;-</span> <span class="fu">mean</span>(sample_a<span class="sc">$</span>y1)</span>
-<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>  results[b, <span class="dv">5</span>] <span class="ot">&lt;-</span> <span class="fu">mean</span>(sample_a<span class="sc">$</span>y2)</span>
-<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>  results[b, <span class="dv">6</span>] <span class="ot">&lt;-</span> <span class="fu">mean</span>(sample_a<span class="sc">$</span>y3)</span>
-<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>  results[b, <span class="dv">7</span>] <span class="ot">&lt;-</span> <span class="fu">mean</span>(sample_b<span class="sc">$</span>y1)</span>
-<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a>  results[b, <span class="dv">8</span>] <span class="ot">&lt;-</span> <span class="fu">mean</span>(sample_b<span class="sc">$</span>y2)</span>
-<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a>  results[b, <span class="dv">9</span>] <span class="ot">&lt;-</span> <span class="fu">mean</span>(sample_b<span class="sc">$</span>y3)</span>
-<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a>  results_ci[b, <span class="dv">1</span>] <span class="ot">&lt;-</span> res_y1<span class="sc">$</span>confidence_interval<span class="sc">$</span>lower_bound</span>
-<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a>  results_ci[b, <span class="dv">2</span>] <span class="ot">&lt;-</span> res_y1<span class="sc">$</span>confidence_interval<span class="sc">$</span>upper_bound</span>
-<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a>  results_ci[b, <span class="dv">3</span>] <span class="ot">&lt;-</span> res_y2<span class="sc">$</span>confidence_interval<span class="sc">$</span>lower_bound</span>
-<span id="cb11-30"><a href="#cb11-30" aria-hidden="true" tabindex="-1"></a>  results_ci[b, <span class="dv">4</span>] <span class="ot">&lt;-</span> res_y2<span class="sc">$</span>confidence_interval<span class="sc">$</span>upper_bound</span>
-<span id="cb11-31"><a href="#cb11-31" aria-hidden="true" tabindex="-1"></a>  results_ci[b, <span class="dv">5</span>] <span class="ot">&lt;-</span> res_y3<span class="sc">$</span>confidence_interval<span class="sc">$</span>lower_bound</span>
-<span id="cb11-32"><a href="#cb11-32" aria-hidden="true" tabindex="-1"></a>  results_ci[b, <span class="dv">6</span>] <span class="ot">&lt;-</span> res_y3<span class="sc">$</span>confidence_interval<span class="sc">$</span>upper_bound</span>
-<span id="cb11-33"><a href="#cb11-33" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-hash="2023-06-01-nonprobsvy_cache/html/mi-simulation-1000_a04b47e85c343567f5a1f0c78dc063ee">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">20230602</span>)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>B <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>results <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="at">data =</span> <span class="dv">0</span>, <span class="at">nrow =</span> B, <span class="at">ncol =</span> <span class="dv">12</span>)</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>results_ci <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="at">data =</span> <span class="dv">0</span>, <span class="at">nrow =</span> B, <span class="at">ncol =</span> <span class="dv">6</span>)</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (b <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>B) {</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  sample_a <span class="ot">&lt;-</span> pop[<span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span>N, n_a),]</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>  sample_a<span class="sc">$</span>w_a <span class="ot">&lt;-</span> N<span class="sc">/</span>n_a</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>  svy_a <span class="ot">&lt;-</span> <span class="fu">svydesign</span>(<span class="at">ids=</span> <span class="sc">~</span><span class="dv">1</span>, <span class="at">weights =</span> <span class="sc">~</span> w_a, <span class="at">data =</span> sample_a)</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>  pop1 <span class="ot">&lt;-</span> <span class="fu">subset</span>(pop, strata <span class="sc">==</span> <span class="cn">TRUE</span>)</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>  pop2 <span class="ot">&lt;-</span> <span class="fu">subset</span>(pop, strata <span class="sc">==</span> <span class="cn">FALSE</span>)</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>  sample_b <span class="ot">&lt;-</span> <span class="fu">rbind</span>(pop1[<span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(pop1), n_b1), ],</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>                    pop2[<span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(pop2), n_b2), ])</span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>  sample_b<span class="sc">$</span>w_b <span class="ot">&lt;-</span> N<span class="sc">/</span>n_b</span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>  res_y1 <span class="ot">&lt;-</span> <span class="fu">nonprob</span>(<span class="at">outcome =</span> y1 <span class="sc">~</span> x, <span class="at">data =</span> sample_b, <span class="at">svydesign =</span> svy_a)</span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>  res_y1_ipw <span class="ot">&lt;-</span> <span class="fu">nonprob</span>(<span class="at">target =</span> <span class="sc">~</span>y1, <span class="at">selection=</span> <span class="sc">~</span> x, <span class="at">data =</span> sample_b, <span class="at">svydesign =</span> svy_a)</span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>  res_y2 <span class="ot">&lt;-</span> <span class="fu">nonprob</span>(<span class="at">outcome =</span> y2 <span class="sc">~</span> x, <span class="at">data =</span> sample_b, <span class="at">svydesign =</span> svy_a)</span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>  res_y2_ipw <span class="ot">&lt;-</span> <span class="fu">nonprob</span>(<span class="at">target =</span> <span class="sc">~</span>y2, <span class="at">selection=</span> <span class="sc">~</span> x, <span class="at">data =</span> sample_b, <span class="at">svydesign =</span> svy_a)</span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>  res_y3 <span class="ot">&lt;-</span> <span class="fu">nonprob</span>(<span class="at">outcome =</span> y3 <span class="sc">~</span> x, <span class="at">data =</span> sample_b, <span class="at">svydesign =</span> svy_a)</span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>  res_y3_ipw <span class="ot">&lt;-</span> <span class="fu">nonprob</span>(<span class="at">target =</span> <span class="sc">~</span>y3, <span class="at">selection=</span> <span class="sc">~</span> x, <span class="at">data =</span> sample_b, <span class="at">svydesign =</span> svy_a)</span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>  results[b, <span class="dv">1</span>] <span class="ot">&lt;-</span> res_y1<span class="sc">$</span>output<span class="sc">$</span>mean</span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>  results[b, <span class="dv">2</span>] <span class="ot">&lt;-</span> res_y2<span class="sc">$</span>output<span class="sc">$</span>mean</span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a>  results[b, <span class="dv">3</span>] <span class="ot">&lt;-</span> res_y3<span class="sc">$</span>output<span class="sc">$</span>mean</span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>  results[b, <span class="dv">4</span>] <span class="ot">&lt;-</span> res_y1_ipw<span class="sc">$</span>output<span class="sc">$</span>mean</span>
+<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a>  results[b, <span class="dv">5</span>] <span class="ot">&lt;-</span> res_y2_ipw<span class="sc">$</span>output<span class="sc">$</span>mean</span>
+<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a>  results[b, <span class="dv">6</span>] <span class="ot">&lt;-</span> res_y3_ipw<span class="sc">$</span>output<span class="sc">$</span>mean</span>
+<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a>  results[b, <span class="dv">7</span>] <span class="ot">&lt;-</span> <span class="fu">mean</span>(sample_a<span class="sc">$</span>y1)</span>
+<span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a>  results[b, <span class="dv">8</span>] <span class="ot">&lt;-</span> <span class="fu">mean</span>(sample_a<span class="sc">$</span>y2)</span>
+<span id="cb13-29"><a href="#cb13-29" aria-hidden="true" tabindex="-1"></a>  results[b, <span class="dv">9</span>] <span class="ot">&lt;-</span> <span class="fu">mean</span>(sample_a<span class="sc">$</span>y3)</span>
+<span id="cb13-30"><a href="#cb13-30" aria-hidden="true" tabindex="-1"></a>  results[b, <span class="dv">10</span>] <span class="ot">&lt;-</span> <span class="fu">mean</span>(sample_b<span class="sc">$</span>y1)</span>
+<span id="cb13-31"><a href="#cb13-31" aria-hidden="true" tabindex="-1"></a>  results[b, <span class="dv">11</span>] <span class="ot">&lt;-</span> <span class="fu">mean</span>(sample_b<span class="sc">$</span>y2)</span>
+<span id="cb13-32"><a href="#cb13-32" aria-hidden="true" tabindex="-1"></a>  results[b, <span class="dv">12</span>] <span class="ot">&lt;-</span> <span class="fu">mean</span>(sample_b<span class="sc">$</span>y3)</span>
+<span id="cb13-33"><a href="#cb13-33" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb13-34"><a href="#cb13-34" aria-hidden="true" tabindex="-1"></a>  results_ci[b, <span class="dv">1</span>] <span class="ot">&lt;-</span> res_y1<span class="sc">$</span>confidence_interval<span class="sc">$</span>lower_bound</span>
+<span id="cb13-35"><a href="#cb13-35" aria-hidden="true" tabindex="-1"></a>  results_ci[b, <span class="dv">2</span>] <span class="ot">&lt;-</span> res_y1<span class="sc">$</span>confidence_interval<span class="sc">$</span>upper_bound</span>
+<span id="cb13-36"><a href="#cb13-36" aria-hidden="true" tabindex="-1"></a>  results_ci[b, <span class="dv">3</span>] <span class="ot">&lt;-</span> res_y2<span class="sc">$</span>confidence_interval<span class="sc">$</span>lower_bound</span>
+<span id="cb13-37"><a href="#cb13-37" aria-hidden="true" tabindex="-1"></a>  results_ci[b, <span class="dv">4</span>] <span class="ot">&lt;-</span> res_y2<span class="sc">$</span>confidence_interval<span class="sc">$</span>upper_bound</span>
+<span id="cb13-38"><a href="#cb13-38" aria-hidden="true" tabindex="-1"></a>  results_ci[b, <span class="dv">5</span>] <span class="ot">&lt;-</span> res_y3<span class="sc">$</span>confidence_interval<span class="sc">$</span>lower_bound</span>
+<span id="cb13-39"><a href="#cb13-39" aria-hidden="true" tabindex="-1"></a>  results_ci[b, <span class="dv">6</span>] <span class="ot">&lt;-</span> res_y3<span class="sc">$</span>confidence_interval<span class="sc">$</span>upper_bound</span>
+<span id="cb13-40"><a href="#cb13-40" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Bias, variance, mse and relative MSE calculated as</p>
 <p><span class="math display">\[
 RelMSE = \frac{MSE(\hat{\theta})}{MSE(\hat{\theta}_A)},
 \]</span> where <span class="math inline">\(\theta_A\)</span> is the target parameter calculated if random sample would be available for <span class="math inline">\(y1,y2\)</span> and <span class="math inline">\(y3\)</span>.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>results_mi <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">est =</span> <span class="fu">c</span>(<span class="st">&quot;mi_y1&quot;</span>, <span class="st">&quot;mi_y2&quot;</span>, <span class="st">&quot;mi_y3&quot;</span>, <span class="st">&quot;naiveA_y1&quot;</span>, <span class="st">&quot;naiveA_y2&quot;</span>, <span class="st">&quot;naiveA_y3&quot;</span>,</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;naiveB_y1&quot;</span>, <span class="st">&quot;naiveB_y2&quot;</span>, <span class="st">&quot;naiveB_y3&quot;</span>),</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">bias =</span> <span class="fu">colMeans</span>(results) <span class="sc">-</span> <span class="fu">c</span>(<span class="fu">colMeans</span>(pop[, <span class="dv">2</span><span class="sc">:</span><span class="dv">4</span>]), <span class="fu">colMeans</span>(pop[, <span class="dv">2</span><span class="sc">:</span><span class="dv">4</span>]), <span class="fu">colMeans</span>(pop[, <span class="dv">2</span><span class="sc">:</span><span class="dv">4</span>])),</span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">var =</span> <span class="fu">apply</span>(results, <span class="dv">2</span>, var)</span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>) </span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>results_mi<span class="sc">$</span>mse <span class="ot">&lt;-</span> <span class="fu">with</span>(results_mi, bias<span class="sc">^</span><span class="dv">2</span><span class="sc">+</span>var)</span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>results_mi<span class="sc">$</span>relMSE <span class="ot">&lt;-</span> results_mi<span class="sc">$</span>mse<span class="sc">/</span>results_mi<span class="sc">$</span>mse[<span class="fu">c</span>(<span class="dv">4</span>,<span class="dv">5</span>,<span class="dv">6</span>,<span class="dv">4</span>,<span class="dv">5</span>,<span class="dv">6</span>,<span class="dv">4</span>,<span class="dv">5</span>,<span class="dv">6</span>)]<span class="sc">*</span><span class="dv">100</span></span>
-<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>results_mi[<span class="fu">c</span>(<span class="dv">4</span><span class="sc">:</span><span class="fu">nrow</span>(results_mi), <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>),]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-hash="2023-06-01-nonprobsvy_cache/html/mi-sim-bias-reports_389e3e7c4a2e0e9eb051dfd2f0553f50">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>results_mi <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">est =</span> <span class="fu">c</span>(<span class="st">&quot;mi_y1&quot;</span>, <span class="st">&quot;mi_y2&quot;</span>, <span class="st">&quot;mi_y3&quot;</span>, </span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;mi_y1_ipw&quot;</span>, <span class="st">&quot;mi_y2_ipw&quot;</span>, <span class="st">&quot;mi_y3_ipw&quot;</span>, </span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;naiveA_y1&quot;</span>, <span class="st">&quot;naiveA_y2&quot;</span>, <span class="st">&quot;naiveA_y3&quot;</span>,</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;naiveB_y1&quot;</span>, <span class="st">&quot;naiveB_y2&quot;</span>, <span class="st">&quot;naiveB_y3&quot;</span>),</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">bias =</span> <span class="fu">colMeans</span>(results) <span class="sc">-</span> <span class="fu">rep</span>(<span class="fu">colMeans</span>(pop[, <span class="dv">2</span><span class="sc">:</span><span class="dv">4</span>]), <span class="at">times =</span> <span class="dv">4</span>),</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">var =</span> <span class="fu">apply</span>(results, <span class="dv">2</span>, var)</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>) </span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>results_mi<span class="sc">$</span>mse <span class="ot">&lt;-</span> <span class="fu">with</span>(results_mi, bias<span class="sc">^</span><span class="dv">2</span><span class="sc">+</span>var)</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>results_mi<span class="sc">$</span>relMSE <span class="ot">&lt;-</span> results_mi<span class="sc">$</span>mse<span class="sc">/</span>results_mi<span class="sc">$</span>mse[<span class="fu">c</span>(<span class="dv">7</span>,<span class="dv">8</span>,<span class="dv">9</span>,<span class="dv">7</span>,<span class="dv">8</span>,<span class="dv">9</span>,<span class="dv">7</span>,<span class="dv">8</span>,<span class="dv">9</span>)]<span class="sc">*</span><span class="dv">100</span></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>results_mi[<span class="fu">c</span>(<span class="dv">7</span><span class="sc">:</span><span class="fu">nrow</span>(results_mi), <span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>),]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div class="kable-table">
 <table class="table table-sm table-striped">
@@ -3337,76 +3429,100 @@ RelMSE = \frac{MSE(\hat{\theta})}{MSE(\hat{\theta}_A)},
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;">4</td>
-<td style="text-align: left;">naiveA_y1</td>
-<td style="text-align: right;">-0.0000481</td>
-<td style="text-align: right;">0.0095235</td>
-<td style="text-align: right;">0.0095235</td>
-<td style="text-align: right;">100.00000</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">5</td>
-<td style="text-align: left;">naiveA_y2</td>
-<td style="text-align: right;">0.0013982</td>
-<td style="text-align: right;">0.0095232</td>
-<td style="text-align: right;">0.0095252</td>
-<td style="text-align: right;">100.00000</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">6</td>
-<td style="text-align: left;">naiveA_y3</td>
-<td style="text-align: right;">0.0000722</td>
-<td style="text-align: right;">0.0103121</td>
-<td style="text-align: right;">0.0103121</td>
-<td style="text-align: right;">100.00000</td>
-</tr>
-<tr class="even">
 <td style="text-align: left;">7</td>
-<td style="text-align: left;">naiveB_y1</td>
-<td style="text-align: right;">-0.6427490</td>
-<td style="text-align: right;">0.0025018</td>
-<td style="text-align: right;">0.4156281</td>
-<td style="text-align: right;">4364.21607</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">8</td>
-<td style="text-align: left;">naiveB_y2</td>
-<td style="text-align: right;">-0.3197997</td>
-<td style="text-align: right;">0.0042367</td>
-<td style="text-align: right;">0.1065085</td>
-<td style="text-align: right;">1118.18099</td>
+<td style="text-align: left;">naiveA_y1</td>
+<td style="text-align: right;">0.0044711</td>
+<td style="text-align: right;">0.0102891</td>
+<td style="text-align: right;">0.0103091</td>
+<td style="text-align: right;">100.00000</td>
 </tr>
 <tr class="even">
+<td style="text-align: left;">8</td>
+<td style="text-align: left;">naiveA_y2</td>
+<td style="text-align: right;">0.0027004</td>
+<td style="text-align: right;">0.0101982</td>
+<td style="text-align: right;">0.0102055</td>
+<td style="text-align: right;">100.00000</td>
+</tr>
+<tr class="odd">
 <td style="text-align: left;">9</td>
+<td style="text-align: left;">naiveA_y3</td>
+<td style="text-align: right;">0.0035912</td>
+<td style="text-align: right;">0.0117840</td>
+<td style="text-align: right;">0.0117969</td>
+<td style="text-align: right;">100.00000</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">10</td>
+<td style="text-align: left;">naiveB_y1</td>
+<td style="text-align: right;">-0.6359091</td>
+<td style="text-align: right;">0.0024613</td>
+<td style="text-align: right;">0.4068416</td>
+<td style="text-align: right;">3946.44952</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">11</td>
+<td style="text-align: left;">naiveB_y2</td>
+<td style="text-align: right;">-0.3167349</td>
+<td style="text-align: right;">0.0043298</td>
+<td style="text-align: right;">0.1046508</td>
+<td style="text-align: right;">1025.43734</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">12</td>
 <td style="text-align: left;">naiveB_y3</td>
-<td style="text-align: right;">-0.6440414</td>
-<td style="text-align: right;">0.0022976</td>
-<td style="text-align: right;">0.4170869</td>
-<td style="text-align: right;">4044.64477</td>
+<td style="text-align: right;">-0.6348299</td>
+<td style="text-align: right;">0.0023667</td>
+<td style="text-align: right;">0.4053757</td>
+<td style="text-align: right;">3436.28871</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">1</td>
 <td style="text-align: left;">mi_y1</td>
-<td style="text-align: right;">-0.0010151</td>
-<td style="text-align: right;">0.0094551</td>
-<td style="text-align: right;">0.0094561</td>
-<td style="text-align: right;">99.29177</td>
+<td style="text-align: right;">0.0029814</td>
+<td style="text-align: right;">0.0095550</td>
+<td style="text-align: right;">0.0095639</td>
+<td style="text-align: right;">92.77186</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">2</td>
 <td style="text-align: left;">mi_y2</td>
-<td style="text-align: right;">-0.0005358</td>
-<td style="text-align: right;">0.0065701</td>
-<td style="text-align: right;">0.0065703</td>
-<td style="text-align: right;">68.97886</td>
+<td style="text-align: right;">-0.0002790</td>
+<td style="text-align: right;">0.0067727</td>
+<td style="text-align: right;">0.0067728</td>
+<td style="text-align: right;">66.36421</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">3</td>
 <td style="text-align: left;">mi_y3</td>
-<td style="text-align: right;">-0.0618621</td>
-<td style="text-align: right;">0.0086089</td>
-<td style="text-align: right;">0.0124358</td>
-<td style="text-align: right;">120.59427</td>
+<td style="text-align: right;">-0.0532371</td>
+<td style="text-align: right;">0.0088485</td>
+<td style="text-align: right;">0.0116827</td>
+<td style="text-align: right;">99.03179</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">4</td>
+<td style="text-align: left;">mi_y1_ipw</td>
+<td style="text-align: right;">-0.0232531</td>
+<td style="text-align: right;">0.0121775</td>
+<td style="text-align: right;">0.0127182</td>
+<td style="text-align: right;">123.36929</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">5</td>
+<td style="text-align: left;">mi_y2_ipw</td>
+<td style="text-align: right;">-0.0129245</td>
+<td style="text-align: right;">0.0074102</td>
+<td style="text-align: right;">0.0075772</td>
+<td style="text-align: right;">74.24679</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">6</td>
+<td style="text-align: left;">mi_y3_ipw</td>
+<td style="text-align: right;">-0.0224922</td>
+<td style="text-align: right;">0.0165383</td>
+<td style="text-align: right;">0.0170442</td>
+<td style="text-align: right;">144.48036</td>
 </tr>
 </tbody>
 </table>
@@ -3420,13 +3536,13 @@ RelMSE = \frac{MSE(\hat{\theta})}{MSE(\hat{\theta}_A)},
 </figure>
 </div>
 <p>Check the coverage of confidence interval</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">c</span>(<span class="st">&quot;mi_y1&quot;</span><span class="ot">=</span><span class="fu">mean</span>(results_ci[, <span class="dv">1</span>] <span class="sc">&lt;</span> <span class="fu">mean</span>(y1) <span class="sc">&amp;</span> results_ci[, <span class="dv">2</span>] <span class="sc">&gt;</span> <span class="fu">mean</span>(y1))<span class="sc">*</span><span class="dv">100</span>,</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;mi_y2&quot;</span><span class="ot">=</span><span class="fu">mean</span>(results_ci[, <span class="dv">3</span>] <span class="sc">&lt;</span> <span class="fu">mean</span>(y2) <span class="sc">&amp;</span> results_ci[, <span class="dv">4</span>] <span class="sc">&gt;</span> <span class="fu">mean</span>(y2))<span class="sc">*</span><span class="dv">100</span>,</span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;mi_y3&quot;</span><span class="ot">=</span><span class="fu">mean</span>(results_ci[, <span class="dv">5</span>] <span class="sc">&lt;</span> <span class="fu">mean</span>(y3) <span class="sc">&amp;</span> results_ci[, <span class="dv">6</span>] <span class="sc">&gt;</span> <span class="fu">mean</span>(y3))<span class="sc">*</span><span class="dv">100</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-hash="2023-06-01-nonprobsvy_cache/html/mi-sim-ci-report_77ff19edb06c07f7e7f6688c6277ab9a">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">c</span>(<span class="st">&quot;mi_y1&quot;</span><span class="ot">=</span><span class="fu">mean</span>(results_ci[, <span class="dv">1</span>] <span class="sc">&lt;</span> <span class="fu">mean</span>(y1) <span class="sc">&amp;</span> results_ci[, <span class="dv">2</span>] <span class="sc">&gt;</span> <span class="fu">mean</span>(y1))<span class="sc">*</span><span class="dv">100</span>,</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;mi_y2&quot;</span><span class="ot">=</span><span class="fu">mean</span>(results_ci[, <span class="dv">3</span>] <span class="sc">&lt;</span> <span class="fu">mean</span>(y2) <span class="sc">&amp;</span> results_ci[, <span class="dv">4</span>] <span class="sc">&gt;</span> <span class="fu">mean</span>(y2))<span class="sc">*</span><span class="dv">100</span>,</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;mi_y3&quot;</span><span class="ot">=</span><span class="fu">mean</span>(results_ci[, <span class="dv">5</span>] <span class="sc">&lt;</span> <span class="fu">mean</span>(y3) <span class="sc">&amp;</span> results_ci[, <span class="dv">6</span>] <span class="sc">&gt;</span> <span class="fu">mean</span>(y3))<span class="sc">*</span><span class="dv">100</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>mi_y1 mi_y2 mi_y3 
- 94.9  94.9  88.1 </code></pre>
+ 93.7  94.6  89.8 </code></pre>
 </div>
 </div>
 </section>

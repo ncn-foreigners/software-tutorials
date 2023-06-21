@@ -12,6 +12,7 @@ bibliography: references.bib
 biblio-style: apalike
 execute: 
   warning: false
+  cache: true
 ---
 
 # Basic information
@@ -98,7 +99,7 @@ In the empirical part we reproduce results from the following papers:
 Seed for all simulations
 
 ```{r}
-seed_for_sim <- 20230621
+seed_for_sim <- 2023-06-23
 ```
 
 # Empirical examples
@@ -323,7 +324,7 @@ head(pop_data)
 One simulation
 
 ```{r}
-set.seed(seed_for_sim)
+set.seed(seed_for_sim+1)
 sample_nonprob <- pop_data[which(sampling::UPpoisson(pop_data$pA_1)==1),]
 sample_nonprob$w_naive <- N/n_1
 sample_prob <- pop_data[syspps_cpp(pop_data$pB_1, n_1), ]
@@ -357,10 +358,10 @@ cbind(
 
 Whole simulation using $B=5000$ as in the original paper
 
-```{r sim-chen2020-5000, eval = F}
+```{r sim-chen2020-5000, eval = T}
 set.seed(seed_for_sim)
 sim_y1 <- list()
-B <- 500
+B <- 5000
 braki <- numeric(B)
 
 for (b in 1:B) {
@@ -396,9 +397,9 @@ sim_y1[[b]] <- cbind(lapply(list(res_s1,res_s2,res_s3,res_s4), "[[", "output") |
 ```
 
 
-```{r sim-chen2020-5000-results, eval = F}
+```{r sim-chen2020-5000-results, eval = T}
 sim_y1_all <- rbindlist(sim_y1) |> na.omit()
-sim_y1_all[, sim := rep(1:4, times = 500)]
+sim_y1_all[, sim := rep(1:4, times = nrow(sim_y1_all)/4)]
 
 sim_y1_all[, .(bias=(mean(mean)- mean(y1))/mean(y1)*100, var = var(mean)), sim][, mse:=bias^2+var][]
 
@@ -476,9 +477,9 @@ sample_b <- rbind(pop1[sample(1:nrow(pop1), n_b1), ],
 sample_b$w_b <- N/n_b
 
 ## mass imputation
-res_y1 <- nonprob(outcome = y1 ~ x,  data = sample_b, weights = sample_b$w_b, svydesign = svy_a)
-res_y2 <- nonprob(outcome= y2 ~ x,  data = sample_b, weights = sample_b$w_b, svydesign = svy_a)
-res_y3 <- nonprob(outcome= y3 ~ x,  data = sample_b, weights = sample_b$w_b, svydesign = svy_a)
+res_y1 <- nonprob(outcome = y1 ~ x,  data = sample_b, svydesign = svy_a)
+res_y2 <- nonprob(outcome= y2 ~ x,  data = sample_b,  svydesign = svy_a)
+res_y3 <- nonprob(outcome= y3 ~ x,  data = sample_b,svydesign = svy_a)
 
 
 data.frame(est = c("mi_y1","mi_y2", "mi_y3"),
@@ -493,7 +494,7 @@ Run the simulation and compare results with the paper
 #| cache: true
 set.seed(20230602)
 B <- 1000
-results <- matrix(data = 0, nrow = B, ncol = 9)
+results <- matrix(data = 0, nrow = B, ncol = 12)
 results_ci <- matrix(data = 0, nrow = B, ncol = 6)
 for (b in 1:B) {
   sample_a <- pop[sample(1:N, n_a),]
@@ -504,18 +505,25 @@ for (b in 1:B) {
   sample_b <- rbind(pop1[sample(1:nrow(pop1), n_b1), ],
                     pop2[sample(1:nrow(pop2), n_b2), ])
   sample_b$w_b <- N/n_b
-  res_y1 <- nonprob(outcome = y1 ~ x, data = sample_b, weights = sample_b$w_b, svydesign = svy_a)
-  res_y2 <- nonprob(outcome = y2 ~ x, data = sample_b, weights = sample_b$w_b, svydesign = svy_a)
-  res_y3 <- nonprob(outcome = y3 ~ x, data = sample_b, weights = sample_b$w_b, svydesign = svy_a)
+  res_y1 <- nonprob(outcome = y1 ~ x, data = sample_b, svydesign = svy_a)
+  res_y1_ipw <- nonprob(target = ~y1, selection= ~ x, data = sample_b, svydesign = svy_a)
+  res_y2 <- nonprob(outcome = y2 ~ x, data = sample_b, svydesign = svy_a)
+  res_y2_ipw <- nonprob(target = ~y2, selection= ~ x, data = sample_b, svydesign = svy_a)
+  res_y3 <- nonprob(outcome = y3 ~ x, data = sample_b, svydesign = svy_a)
+  res_y3_ipw <- nonprob(target = ~y3, selection= ~ x, data = sample_b, svydesign = svy_a)
+  
   results[b, 1] <- res_y1$output$mean
   results[b, 2] <- res_y2$output$mean
   results[b, 3] <- res_y3$output$mean
-  results[b, 4] <- mean(sample_a$y1)
-  results[b, 5] <- mean(sample_a$y2)
-  results[b, 6] <- mean(sample_a$y3)
-  results[b, 7] <- mean(sample_b$y1)
-  results[b, 8] <- mean(sample_b$y2)
-  results[b, 9] <- mean(sample_b$y3)
+  results[b, 4] <- res_y1_ipw$output$mean
+  results[b, 5] <- res_y2_ipw$output$mean
+  results[b, 6] <- res_y3_ipw$output$mean
+  results[b, 7] <- mean(sample_a$y1)
+  results[b, 8] <- mean(sample_a$y2)
+  results[b, 9] <- mean(sample_a$y3)
+  results[b, 10] <- mean(sample_b$y1)
+  results[b, 11] <- mean(sample_b$y2)
+  results[b, 12] <- mean(sample_b$y3)
   
   results_ci[b, 1] <- res_y1$confidence_interval$lower_bound
   results_ci[b, 2] <- res_y1$confidence_interval$upper_bound
@@ -535,15 +543,17 @@ would be available for $y1,y2$ and $y3$.
 
 ```{r mi-sim-bias-reports}
 results_mi <- data.frame(
-  est = c("mi_y1", "mi_y2", "mi_y3", "naiveA_y1", "naiveA_y2", "naiveA_y3",
+  est = c("mi_y1", "mi_y2", "mi_y3", 
+          "mi_y1_ipw", "mi_y2_ipw", "mi_y3_ipw", 
+          "naiveA_y1", "naiveA_y2", "naiveA_y3",
           "naiveB_y1", "naiveB_y2", "naiveB_y3"),
-  bias = colMeans(results) - c(colMeans(pop[, 2:4]), colMeans(pop[, 2:4]), colMeans(pop[, 2:4])),
+  bias = colMeans(results) - rep(colMeans(pop[, 2:4]), times = 4),
   var = apply(results, 2, var)
 ) 
 
 results_mi$mse <- with(results_mi, bias^2+var)
-results_mi$relMSE <- results_mi$mse/results_mi$mse[c(4,5,6,4,5,6,4,5,6)]*100
-results_mi[c(4:nrow(results_mi), 1:3),]
+results_mi$relMSE <- results_mi$mse/results_mi$mse[c(7,8,9,7,8,9,7,8,9)]*100
+results_mi[c(7:nrow(results_mi), 1:6),]
 ```
 
 We can compare the results with table 3 from @kim2021
