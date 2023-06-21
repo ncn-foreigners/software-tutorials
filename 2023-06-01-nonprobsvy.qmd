@@ -35,8 +35,8 @@ following papers:
     Association, 115(532), 2011-2021.
 
 Tutorial was prepared based on the development version of the
-`nonprobsvy` (31.05.2023, commit
-`748b20fc6c18b2889fce626a9742824d6fc1a34b`).
+`nonprobsvy` (21.06.2023, commit
+`5ab78e476555ac527f9387d2f4c67637b7b38650`).
 
 # Install and load the required packages
 
@@ -45,7 +45,7 @@ github repository.
 
 ```{r install-packages, eval=FALSE}
 install.packages("remotes")
-remotes::install_github("ncn-foreigners/nonprobsvy@748b20fc6c18b2889fce626a9742824d6fc1a34b")
+remotes::install_github("ncn-foreigners/nonprobsvy@5ab78e476555ac527f9387d2f4c67637b7b38650")
 install.packages("survey")
 install.packages("sampling")
 ```
@@ -55,13 +55,14 @@ Load required packages
 ```{r load-packages}
 library(survey)
 library(sampling)
+library(sps)
 library(nonprobsvy)
+library(data.table)
+library(Rcpp)
 ```
 
 Function for randomized systematic sampling based on prof. Changbao Wu's
-[webpage](https://sas.uwaterloo.ca/~cbwu/Rcodes/SystematicPPS.txt). One
-can also use an C++ version of this function available
-[here](https://gist.github.com/BERENZ/a143196692c6535218148c60c8db5211)
+[webpage](https://sas.uwaterloo.ca/~cbwu/Rcodes/SystematicPPS.txt). 
 
 ```{r}
 syspps <- function(x,n){ 
@@ -84,8 +85,21 @@ syspps <- function(x,n){
 }
 ```
 
+One can also use an C++ version of this function available in the `codes/syspps.cpp` file.
+
+```{r}
+sourceCpp("codes/syspps.cpp")
+```
+
+
 In the empirical part we reproduce results from the following papers:
 @yang2020; @kim2021; @chen2020.
+
+Seed for all simulations
+
+```{r}
+seed_for_sim <- 20230621
+```
 
 # Empirical examples
 
@@ -212,60 +226,183 @@ comparison.
 
 ### Simulation from section 5
 
-We consider finite populations of size $N=20,000$ with the response
-variable $y$ and auxiliary variables $x$ following the regression model
-$(\xi)$ $$
+#### Description of the simulation
+
+The simulation is based on the following assumptions:
+
++ population size $N=20,000$
++ probability sample $B$ is of size $500$ or $1000$
++ non-probability sample $A$ is of size $500$ or $1000$
++ auxiliary variables $x$ are generated as follows:
+  + $z_{1 i} \sim \operatorname{Bernoulli}(0.5)$
+  + $z_{2 i} \sim \operatorname{Uniform}(0,2)$
+  + $z_{3 i} \sim \operatorname{Exponential}(1)$
+  + $z_{4 i} \sim \chi^{2}(4)$
+  + $x_{1 i}=z_{1i}$
+  + $x_{2 i}=z_{2 i}+0.3 x_{1 i}$
+  + $x_{3 i}=z_{3 i}+0.2(x_{1 i}+x_{2 i})$
+  + $x_{4 i}=z_{4 i}+0.1(x_{1 i}+x_{2 i}+x_{3 i})$
++ target varible $y$ is generated using the following linear model
+
+$$
 y_{i}=2+x_{1 i}+x_{2 i}+x_{3 i}+x_{4 i}+\sigma \varepsilon_{i}, \quad i=1,2, \ldots, N
-$$ where
-$x_{1 i}=z_{1 i}, x_{2 i}=z_{2 i}+0.3 x_{1 i}, x_{3 i}=z_{3 i}+0.2(x_{1 i}+x_{2 i})$
-$x_{4 i}=z_{4 i}+0.1(x_{1 i}+x_{2 i}+x_{3 i})$, with
-$z_{1 i} \sim \operatorname{Bernoulli}(0.5)$ $z_{2 i} \sim$ Uniform
-$(0,2), z_{3 i} \sim$ Exponential( $(1)$, and $z_{4 i} \sim \chi^{2}(4)$
-The error term $\varepsilon_{i}$ 's are independent and identically
-distributed (iid) as $N(0,1)$, with values of $\sigma$ chosen such that
-the corre- lation coefficient $\rho$ between $y$ and the linear
-predictor $\boldsymbol{x}^{\top} \boldsymbol{\beta}$ is controlled at
-$0.3,0.5$ and 0.8 for the simulation studies. The parameter of interest
-is the finite population mean $\mu_{y}$. The true propensity scores
-$\pi_{i}^{\mathrm{A}}$ for the nonprobability sample
-$\mathcal{S}_{\mathrm{A}}$ follow the logistic regression model (q) $$
+$$
+
+where $\varepsilon_{i}$ 's are independent and identically
+distributed (iid) as $N(0,1)$,
+
++ values of $\sigma$ chosen such that the correlation coefficient $\rho$ between $y$ and the linear predictor $\boldsymbol{x}^{\top} \boldsymbol{\beta}$ is controlled at $0.3, 0.5$ and $0.8$
++ The true propensity scores
+$\pi_{i}^A$ for the non-probability sample $A$ follow the logistic regression model: 
+
+$$
 \log (\frac{\pi_{i}^{\mathrm{A}}}{1-\pi_{i}^{\mathrm{A}}})=\theta_{0}+0.1 x_{1 i}+0.2 x_{2 i}+0.1 x_{3 i}+0.2 x_{4 i}
 $$
 
-where $\theta_{0}$ is chosen such that
-$\sum_{i=1}^{N} \pi_{i}^{\mathrm{A}}=n_{\mathrm{A}}$ with the given
-target sample size $n_{\mathrm{A}}$. The nonprobability sample
-$\mathcal{S}_{\mathrm{A}}$ is selected by the Poisson sampling method
-with inclusion probabilities specified by $\pi_{i}^{\mathrm{A}}$ and the
-target sample size $n_{\mathrm{A}}$.
+where $\theta_{0}$ is chosen such that $\sum_{i=1}^{N} \pi_{i}^{\mathrm{A}}=n_{\mathrm{A}}$ with the given
+target sample size $n_{\mathrm{A}}$. 
+ 
++ The nonprobability sample $A$ is selected by the Poisson sampling method with inclusion probabilities specified by $\pi_{i}^A$ and the target sample size $n_A$.
 
-The probability sample $\mathcal{S}_{\mathrm{B}}$ with the target size
-$n_{\mathrm{B}}$ is taken by the randomized systematic PPS sampling
-method (Good- man and Kish 1950 ; Hartley and Rao 1962) with the
-inclusion probabilities $\pi_{i}^{\mathrm{B}}$ proportional to
-$z_{i}=c+x_{3 i}$. The value of $c$ is chosen to control the variation
-of the survey weights such that $\max z_{i} / \min z_{i}=50$.
++ The probability sample $B$ with the target size $n_B$ is taken by the randomized systematic PPS sampling method with the inclusion probabilities $\pi_{i}^B$ proportional to $z_{i}=c+x_{3 i}$. The value of $c$ is chosen to control the variation of the survey weights such that $\max z_{i} / \min z_{i}=50$.
 
-We consider four scenarios for model specifications: (i) both models
-$\xi$ and $q$ are correctly specified, denoted as "TT"; (ii) the outcome
-regression model $\xi$ is misspecified but the propen- sity score model
-$q$ is correctly specified, denoted as "FT"" The working model for $\xi$
-is chosen as
-$m(\boldsymbol{x}_{i}, \boldsymbol{\beta})=\beta_{0}+\beta_{1} x_{1 i}+$
-$\beta_{2} x_{2 i}+\beta_{3} x_{3 i}$, with $x_{4 i}$ omitted from the
-model; (iii) the outcome regression model $\xi$ is correctly specified
-but the propensity score model $q$ is misspecified, denoted as "TF" The
-working model for $q$ is given by
-$\log \left\{\pi_{i}^{\mathrm{A}} /(1-\pi_{i}^{\mathrm{A}}\right\}=\theta_{0}+\theta_{1} x_{1 i}+\theta_{2} x_{2 i}+\right.$
-$\theta_{3} x_{3 i}$, with $x_{4 i}$ omitted from the model. (iv) Both
-models are misspecified, denoted as "FF." The working model for $\xi$ is
-chosen as
-$m(\boldsymbol{x}_{i}, \boldsymbol{\beta})=\beta_{0}+\beta_{1} x_{1 i}+\beta_{2} x_{2 i}+\beta_{3} x_{3 i}$,
-and for $q$ is given by
-$\log \left\{\pi_{i}^{\mathrm{A}} /(1-\pi_{i}^{\mathrm{A}}\right\}=\theta_{0}+\theta_{1} x_{1 i}+\theta_{2} x_{2 i}+\theta_{3} x_{3 i}\right.$.
-We consider four different sample size combinations for
-$(n_{\mathrm{A}}, n_{\mathrm{B}})$ with $n_{\mathrm{A}}$ and
-$n_{\mathrm{B}}$ equaling either 500 or 1000 .
++ Four scenarios are considered:
+  + Scenario 1 (denoted TT): both models are specified correctly,
+  + Scenario 2 (FT): model for $y$ is missing $x_4$ so it is wrongly specified,
+  + Scenario 3 (TF): selection is missing $x_4$ so it is wrongly speficied,
+  + Scenario 4 (FF): both models miss $x_4$ so are wrongly specified.
+
+
+#### Implementation
+
+Simulate data
+
+```{r}
+set.seed(seed_for_sim)
+
+N <- 20000
+n_1 <- 500
+n_2 <- 1000
+z1 <- rbinom(N, 1, 0.5)
+z2 <- runif(N,0,2)
+z3 <- rexp(N,1)
+z4 <- rchisq(N, 4)
+x1 <- z1
+x2 <- z2 + 0.3*z1
+x3 <- z3 + 0.2*(x1 + x2)
+x4 <- z4 + 0.1*(x1 + x2 + x3)
+e <- rnorm(N)
+
+etol <- 1e-8
+sigma03 <- stats::uniroot(f = function(s) cor(2+x1+x2+x3+x4, 2+x1+x2+x3+x4+s*e) - 0.3, c(0,20), tol = etol)$root
+sigma05 <- stats::uniroot(f = function(s) cor(2+x1+x2+x3+x4, 2+x1+x2+x3+x4+s*e) - 0.5, c(0,20), tol = etol)$root
+sigma08 <- stats::uniroot(f = function(s) cor(2+x1+x2+x3+x4, 2+x1+x2+x3+x4+s*e) - 0.8, c(0,20), tol = etol)$root
+
+y1 <- 2+x1+x2+x3+x4+sigma03*e
+y2 <- 2+x1+x2+x3+x4+sigma05*e
+y3 <- 2+x1+x2+x3+x4+sigma08*e
+
+theta_A1 <- stats::uniroot(f = function(s) sum(plogis(s + 0.1*x1+0.2*x2+0.3*x3+0.2*x4))-n_1, c(-20,0), tol = etol)$root
+theta_A2 <- stats::uniroot(f = function(s) sum(plogis(s + 0.1*x1+0.2*x2+0.3*x3+0.2*x4))-n_2, c(-20,0), tol = etol)$root
+
+pA_1 <- plogis(theta_A1 + 0.1*x1+0.2*x2+0.3*x3+0.2*x4)
+w_pA_1 <- 1/pA_1
+pA_2 <- plogis(theta_A2 + 0.1*x1+0.2*x2+0.3*x3+0.2*x4)
+w_pA_2 <- 1/pA_2
+
+s_B <- stats::uniroot(f = function(s) max(s+x3)/min(s+x3) - 50, c(0, 100), tol = etol)$root
+pB_1 <- inclusionprobabilities(s_B + x3, n_1)
+pB_2 <- inclusionprobabilities(s_B + x3, n_2)
+w_pB_1 <- 1/pB_1
+w_pB_2 <- 1/pB_2
+
+pop_data <- data.frame(x1,x2,x3,x4,y1,y2,y3,pA_1,pA_2,w_pA_1,w_pA_2,pB_1,pB_2,w_pB_1,w_pB_2)
+head(pop_data)
+```
+
+One simulation
+
+```{r}
+set.seed(seed_for_sim)
+sample_nonprob <- pop_data[which(sampling::UPpoisson(pop_data$pA_1)==1),]
+sample_nonprob$w_naive <- N/n_1
+sample_prob <- pop_data[syspps_cpp(pop_data$pB_1, n_1), ]
+sample_prob_svy <- svydesign(ids=~1, probs =~pB_1, data = sample_prob)
+
+res_s1 <- nonprob(selection = ~ x1 + x2 + x3 + x4,
+                  outcome = y1 ~ x1 + x2 + x3 + x4,
+                  svydesign = sample_prob_svy,
+                  data = sample_nonprob)
+
+res_s2 <- nonprob(selection = ~ x1 + x2 + x3 + x4,
+                  outcome = y1 ~ x1 + x2 + x3,
+                  svydesign = sample_prob_svy,
+                  data = sample_nonprob)
+
+res_s3 <- nonprob(selection = ~ x1 + x2 + x3 ,
+                  outcome = y1 ~ x1 + x2 + x3 + x4,
+                  svydesign = sample_prob_svy,
+                  data = sample_nonprob)
+
+res_s4 <- nonprob(selection = ~ x1 + x2 + x3 ,
+                  outcome = y1 ~ x1 + x2 + x3 ,
+                  svydesign = sample_prob_svy,
+                  data = sample_nonprob)
+
+cbind(
+  lapply(list(res_s1,res_s2,res_s3,res_s4), "[[", "output") |> rbindlist(),
+  lapply(list(res_s1,res_s2,res_s3,res_s4), "[[", "confidence_interval") |> rbindlist()
+) 
+```
+
+Whole simulation using $B=5000$ as in the original paper
+
+```{r sim-chen2020-5000, eval = F}
+set.seed(seed_for_sim)
+sim_y1 <- list()
+B <- 500
+
+for (b in 1:B) {
+  if (b %% 500 == 0) print(b)
+  sample_nonprob <- pop_data[which(sampling::UPpoisson(pop_data$pA_1)==1),]
+  sample_nonprob$w_naive <- N/n_1
+  sample_prob <- pop_data[syspps_cpp(pop_data$pB_1, n_2), ]
+  sample_prob_svy <- svydesign(ids=~1, probs =~pB_1, data = sample_prob)
+
+res_s1 <- nonprob(selection = ~ x1 + x2 + x3 + x4,
+                  outcome = y1 ~ x1 + x2 + x3 + x4,
+                  svydesign = sample_prob_svy,
+                  data = sample_nonprob)
+
+res_s2 <- nonprob(selection = ~ x1 + x2 + x3 + x4,
+                  outcome = y1 ~ x1 + x2 + x3,
+                  svydesign = sample_prob_svy,
+                  data = sample_nonprob)
+
+res_s3 <- nonprob(selection = ~ x1 + x2 + x3 ,
+                  outcome = y1 ~ x1 + x2 + x3 + x4,
+                  svydesign = sample_prob_svy,
+                  data = sample_nonprob)
+
+res_s4 <- nonprob(selection = ~ x1 + x2 + x3 ,
+                  outcome = y1 ~ x1 + x2 + x3 ,
+                  svydesign = sample_prob_svy,
+                  data = sample_nonprob)
+
+sim_y1[[b]] <- cbind(lapply(list(res_s1,res_s2,res_s3,res_s4), "[[", "output") |> rbindlist(),
+                     lapply(list(res_s1,res_s2,res_s3,res_s4), "[[", "confidence_interval") |> rbindlist()) 
+}
+```
+
+
+```{r sim-chen2020-5000-results, eval = F}
+sim_y1_all <- rbindlist(sim_y1) |> na.omit()
+sim_y1_all[, sim := rep(1:4, times = 4999)]
+
+sim_y1_all[, .(bias=(mean(mean)- mean(y1))/mean(y1)*100, var = var(mean)), sim][, mse:=bias^2+var][]
+
+sim_y1_all[, .(ci=mean(lower_bound < mean(y1) & mean(y1) < upper_bound)), sim]
+```
 
 ## @kim2021 paper
 
@@ -314,7 +451,7 @@ The simulation is based on the following assumptions:
 #### Implementation
 
 ```{r mi-sim-data}
-set.seed(20230602)
+set.seed(seed_for_sim)
 N <- 100000
 n_a <- 500
 n_b <- 1000
