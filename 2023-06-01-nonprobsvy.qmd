@@ -361,6 +361,7 @@ Whole simulation using $B=5000$ as in the original paper
 set.seed(seed_for_sim)
 sim_y1 <- list()
 B <- 500
+braki <- numeric(B)
 
 for (b in 1:B) {
   if (b %% 500 == 0) print(b)
@@ -369,25 +370,25 @@ for (b in 1:B) {
   sample_prob <- pop_data[syspps_cpp(pop_data$pB_1, n_2), ]
   sample_prob_svy <- svydesign(ids=~1, probs =~pB_1, data = sample_prob)
 
-res_s1 <- nonprob(selection = ~ x1 + x2 + x3 + x4,
-                  outcome = y1 ~ x1 + x2 + x3 + x4,
-                  svydesign = sample_prob_svy,
-                  data = sample_nonprob)
-
-res_s2 <- nonprob(selection = ~ x1 + x2 + x3 + x4,
-                  outcome = y1 ~ x1 + x2 + x3,
-                  svydesign = sample_prob_svy,
-                  data = sample_nonprob)
-
-res_s3 <- nonprob(selection = ~ x1 + x2 + x3 ,
-                  outcome = y1 ~ x1 + x2 + x3 + x4,
-                  svydesign = sample_prob_svy,
-                  data = sample_nonprob)
-
-res_s4 <- nonprob(selection = ~ x1 + x2 + x3 ,
-                  outcome = y1 ~ x1 + x2 + x3 ,
-                  svydesign = sample_prob_svy,
-                  data = sample_nonprob)
+  res_s1 <- nonprob(selection = ~ x1 + x2 + x3 + x4,
+                    outcome = y1 ~ x1 + x2 + x3 + x4,
+                    svydesign = sample_prob_svy,
+                    data = sample_nonprob)
+  
+  res_s2 <- nonprob(selection = ~ x1 + x2 + x3 + x4,
+                    outcome = y1 ~ x1 + x2 + x3,
+                    svydesign = sample_prob_svy,
+                    data = sample_nonprob)
+  
+  res_s3 <- nonprob(selection = ~ x1 + x2 + x3 ,
+                    outcome = y1 ~ x1 + x2 + x3 + x4,
+                    svydesign = sample_prob_svy,
+                    data = sample_nonprob)
+  
+  res_s4 <- nonprob(selection = ~ x1 + x2 + x3 ,
+                    outcome = y1 ~ x1 + x2 + x3 ,
+                    svydesign = sample_prob_svy,
+                    data = sample_nonprob)
 
 sim_y1[[b]] <- cbind(lapply(list(res_s1,res_s2,res_s3,res_s4), "[[", "output") |> rbindlist(),
                      lapply(list(res_s1,res_s2,res_s3,res_s4), "[[", "confidence_interval") |> rbindlist()) 
@@ -397,7 +398,7 @@ sim_y1[[b]] <- cbind(lapply(list(res_s1,res_s2,res_s3,res_s4), "[[", "output") |
 
 ```{r sim-chen2020-5000-results, eval = F}
 sim_y1_all <- rbindlist(sim_y1) |> na.omit()
-sim_y1_all[, sim := rep(1:4, times = 4999)]
+sim_y1_all[, sim := rep(1:4, times = 500)]
 
 sim_y1_all[, .(bias=(mean(mean)- mean(y1))/mean(y1)*100, var = var(mean)), sim][, mse:=bias^2+var][]
 
