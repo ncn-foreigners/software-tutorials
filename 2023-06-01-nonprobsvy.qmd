@@ -335,26 +335,22 @@ sample_prob_svy <- svydesign(ids=~1, probs =~pB_1, data = sample_prob)
 res_s1 <- nonprob(selection = ~ x1 + x2 + x3 + x4,
                   outcome = y1 ~ x1 + x2 + x3 + x4,
                   svydesign = sample_prob_svy,
-                  data = sample_nonprob,
-                    control_selection = controlSel(est_method_sel = "gee"))
+                  data = sample_nonprob)
 
 res_s2 <- nonprob(selection = ~ x1 + x2 + x3 + x4,
                   outcome = y1 ~ x1 + x2 + x3,
                   svydesign = sample_prob_svy,
-                  data = sample_nonprob,
-                    control_selection = controlSel(est_method_sel = "gee"))
+                  data = sample_nonprob)
 
 res_s3 <- nonprob(selection = ~ x1 + x2 + x3 ,
                   outcome = y1 ~ x1 + x2 + x3 + x4,
                   svydesign = sample_prob_svy,
-                  data = sample_nonprob,
-                    control_selection = controlSel(est_method_sel = "gee"))
+                  data = sample_nonprob)
 
 res_s4 <- nonprob(selection = ~ x1 + x2 + x3 ,
                   outcome = y1 ~ x1 + x2 + x3 ,
                   svydesign = sample_prob_svy,
-                  data = sample_nonprob,
-                    control_selection = controlSel(est_method_sel = "gee"))
+                  data = sample_nonprob)
 
 cbind(
   lapply(list(res_s1,res_s2,res_s3,res_s4), "[[", "output") |> rbindlist(),
@@ -380,26 +376,22 @@ for (b in 1:B) {
   res_s1 <- nonprob(selection = ~ x1 + x2 + x3 + x4,
                     outcome = y1 ~ x1 + x2 + x3 + x4,
                     svydesign = sample_prob_svy,
-                    data = sample_nonprob,
-                    control_selection = controlSel(est_method_sel = "gee"))
+                    data = sample_nonprob)
   
   res_s2 <- nonprob(selection = ~ x1 + x2 + x3 + x4,
                     outcome = y1 ~ x1 + x2 + x3,
                     svydesign = sample_prob_svy,
-                    data = sample_nonprob,
-                    control_selection = controlSel(est_method_sel = "gee"))
+                    data = sample_nonprob)
   
   res_s3 <- nonprob(selection = ~ x1 + x2 + x3 ,
                     outcome = y1 ~ x1 + x2 + x3 + x4,
                     svydesign = sample_prob_svy,
-                    data = sample_nonprob,
-                    control_selection = controlSel(est_method_sel = "gee"))
+                    data = sample_nonprob)
   
   res_s4 <- nonprob(selection = ~ x1 + x2 + x3 ,
                     outcome = y1 ~ x1 + x2 + x3 ,
                     svydesign = sample_prob_svy,
-                    data = sample_nonprob,
-                    control_selection = controlSel(est_method_sel = "gee"))
+                    data = sample_nonprob)
 
 sim_y1[[b]] <- cbind(lapply(list(res_s1,res_s2,res_s3,res_s4), "[[", "output") |> rbindlist(),
                      lapply(list(res_s1,res_s2,res_s3,res_s4), "[[", "confidence_interval") |> rbindlist()) 
@@ -411,10 +403,14 @@ sim_y1[[b]] <- cbind(lapply(list(res_s1,res_s2,res_s3,res_s4), "[[", "output") |
 sim_y1_all <- rbindlist(sim_y1) |> na.omit()
 sim_y1_all[, sim := rep(1:4, times = nrow(sim_y1_all)/4)]
 
-sim_y1_all[, .(bias=(mean(mean)- mean(y1))/mean(y1)*100, var = var(mean)), sim][, mse:=bias^2+var][]
+sim_y1_all[, .(bias=(mean(mean)- mean(y1))/mean(y1)*100, mse = mean((mean - mean(y1))^2)), sim]
 
 sim_y1_all[, .(ci=mean(lower_bound < mean(y1) & mean(y1) < upper_bound)), sim]
 ```
+
+We can compare the results with table 1 from @chen2020.
+
+![](figs/jrssa-mi-paper-tab3.png){fig-align="center" width="700"}
 
 ## @kim2021 paper
 
@@ -516,14 +512,11 @@ for (b in 1:B) {
                     pop2[sample(1:nrow(pop2), n_b2), ])
   sample_b$w_b <- N/n_b
   res_y1 <- nonprob(outcome = y1 ~ x, data = sample_b, svydesign = svy_a)
-  res_y1_ipw <- nonprob(target = ~y1, selection= ~ x, data = sample_b, svydesign = svy_a, 
-                        control_selection = controlSel(est_method_sel = "gee"))
+  res_y1_ipw <- nonprob(target = ~y1, selection= ~ x, data = sample_b, svydesign = svy_a)
   res_y2 <- nonprob(outcome = y2 ~ x, data = sample_b, svydesign = svy_a)
-  res_y2_ipw <- nonprob(target = ~y2, selection= ~ x, data = sample_b, svydesign = svy_a, 
-                        control_selection = controlSel(est_method_sel = "gee"))
+  res_y2_ipw <- nonprob(target = ~y2, selection= ~ x, data = sample_b, svydesign = svy_a)
   res_y3 <- nonprob(outcome = y3 ~ x, data = sample_b, svydesign = svy_a)
-  res_y3_ipw <- nonprob(target = ~y3, selection= ~ x, data = sample_b, svydesign = svy_a, 
-                        control_selection = controlSel(est_method_sel = "gee"))
+  res_y3_ipw <- nonprob(target = ~y3, selection= ~ x, data = sample_b, svydesign = svy_a)
   
   results[b, 1] <- res_y1$output$mean
   results[b, 2] <- res_y2$output$mean
