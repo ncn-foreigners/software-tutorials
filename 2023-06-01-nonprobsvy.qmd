@@ -38,8 +38,8 @@ following papers:
     Association, 115(532), 2011-2021.
 
 Tutorial was prepared based on the development version of the
-`nonprobsvy` (21.06.2023, commit
-`5ab78e476555ac527f9387d2f4c67637b7b38650`).
+`nonprobsvy` (commit
+`c7d1ed6dbfbdcdb0088ca7cf8bfe4092ca1e862c`).
 
 # Install and load the required packages
 
@@ -48,7 +48,7 @@ github repository.
 
 ```{r install-packages, eval=FALSE}
 install.packages("remotes")
-remotes::install_github("ncn-foreigners/nonprobsvy@5ab78e476555ac527f9387d2f4c67637b7b38650")
+remotes::install_github("ncn-foreigners/nonprobsvy@c7d1ed6dbfbdcdb0088ca7cf8bfe4092ca1e862c")
 install.packages("survey")
 install.packages("sampling")
 ```
@@ -101,7 +101,7 @@ In the empirical part we reproduce results from the following papers:
 Seed for all simulations
 
 ```{r}
-seed_for_sim <- 2023-06-23
+seed_for_sim <- 2023-07-01
 ```
 
 # Empirical examples
