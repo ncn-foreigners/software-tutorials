@@ -1,5 +1,5 @@
 ---
-title: "Short software tutorial on `nonprobsvy` package"
+title: "Short software tutorial on `nonprobsvy` package -- replicating results from the papers"
 author: Maciej Beręsewicz
 format: 
   html:
@@ -14,7 +14,6 @@ execute:
   warning: false
   cache: false
   message: false
-  
 ---
 
 # Basic information
@@ -39,7 +38,7 @@ following papers:
 
 Tutorial was prepared based on the development version of the
 `nonprobsvy` (commit
-`0dcfe9902ab943c7f1350b53a93514888a2150c8`).
+`11f2bd4bcd58569c85f72abc24733ceb7331f5e4`).
 
 # Install and load the required packages
 
@@ -48,7 +47,7 @@ github repository.
 
 ```{r install-packages, eval=FALSE}
 install.packages("remotes")
-remotes::install_github("ncn-foreigners/nonprobsvy@0dcfe9902ab943c7f1350b53a93514888a2150c8")
+remotes::install_github("ncn-foreigners/nonprobsvy@11f2bd4bcd58569c85f72abc24733ceb7331f5e4")
 install.packages("survey")
 install.packages("sampling")
 ```
@@ -101,7 +100,7 @@ In the empirical part we reproduce results from the following papers:
 Seed for all simulations
 
 ```{r}
-seed_for_sim <- 2023-07-06
+seed_for_sim <- 2023-08-06
 ```
 
 # Empirical examples
@@ -281,7 +280,7 @@ target sample size $n_{\mathrm{A}}$.
 Simulate data
 
 ```{r}
-set.seed(seed_for_sim)
+set.seed(seed_for_sim+1)
 
 N <- 20000
 n_1 <- 500
@@ -328,37 +327,28 @@ One simulation
 ```{r}
 set.seed(seed_for_sim+1)
 sample_nonprob <- pop_data[which(sampling::UPpoisson(pop_data$pA_1)==1),]
-sample_nonprob$w_naive <- N/n_1
 sample_prob <- pop_data[syspps_cpp(pop_data$pB_1, n_1), ]
 sample_prob_svy <- svydesign(ids=~1, probs =~pB_1, data = sample_prob)
 
 res_s1 <- nonprob(selection = ~ x1 + x2 + x3 + x4,
                   outcome = y1 ~ x1 + x2 + x3 + x4,
                   svydesign = sample_prob_svy,
-                  weights = sample_nonprob$w_naive,
-                  data = sample_nonprob,
-                  control_selection = controlSel(optimizer = "optim"))
+                  data = sample_nonprob)
 
 res_s2 <- nonprob(selection = ~ x1 + x2 + x3 + x4,
                   outcome = y1 ~ x1 + x2 + x3,
                   svydesign = sample_prob_svy,
-                  weights = sample_nonprob$w_naive,
-                  data = sample_nonprob,
-                  control_selection = controlSel(optimizer = "optim"))
+                  data = sample_nonprob)
 
 res_s3 <- nonprob(selection = ~ x1 + x2 + x3 ,
                   outcome = y1 ~ x1 + x2 + x3 + x4,
                   svydesign = sample_prob_svy,
-                  weights = sample_nonprob$w_naive,
-                  data = sample_nonprob,
-                  control_selection = controlSel(optimizer = "optim"))
+                  data = sample_nonprob)
 
 res_s4 <- nonprob(selection = ~ x1 + x2 + x3 ,
                   outcome = y1 ~ x1 + x2 + x3 ,
                   svydesign = sample_prob_svy,
-                  weights = sample_nonprob$w_naive,
-                  data = sample_nonprob,
-                  control_selection = controlSel(optimizer = "optim"))
+                  data = sample_nonprob)
 
 cbind(
   lapply(list(res_s1,res_s2,res_s3,res_s4), "[[", "output") |> rbindlist(),
@@ -366,12 +356,12 @@ cbind(
 ) 
 ```
 
-Whole simulation using $B=5000$ as in the original paper
+Whole simulation using $B=1000$ (in the original paper it was set to 5000).
 
 ```{r sim-chen2020-5000, eval = T, cache=TRUE}
-set.seed(seed_for_sim+1)
+set.seed(seed_for_sim+10)
 sim_y1 <- list()
-B <- 500
+B <- 1000
 braki <- numeric(B)
 
 for (b in 1:B) {
@@ -384,30 +374,22 @@ for (b in 1:B) {
   res_s1 <- nonprob(selection = ~ x1 + x2 + x3 + x4,
                     outcome = y1 ~ x1 + x2 + x3 + x4,
                     svydesign = sample_prob_svy,
-                    data = sample_nonprob,
-                    weights = sample_nonprob$w_naive,
-                    control_selection = controlSel(optimizer = "optim"))
+                    data = sample_nonprob)
   
   res_s2 <- nonprob(selection = ~ x1 + x2 + x3 + x4,
                     outcome = y1 ~ x1 + x2 + x3,
                     svydesign = sample_prob_svy,
-                    data = sample_nonprob,
-                    weights = sample_nonprob$w_naive,
-                    control_selection = controlSel(optimizer = "optim"))
+                    data = sample_nonprob)
   
   res_s3 <- nonprob(selection = ~ x1 + x2 + x3 ,
                     outcome = y1 ~ x1 + x2 + x3 + x4,
                     svydesign = sample_prob_svy,
-                    data = sample_nonprob,
-                    weights = sample_nonprob$w_naive,
-                    control_selection = controlSel(optimizer = "optim"))
+                    data = sample_nonprob)
   
   res_s4 <- nonprob(selection = ~ x1 + x2 + x3 ,
                     outcome = y1 ~ x1 + x2 + x3 ,
                     svydesign = sample_prob_svy,
-                    data = sample_nonprob,
-                    weights = sample_nonprob$w_naive,
-                    control_selection = controlSel(optimizer = "optim"))
+                    data = sample_nonprob)
 
 sim_y1[[b]] <- cbind(lapply(list(res_s1,res_s2,res_s3,res_s4), "[[", "output") |> rbindlist(),
                      lapply(list(res_s1,res_s2,res_s3,res_s4), "[[", "confidence_interval") |> rbindlist()) 
@@ -418,9 +400,7 @@ sim_y1[[b]] <- cbind(lapply(list(res_s1,res_s2,res_s3,res_s4), "[[", "output") |
 ```{r sim-chen2020-5000-results, eval = T, cache=TRUE}
 sim_y1_all <- rbindlist(sim_y1) |> na.omit()
 sim_y1_all[, sim := rep(1:4, times = nrow(sim_y1_all)/4)]
-
 sim_y1_all[, .(bias=(mean(mean)- mean(y1))/mean(y1)*100, mse = mean((mean - mean(y1))^2)), sim]
-
 sim_y1_all[, .(ci=mean(lower_bound < mean(y1) & mean(y1) < upper_bound)), sim]
 ```
 
@@ -503,9 +483,17 @@ res_y1 <- nonprob(outcome = y1 ~ x,
                   data = sample_b, 
                   svydesign = svy_a,
                   weights = sample_b$w_b,
-                        control_selection = controlSel(optimizer = "optim"))
-res_y2 <- nonprob(outcome= y2 ~ x,  data = sample_b,  svydesign = svy_a)
-res_y3 <- nonprob(outcome= y3 ~ x,  data = sample_b,svydesign = svy_a)
+                  control_selection = controlSel(optimizer = "optim"))
+res_y2 <- nonprob(outcome= y2 ~ x,  
+                  data = sample_b,  
+                  svydesign = svy_a,
+                  weights = sample_b$w_b,
+                  control_selection = controlSel(optimizer = "optim"))
+res_y3 <- nonprob(outcome= y3 ~ x,  
+                  data = sample_b,
+                  svydesign = svy_a,
+                  weights = sample_b$w_b,
+                  control_selection = controlSel(optimizer = "optim"))
 
 
 data.frame(est = c("mi_y1","mi_y2", "mi_y3"),
@@ -518,7 +506,7 @@ Run the simulation and compare results with the paper
 
 ```{r mi-simulation-1000}
 #| cache: true
-set.seed(20230602)
+set.seed(seed_for_sim)
 B <- 1000
 results <- matrix(data = 0, nrow = B, ncol = 12)
 results_ci <- matrix(data = 0, nrow = B, ncol = 6)
@@ -534,47 +522,35 @@ for (b in 1:B) {
   
   res_y1 <- nonprob(outcome = y1 ~ x, 
                     data = sample_b, 
-                    svydesign = svy_a,
-                    weights = sample_b$w_b,
-                    control_selection = controlSel(optimizer = "optim"))
-  
+                    svydesign = svy_a)
+
   res_y1_ipw <- nonprob(target = ~y1, 
                         selection= ~ x, 
                         data = sample_b, 
-                        svydesign = svy_a,
-                    weights = sample_b$w_b,
-                    control_selection = controlSel(optimizer = "optim"))
+                        svydesign = svy_a)
   
   res_y2 <- nonprob(outcome = y2 ~ x, 
                     data = sample_b, 
-                    svydesign = svy_a,
-                    weights = sample_b$w_b,
-                    control_selection = controlSel(optimizer = "optim"))
+                    svydesign = svy_a)
   
   res_y2_ipw <- nonprob(target = ~ y2,
                         selection = ~ x,
                         data = sample_b,
-                        svydesign = svy_a,
-                        weights = sample_b$w_b,
-                        control_selection = controlSel(optimizer = "optim"))
+                        svydesign = svy_a)
   
   res_y3 <- nonprob(outcome = y3 ~ x, 
                     data = sample_b, 
-                    svydesign = svy_a,
-                    weights = sample_b$w_b,
-                    control_selection = controlSel(optimizer = "optim"))
+                    svydesign = svy_a)
   
   res_y3_ipw <- nonprob(target = ~ y3, 
                         selection = ~ x,
                         data = sample_b,
-                        svydesign = svy_a,
-                        weights = sample_b$w_b,
-                        control_selection = controlSel(optimizer = "optim"))
+                        svydesign = svy_a)
   
   results[b, 1] <- res_y1$output$mean
   results[b, 2] <- res_y2$output$mean
   results[b, 3] <- res_y3$output$mean
-  results[b, 4] <- res_y1_ipw$output$mean
+  results[b, 4] <- res_y1_ipw$output$mean 
   results[b, 5] <- res_y2_ipw$output$mean
   results[b, 6] <- res_y3_ipw$output$mean
   results[b, 7] <- mean(sample_a$y1)
@@ -611,7 +587,7 @@ results_mi <- data.frame(
 ) 
 
 results_mi$mse <- with(results_mi, bias^2+var)
-results_mi$relMSE <- results_mi$mse/results_mi$mse[c(7,8,9,7,8,9,7,8,9)]*100
+results_mi$relMSE <- results_mi$mse/results_mi$mse[c(7,8,9,7,8,9,7,8,9, 7,8,9)]*100
 results_mi[c(7:nrow(results_mi), 1:6),]
 ```
 
@@ -626,7 +602,5 @@ c("mi_y1"=mean(results_ci[, 1] < mean(y1) & results_ci[, 2] > mean(y1))*100,
   "mi_y2"=mean(results_ci[, 3] < mean(y2) & results_ci[, 4] > mean(y2))*100,
   "mi_y3"=mean(results_ci[, 5] < mean(y3) & results_ci[, 6] > mean(y3))*100) 
 ```
-
-### Real dataset from section 7
 
 # Literature

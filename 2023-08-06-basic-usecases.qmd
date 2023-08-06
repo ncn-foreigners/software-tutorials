@@ -1,0 +1,40 @@
+---
+title: "Basic use cases of the `nonprobsvy` package"
+author: Maciej Beręsewicz, Łukasz Chrostowski
+format: 
+  html:
+    number-sections: true
+    self-contained: true
+    toc: true
+    df-print: kable
+lang: en
+bibliography: references.bib
+biblio-style: apalike
+execute: 
+  warning: false
+  cache: false
+  message: false
+---
+
+# Install and load the required packages
+
+Install `remotes` package and then install `nonprobsvy` package from
+github repository.
+
+```{r install-packages, eval=FALSE}
+install.packages("remotes")
+remotes::install_github("ncn-foreigners/nonprobsvy")
+install.packages("survey")
+install.packages("sampling")
+```
+
+
+# Basic setup
+
+# Population level data is only available
+
+# Probability sample is available
+
+
+
+
