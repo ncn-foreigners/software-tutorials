@@ -75,8 +75,8 @@ alpha_vec1 <- c(-2, 1, 1, 1,1, rep(0, p-5))
 alpha_vec2 <- c(0,0,0,3,3,3,3, rep(0, p-7))
 beta_vec <- c(1,0,0,1,1,1,1, rep(0, p-7))
 X <- cbind("(Intercept)"=1, matrix(rnorm(N*(p-1)), nrow=N, byrow=T, dimnames = list(NULL, paste0("X",1:(p-1)))))
-Y <- 1 + as.numeric(X %*% beta_vec) +   rnorm(N)
-#Y <- 1+ exp(3*sin(as.numeric(X %*% beta_vec))) + X[, "X5"] + X[, "X6"] + rnorm(N)
+#Y <- 1 + as.numeric(X %*% beta_vec) +   rnorm(N)
+Y <- 1+ exp(3*sin(as.numeric(X %*% beta_vec))) + X[, "X5"] + X[, "X6"] + rnorm(N)
 pi_B <- plogis(as.numeric(X %*% alpha_vec1))
 #pi_B <- plogis(3.5 + as.numeric(log(X^2) %*% alpha_vec2) - sin(X[, "X3"] + X[, "X4"]) - X[,"X5"] + X[, "X6"])
 flag_B <- rbinom(N, 1, prob = pi_B)
@@ -144,17 +144,7 @@ m1c <- nonprob(selection = ~ X1+X2+X3+X4,
 summary(m1c)
 ```
 
-We can do variable selection (**but here it is not working???**)
-```{r, eval = F, echo=F}
-m1 <- nonprob(selection = ~ X1+X2+X3+X4+X5+X6+X7+X8+X9+X10,
-              target = ~ Y,
-              data = sample_B,
-              pop_totals = X_totals[1:11],
-              method_selection = "logit",
-              control_inference = controlInf(vars_selection = TRUE),
-              control_selection = controlSel(penalty = "SCAD"))
-summary(m1)
-```
+
 ## Mass imputation (TBA)
 
 ## Doubly robust (TBA)
@@ -162,7 +152,7 @@ summary(m1)
 ```{r eval=FALSE, echo=FALSE}
 library(jointCalib)
 pop_totals2 <- X_totals[c("X1", "X2", "X3", "X4", "X5", "X6")]
-pop_quants <- lapply(as.data.frame(X[, c("X1", "X2", "X3", "X4", "X5", "X6")]), 
+pop_quants <- lapply(as.data.frame(X[, c("X1", "X2", "X3", "X4","X5", "X6")]), 
                      quantile, 
                      #probs = c(0.1, 0.5, 0.9)
                      probs = seq(0.1, 0.9, 0.1)
@@ -204,5 +194,19 @@ c(naive = mean(sample_B$Y),
 
 # Variable selection
 
+## IPW
 
+We can do variable selection (**but here it is not working???**)
+
+```{r, eval = F, echo=T}
+m1 <- nonprob(selection = ~ X1+X2+X3+X4+X5+X6+X7+X8+X9+X10,
+              target = ~ Y,
+              data = sample_B,
+              pop_totals = X_totals[1:11],
+              #svydesign = sample_A_svy_cal,
+              method_selection = "logit",
+              control_inference = controlInf(vars_selection = TRUE),
+              control_selection = controlSel(penalty = "SCAD"))
+summary(m1)
+```
 

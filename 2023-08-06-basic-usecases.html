@@ -2624,9 +2624,14 @@ vertical-align: -.125em;
   <li><a href="#population-level-data-is-only-available" id="toc-population-level-data-is-only-available" class="nav-link" data-scroll-target="#population-level-data-is-only-available"><span class="toc-section-number">4</span>  Population level data is only available</a>
   <ul class="collapse">
   <li><a href="#inverse-probability-weighting" id="toc-inverse-probability-weighting" class="nav-link" data-scroll-target="#inverse-probability-weighting"><span class="toc-section-number">4.1</span>  Inverse probability weighting</a></li>
+  <li><a href="#mass-imputation-tba" id="toc-mass-imputation-tba" class="nav-link" data-scroll-target="#mass-imputation-tba"><span class="toc-section-number">4.2</span>  Mass imputation (TBA)</a></li>
+  <li><a href="#doubly-robust-tba" id="toc-doubly-robust-tba" class="nav-link" data-scroll-target="#doubly-robust-tba"><span class="toc-section-number">4.3</span>  Doubly robust (TBA)</a></li>
   </ul></li>
   <li><a href="#probability-sample-is-available" id="toc-probability-sample-is-available" class="nav-link" data-scroll-target="#probability-sample-is-available"><span class="toc-section-number">5</span>  Probability sample is available</a></li>
-  <li><a href="#variable-selection" id="toc-variable-selection" class="nav-link" data-scroll-target="#variable-selection"><span class="toc-section-number">6</span>  Variable selection</a></li>
+  <li><a href="#variable-selection" id="toc-variable-selection" class="nav-link" data-scroll-target="#variable-selection"><span class="toc-section-number">6</span>  Variable selection</a>
+  <ul class="collapse">
+  <li><a href="#ipw" id="toc-ipw" class="nav-link" data-scroll-target="#ipw"><span class="toc-section-number">6.1</span>  IPW</a></li>
+  </ul></li>
   </ul>
 </nav>
 </div>
@@ -2705,8 +2710,8 @@ Y_i = 1 + \exp(3\sin(\mathbf{\beta}^T\mathbf{X}_i)) + X_{5i} + X_{6i} + \epsilon
 <span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>alpha_vec2 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">3</span>,<span class="dv">3</span>,<span class="dv">3</span>,<span class="dv">3</span>, <span class="fu">rep</span>(<span class="dv">0</span>, p<span class="dv">-7</span>))</span>
 <span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>beta_vec <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>, <span class="fu">rep</span>(<span class="dv">0</span>, p<span class="dv">-7</span>))</span>
 <span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">cbind</span>(<span class="st">&quot;(Intercept)&quot;</span><span class="ot">=</span><span class="dv">1</span>, <span class="fu">matrix</span>(<span class="fu">rnorm</span>(N<span class="sc">*</span>(p<span class="dv">-1</span>)), <span class="at">nrow=</span>N, <span class="at">byrow=</span>T, <span class="at">dimnames =</span> <span class="fu">list</span>(<span class="cn">NULL</span>, <span class="fu">paste0</span>(<span class="st">&quot;X&quot;</span>,<span class="dv">1</span><span class="sc">:</span>(p<span class="dv">-1</span>)))))</span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>Y <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">+</span> <span class="fu">as.numeric</span>(X <span class="sc">%*%</span> beta_vec) <span class="sc">+</span>   <span class="fu">rnorm</span>(N)</span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="co">#Y &lt;- 1+ exp(3*sin(as.numeric(X %*% beta_vec))) + X[, &quot;X5&quot;] + X[, &quot;X6&quot;] + rnorm(N)</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="co">#Y &lt;- 1 + as.numeric(X %*% beta_vec) +   rnorm(N)</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>Y <span class="ot">&lt;-</span> <span class="dv">1</span><span class="sc">+</span> <span class="fu">exp</span>(<span class="dv">3</span><span class="sc">*</span><span class="fu">sin</span>(<span class="fu">as.numeric</span>(X <span class="sc">%*%</span> beta_vec))) <span class="sc">+</span> X[, <span class="st">&quot;X5&quot;</span>] <span class="sc">+</span> X[, <span class="st">&quot;X6&quot;</span>] <span class="sc">+</span> <span class="fu">rnorm</span>(N)</span>
 <span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>pi_B <span class="ot">&lt;-</span> <span class="fu">plogis</span>(<span class="fu">as.numeric</span>(X <span class="sc">%*%</span> alpha_vec1))</span>
 <span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="co">#pi_B &lt;- plogis(3.5 + as.numeric(log(X^2) %*% alpha_vec2) - sin(X[, &quot;X3&quot;] + X[, &quot;X4&quot;]) - X[,&quot;X5&quot;] + X[, &quot;X6&quot;])</span></span>
 <span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>flag_B <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(N, <span class="dv">1</span>, <span class="at">prob =</span> pi_B)</span>
@@ -2746,15 +2751,15 @@ nonprob(selection = ~X1 + X2 + X3 + X4, target = ~Y, data = sample_B,
     pop_totals = X_totals[1:5], method_selection = &quot;logit&quot;)
 
 -------------------------
-Estimated population mean: 1.859 with overall std.err of: 0.132
+Estimated population mean: 6.482 with overall std.err of: 0.3668
 And std.err for nonprobability and probability samples being respectively:
-0.132 and 0
+0.3668 and 0
 
 Based on: Inverse probability weighted method
 
 95% Confidence inverval for popualtion mean:
   lower_bound upper_bound
-Y    1.599927    2.117301
+Y    5.762817    7.200491
 
 For a population of estimate size: 10000
 Obtained on a nonprobability sample of size: 2270
@@ -2803,15 +2808,15 @@ nonprob(selection = ~X1 + X2 + X3 + X4, target = ~Y, data = sample_B,
     pop_totals = X_totals[1:5], control_selection = controlSel(optimizer = &quot;optim&quot;))
 
 -------------------------
-Estimated population mean: 1.859 with overall std.err of: 0.132
+Estimated population mean: 6.482 with overall std.err of: 0.3668
 And std.err for nonprobability and probability samples being respectively:
-0.132 and 0
+0.3668 and 0
 
 Based on: Inverse probability weighted method
 
 95% Confidence inverval for popualtion mean:
   lower_bound upper_bound
-Y    1.599927    2.117301
+Y    5.762817    7.200491
 
 For a population of estimate size: 10000
 Obtained on a nonprobability sample of size: 2270
@@ -2861,15 +2866,15 @@ nonprob(selection = ~X1 + X2 + X3 + X4, target = ~Y, data = sample_B,
         est_method_sel = &quot;gee&quot;, h = 2))
 
 -------------------------
-Estimated population mean: 1.859 with overall std.err of: 0.132
+Estimated population mean: 6.482 with overall std.err of: 0.3668
 And std.err for nonprobability and probability samples being respectively:
-0.132 and 0
+0.3668 and 0
 
 Based on: Inverse probability weighted method
 
 95% Confidence inverval for popualtion mean:
   lower_bound upper_bound
-Y    1.599927    2.117301
+Y    5.762817    7.200491
 
 For a population of estimate size: 10000
 Obtained on a nonprobability sample of size: 2270
@@ -2913,10 +2918,12 @@ Log-Likelihood: NULL on 2265 Degrees of freedom</code></pre>
 <span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>              <span class="at">method_selection =</span> <span class="st">&quot;logit&quot;</span>)</span>
 <span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(m1c)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>We can do variable selection (<strong>but here it is not working???</strong>)</p>
-<div class="cell">
-
-</div>
+</section>
+<section id="mass-imputation-tba" class="level2" data-number="4.2">
+<h2 data-number="4.2" class="anchored" data-anchor-id="mass-imputation-tba"><span class="header-section-number">4.2</span> Mass imputation (TBA)</h2>
+</section>
+<section id="doubly-robust-tba" class="level2" data-number="4.3">
+<h2 data-number="4.3" class="anchored" data-anchor-id="doubly-robust-tba"><span class="header-section-number">4.3</span> Doubly robust (TBA)</h2>
 <div class="cell">
 
 </div>
@@ -2927,6 +2934,21 @@ Log-Likelihood: NULL on 2265 Degrees of freedom</code></pre>
 </section>
 <section id="variable-selection" class="level1" data-number="6">
 <h1 data-number="6"><span class="header-section-number">6</span> Variable selection</h1>
+<section id="ipw" class="level2" data-number="6.1">
+<h2 data-number="6.1" class="anchored" data-anchor-id="ipw"><span class="header-section-number">6.1</span> IPW</h2>
+<p>We can do variable selection (<strong>but here it is not working???</strong>)</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>m1 <span class="ot">&lt;-</span> <span class="fu">nonprob</span>(<span class="at">selection =</span> <span class="sc">~</span> X1<span class="sc">+</span>X2<span class="sc">+</span>X3<span class="sc">+</span>X4<span class="sc">+</span>X5<span class="sc">+</span>X6<span class="sc">+</span>X7<span class="sc">+</span>X8<span class="sc">+</span>X9<span class="sc">+</span>X10,</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>              <span class="at">target =</span> <span class="sc">~</span> Y,</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>              <span class="at">data =</span> sample_B,</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>              <span class="at">pop_totals =</span> X_totals[<span class="dv">1</span><span class="sc">:</span><span class="dv">11</span>],</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>              <span class="co">#svydesign = sample_A_svy_cal,</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>              <span class="at">method_selection =</span> <span class="st">&quot;logit&quot;</span>,</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>              <span class="at">control_inference =</span> <span class="fu">controlInf</span>(<span class="at">vars_selection =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>              <span class="at">control_selection =</span> <span class="fu">controlSel</span>(<span class="at">penalty =</span> <span class="st">&quot;SCAD&quot;</span>))</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(m1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
 </section>
 
 </main>
