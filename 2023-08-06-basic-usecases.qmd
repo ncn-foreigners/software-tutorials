@@ -132,7 +132,7 @@ m1b <- nonprob(selection = ~ X1+X2+X3+X4,
               control_selection = controlSel(optimizer = "optim", est_method_sel = "gee", h=2)) ## for h=1 - NaNs
 summary(m1b)
 ```
-It may happen that instead of `pop_totals` we know population means [**NOT WORKING**]
+It may happen that instead of `pop_totals` we know population means but population size should be known [**NOT WORKING**]
 
 ```{r ipw-basic-pop-means,eval=FALSE}
 m1c <- nonprob(selection = ~ X1+X2+X3+X4,
@@ -146,6 +146,17 @@ summary(m1c)
 
 
 ## Mass imputation (TBA)
+
+```{r}
+m1 <- nonprob(outcome = Y ~ X3 + X4 + X5 + X6,
+              data = sample_B,
+              #pop_totals = X_totals[1:5],
+              svydesign = sample_A_svy_cal,
+              method_outcome = "glm",
+              family_outcome = "gaussian")
+summary(m1)
+```
+
 
 ## Doubly robust (TBA)
 
