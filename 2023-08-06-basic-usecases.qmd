@@ -58,16 +58,22 @@ We create the data according to the following recipe:
 + $B$ - nonprobability sample of size about $n_B \approx 2000$,
 + selection:
   + $A \propto (0.25 + |X_{1i}| + 0.03|Y_i|$,
-  + $B$ selected according to model $\text{logit}(3.5 + \mathbf{\alpha}^T(\log(\mathbf{X}_i)^2) - \sin(X_{3i} + X_{4i}) - X_{5i} - X_{6i})$ where $\mathbf{\alpha}=(0,0,0,3,3,3,3,0,...,0)^T$,
+  + $B$ selected according to model
+  
+  $$
+  \text{logit}(\pi_{B,i}) =\mathbf{\alpha}^TX_i %(3.5 + \mathbf{\alpha}^T(\log(\mathbf{X}_i)^2) - \sin(X_{3i} + X_{4i}) - X_{5i} - X_{6i}),
+  $$ 
+  where $\mathbf{\alpha}=(0,0,0,3,3,3,3,0,...,0)^T$,
 + $Y$ generated according to the following model: 
 
 $$
 Y_i = 1 + \exp(3\sin(\mathbf{\beta}^T\mathbf{X}_i)) + X_{5i} + X_{6i} + \epsilon,
 $$
-where $\mathbf{\beta}=(1,0,0,1,1,1,1,0,...,0)^T$.
+
+where $\mathbf{\beta}=(1,0,0,1,1,1,1,0,...,0)^T$. 
 
 ```{r}
-set.seed(2023-7-6)
+set.seed(2023-8-15)
 N <- 10000
 n_A <- 500
 p <- 50
@@ -76,7 +82,7 @@ alpha_vec2 <- c(0,0,0,3,3,3,3, rep(0, p-7))
 beta_vec <- c(1,0,0,1,1,1,1, rep(0, p-7))
 X <- cbind("(Intercept)"=1, matrix(rnorm(N*(p-1)), nrow=N, byrow=T, dimnames = list(NULL, paste0("X",1:(p-1)))))
 #Y <- 1 + as.numeric(X %*% beta_vec) +   rnorm(N)
-Y <- 1+ exp(3*sin(as.numeric(X %*% beta_vec))) + X[, "X5"] + X[, "X6"] + rnorm(N)
+Y <- 1 + exp(3*sin(as.numeric(X %*% beta_vec))) + X[, "X5"] + X[, "X6"] + rnorm(N)
 pi_B <- plogis(as.numeric(X %*% alpha_vec1))
 #pi_B <- plogis(3.5 + as.numeric(log(X^2) %*% alpha_vec2) - sin(X[, "X3"] + X[, "X4"]) - X[,"X5"] + X[, "X6"])
 flag_B <- rbinom(N, 1, prob = pi_B)
@@ -97,11 +103,13 @@ sample_B <- pop_data[pop_data$flag_B == 1, ]
 y_true <- mean(Y)
 ```
 
+True population mean equals `r round(y_true,2)`.
+
 # Population level data is only available
 
 ## Inverse probability weighting
 
-First, we start with IPW calibrated to population totals using `mle`
+First, we start with IPW calibrated to population totals using `mle` with calibration constraints.
 
 ```{r ipw-basic-pop-totals}
 m1 <- nonprob(selection = ~ X1+X2+X3+X4,
@@ -114,11 +122,11 @@ summary(m1)
 We can change optimizer through `control_selection` argument and `controlSel` function
 
 ```{r ipw-basic-pop-totals-optim}
-m1a <- nonprob(selection = ~ X1+X2+X3+X4,
-              target = ~ Y,
-              data = sample_B,
-              pop_totals = X_totals[1:5], 
-              control_selection = controlSel(optimizer = "optim"))
+m1a <- nonprob(selection = ~ X1 + X2 + X3 + X4,
+               target = ~ Y,
+               data = sample_B,
+               pop_totals = X_totals[1:5],
+               control_selection = controlSel(optimizer = "optim"))
 summary(m1a)
 ```
 
@@ -129,10 +137,10 @@ m1b <- nonprob(selection = ~ X1+X2+X3+X4,
               target = ~ Y,
               data = sample_B,
               pop_totals = X_totals[1:5], 
-              control_selection = controlSel(optimizer = "optim", est_method_sel = "gee", h=2)) ## for h=1 - NaNs
+              control_selection = controlSel(optimizer = "optim", est_method_sel = "gee", h=1)) 
 summary(m1b)
 ```
-It may happen that instead of `pop_totals` we know population means but population size should be known [**NOT WORKING**]
+It may happen that instead of `pop_totals` we know population means but population size should be known
 
 ```{r ipw-basic-pop-means,eval=FALSE}
 m1c <- nonprob(selection = ~ X1+X2+X3+X4,
@@ -144,21 +152,47 @@ m1c <- nonprob(selection = ~ X1+X2+X3+X4,
 summary(m1c)
 ```
 
-
-## Mass imputation (TBA)
+By default we use analytical variance estimator but it possible to use bootstrap
 
 ```{r}
-m1 <- nonprob(outcome = Y ~ X3 + X4 + X5 + X6,
+m1d <- nonprob(selection = ~ X1+X2+X3+X4,
+              target = ~ Y,
               data = sample_B,
-              #pop_totals = X_totals[1:5],
-              svydesign = sample_A_svy_cal,
-              method_outcome = "glm",
-              family_outcome = "gaussian")
-summary(m1)
+              pop_totals = X_totals[1:5],
+              method_selection = "logit", 
+              control_inference = controlInf(var_method = "bootstrap", num_boot = 100))
+summary(m1d)
 ```
 
 
-## Doubly robust (TBA)
+## Mass imputation 
+
+Now we use mass imputation under mis-specified model when only population totals are known.
+
+```{r}
+m2 <- nonprob(outcome = Y ~ X3 + X4 + X5 + X6,
+              data = sample_B,
+              pop_totals = X_totals[1:5],
+              method_outcome = "glm",
+              family_outcome = "gaussian")
+summary(m2)
+```
+
+
+## Doubly robust 
+
+And finaly, condider DR model when only population totals are known
+
+```{r}
+m3 <- nonprob(selection = ~ X1 + X2 + X3 + X4,
+              outcome = Y ~ X3 + X4 + X5 + X6,
+              data = sample_B,
+              pop_totals = X_totals,
+              method_outcome = "glm",
+              family_outcome = "gaussian")
+summary(m3)
+```
+
 
 ```{r eval=FALSE, echo=FALSE}
 library(jointCalib)
@@ -170,22 +204,22 @@ pop_quants <- lapply(as.data.frame(X[, c("X1", "X2", "X3", "X4","X5", "X6")]),
                      )
 
 qcal1 <- joint_calib(formula_quantiles = ~ X1 + X2 + X3 + X4 + X5 + X6,
-                    #formula_totals = ~ X3 + X4 + X5 + X6,
-                    data = sample_B, 
-                    dweights = rep(N/nrow(sample_B), nrow(sample_B)),
-                    #pop_totals = pop_totals2,
-                    pop_quantiles = pop_quants,
-                    N = N,
-                    method = "raking")
+                     #formula_totals = ~ X3 + X4 + X5 + X6,
+                     data = sample_B,
+                     dweights = rep(N / nrow(sample_B), nrow(sample_B)),
+                     #pop_totals = pop_totals2,
+                     pop_quantiles = pop_quants,
+                     N = N,
+                     method = "raking")
 
 qcal2 <- joint_calib(formula_quantiles = ~ X1 + X2 + X3 + X4 + X5 + X6,
-                    formula_totals = ~ X1 + X2 + X3 + X4 + X5 + X6,
-                    data = sample_B, 
-                    dweights = rep(N/nrow(sample_B), nrow(sample_B)),
-                    pop_totals = pop_totals2,
-                    pop_quantiles = pop_quants,
-                    N = N,
-                    method = "raking")
+                     formula_totals = ~ X1 + X2 + X3 + X4 + X5 + X6,
+                     data = sample_B,
+                     dweights = rep(N / nrow(sample_B), nrow(sample_B)),
+                     pop_totals = pop_totals2,
+                     pop_quantiles = pop_quants,
+                     N = N,
+                     method = "raking")
 
 res <- calib(Xs = model.matrix(~ X1 + X2 + X3 + X4 + X5 + X6, sample_B), 
              d = rep(N/nrow(sample_B), nrow(sample_B)), 
@@ -207,13 +241,13 @@ c(naive = mean(sample_B$Y),
 
 ## IPW
 
-We can do variable selection (**but here it is not working???**)
+We can do variable selection
 
 ```{r, eval = F, echo=T}
-m1 <- nonprob(selection = ~ X1+X2+X3+X4+X5+X6+X7+X8+X9+X10,
+m1 <- nonprob(selection = ~ X1+X2+X3+X4+X5+X6+X7+X8+X9+X10+X11+X12+X12+X13+X14+X15+X16+X17+X18+X19+X20,
               target = ~ Y,
               data = sample_B,
-              pop_totals = X_totals[1:11],
+              pop_totals = X_totals[1:21],
               #svydesign = sample_A_svy_cal,
               method_selection = "logit",
               control_inference = controlInf(vars_selection = TRUE),
@@ -221,3 +255,18 @@ m1 <- nonprob(selection = ~ X1+X2+X3+X4+X5+X6+X7+X8+X9+X10,
 summary(m1)
 ```
 
+## DR
+
+
+```{r}
+m3 <- nonprob(selection = ~ X1+X2+X3+X4+X5+X6+X7+X8+X9+X10+X11+X12+X12+X13+X14+X15+X16+X17+X18+X19+X20,
+              outcome = Y ~ X1+X2+X3+X4+X5+X6+X7+X8+X9+X10+X11+X12+X12+X13+X14+X15+X16+X17+X18+X19+X20,
+              data = sample_B,
+              pop_totals = X_totals[1:21],
+              method_outcome = "glm",
+              family_outcome = "gaussian",
+              control_inference = controlInf(vars_selection = TRUE),
+              control_selection = controlSel(penalty = "SCAD"),
+              control_outcome = controlOut(penalty = "SCAD"))
+summary(m3)
+```
