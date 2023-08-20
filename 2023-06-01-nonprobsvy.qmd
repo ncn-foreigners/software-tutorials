@@ -100,7 +100,7 @@ In the empirical part we reproduce results from the following papers:
 Seed for all simulations
 
 ```{r}
-seed_for_sim <- 2023-08-06
+seed_for_sim <- 2023-08-20
 ```
 
 # Empirical examples
@@ -109,120 +109,68 @@ seed_for_sim <- 2023-08-06
 
 ### Simulation from section 6
 
-> In this section, we evaluate the finite sample performance of the
-> procedure proposed. We first generate a finite population
-> $\mathcal{F}_{N}=\left\{(X_{i}, Y_{i}): i=1, \ldots, N\right\}$ with
-> $N=10000$, where $Y_{i}$ is a continuous or binary outcome variable,
-> and $X_{i}=(1, X_{1, i}, \ldots, X_{p-1, i})^{\mathrm{T}}$ is a
-> $p$-dimensional vector of covariates with the first component being 1
-> and other components independently generated from the standard normal
-> distribution. We set $p=50$. From the finite population, we select a
-> non-probability sample $\mathcal{B}$ of size
-> $n_{\mathrm{B}} \approx 2000$, according to the selection indicator
-> $I_{\mathrm{B}, i} \sim \operatorname{Ber}(\pi_{\mathrm{B}, i})$.
 
-> We select a probability sample $\mathcal{A}$ of the average size
-> $n_{\mathrm{A}}=500$ under Poisson sampling with
-> $\pi_{\mathrm{A}, i} \propto(0.25+\left|X_{1 i}\right|+0.03\left|Y_{i}\right|)$.
-> The parameter of interest is the population mean
-> $\mu=N^{-1} \sum_{i=1}^{N} Y_{i}$.
++ $N=10000$  -- population size,
++ $p=50$ -- number of $X_p$ variables where $p-1$ were generated from $N(0,1)$ distribution,
++ $A$ -- probability sample about $n_A \approx 500$,
++ $B$ -- non-probability sample of size about $n_B \approx 2000$,
++ selection to probability sample $A \propto 0.25 + |X_{1i}| + 0.03|Y_i|$
++ non-probability selected using the following definitions
+    + $\text{logit}(\pi_{B,i}) =\mathbf{\alpha}^TX_i$ (model PSM I), or   
+    + $\text{logit}(\pi_{B,i}) = (3.5 + \mathbf{\alpha}^T(\log(\mathbf{X}_i)^2) - \sin(X_{3i} + X_{4i}) - X_{5i} - X_{6i})$ (model PSM II),
+    + where $\mathbf{\alpha}=(0,0,0,3,3,3,3,0,...,0)^T$,
++ $Y$ generated according to the following model: 
+    + continous:
+        + $Y_i = 1 + \exp(3\sin(\mathbf{\beta}^T\mathbf{X}_i)) + X_{5i} + X_{6i} + \epsilon$ (model OM I), or
+        + $Y_i = \mathbf{\beta}^T\mathbf{X}_i + \epsilon$ (model OM II), 
+        + where $\mathbf{\beta}=(1,0,0,1,1,1,1,0,...,0)^T$
+    + binary:
+        + $Y_i \sim \text{Ber}(\pi_Y(X))$ with $\text{logit}(\pi_Y(X)) = \mathbf{\beta}^TX_i$ (model OM III),
+        + $Y_i \sim \text{Ber}(\pi_Y(X))$ with $\text{logit}(\pi_Y(X)) = 2 - \log((\mathbf{\beta}^TX_i)^2) + 2X_{5,i}+2X_{6,i}$ (model OM IV),
+        + where $\mathbf{\beta}=(1,0,0,1,1,1,1,0,...,0)^T$
 
-> For the non-probability sampling probability, we consider both linear
-> and non-linear sam- pling score models:
 
-> -   $\operatorname{logit}(\pi_{\mathrm{B}, i})=\alpha_{0}^{\mathrm{T}} X_{i}$,
->     where $\alpha_{0}=(-2,1,1,1,1,0,0,0, \ldots, 0)^{\mathrm{T}}$
->     (model PSM I)
-> -   $\operatorname{logit}(\pi_{\mathrm{B}, i})=3.5+\alpha_{0}^{\mathrm{T}} \log (X_{i}^{2})-\sin (X_{3, i}+X_{4, i})-X_{5, i}-X_{6, i}$,
->     where $\alpha_{0}=(0,0,0,3,3,3,3$ $0, \ldots, 0)^{\mathrm{T}}$
->     (model PSM II).
+```{r}
+seed_for_sim <- 2023-8-15
+set.seed(seed_for_sim)
+N <- 10000
+n_A <- 500
+p <- 50
+alpha_vec1 <- c(-2, 1, 1, 1,1, rep(0, p-5))
+alpha_vec2 <- c(0,0,0,3,3,3,3, rep(0, p-7))
+beta_vec <- c(1,0,0,1,1,1,1, rep(0, p-7))
+## generate X
+X <- cbind("(Intercept)"=1, matrix(rnorm(N*(p-1)), nrow=N, byrow=T, dimnames = list(NULL, paste0("X",1:(p-1)))))
 
-For generating a continuous outcome variable $Y_{i}$, we consider both
-linear and non-linear outcome models with
-$\beta_{0}=(1,0,0,1,1,1,1,0, \ldots, 0)^{\mathrm{T}}$ :
+## prob
+pi_B1 <- plogis(as.numeric(X %*% alpha_vec1)) ## PSM I: linear probability
+pi_B2 <- plogis(3.5 + as.numeric(log(X^2) %*% alpha_vec2) - sin(X[, "X3"] + X[, "X4"]) - X[,"X5"] + X[, "X6"]) ## PSM II: nonlinear probability
+pi_A <- inclusionprobabilities(0.25 + abs(X[, "X1"]) + 0.03*abs(Y), n_A)
 
--   
+## generate Y
+Y_11 <- 1 + as.numeric(X %*% beta_vec) +   rnorm(N) ## OM I: linear model
+Y_12 <- 1 + exp(3*sin(as.numeric(X %*% beta_vec))) + X[, "X5"] + X[, "X6"] + rnorm(N) ## OM II: nonlinear model
+pi_Y_21 <- plogis(as.numeric(X %*% beta_vec)) ## OM III: linear model for binary Y
+pi_Y_21 <- plogis(2 - log((X %*% beta_vec)^2) - 2*X[,"X5"] + 2*X[, "X6"]) ## OM IV: nonlinear model for binary Y
 
-    (a) $Y_{i}=\beta_{0}^{\mathrm{T}} X_{i}+\epsilon_{i}, \epsilon_{i} \sim \mathcal{N}(0,1)$
-        (model OM I);
+flag_B1 <- rbinom(N, 1, prob = pi_B1)
+flag_B2 <- rbinom(N, 1, prob = pi_B2)
+flag_A <- UPpoisson(pik = pi_A)
 
--   
+pop_data <- data.frame(pi_A, pi_B, flag_A, flag_B, Y, X[, 2:p])
+```
 
-    (b) $Y_{i}=1+\exp \left\{3 \sin (\beta_{0}^{\mathrm{T}} X_{i})\right\}+X_{5, i}+X_{6, i}+\epsilon_{i}, \epsilon_{i} \sim \mathcal{N}(0,1)$
-        (model OM II).
-
-For generating a binary outcome variable $Y_{i}$, we consider both
-linear and non-linear outcome models with
-$\beta_{0}=(1,0,0,3,3,3,3,0, \ldots, 0)^{\mathrm{T}}$,
-
--   
-
-    (a) $Y \sim \operatorname{Ber}\left\{\pi_{Y}(X)\right\}$ with logit
-        $\left\{\pi_{Y}(X)\right\}=\beta_{0}^{\mathrm{T}} X$ (model OM
-        III);
-
--   
-
-    (b) $Y \sim \operatorname{Ber}\left\{\pi_{Y}(X)\right\}$ with logit
-        $\left\{\pi_{Y}(X)\right\}=2-\log \left\{(\beta_{0}^{\mathrm{T}} X)^{2}\right\}+2 X_{5, i}+2 X_{6, i}$
-        (model OM IV).
-
-We consider the following estimators
-
--   
-
-    (a) naive, $\hat{\mu}_{\text {naive }}$, the naive estimator using
-        the simple average of $Y_{i}$ from sample $\mathrm{B}$, which
-        provides the degree of the selection bias of sample
-        $\mathrm{B}$;
-
--   
-
-    (b) oracle, $\hat{\mu}_{\text {ora }}$, the doubly robust estimator
-        $\hat{\mu}_{\mathrm{dr}}(\hat{\alpha}_{\text {ora }}, \hat{\beta}_{\text {ora }})$,
-        where $\hat{\alpha}_{\text {ora }}$ and
-        $\hat{\beta}_{\text {ora }}$ are based on the joint estimator
-        restricting to the known important covariates for comparison;
-
--   
-
-    (c) $p-ipw$, $\hat{\mu}_{\mathrm{p} \text {-ipw }}$, the penalized
-        inverse probability of sampling weighting estimator
-        $\hat{\mu}_{\mathrm{IPW}}=$
-        $N^{-1} \Sigma_{i \in \mathcal{B}} \hat{\pi}_{\mathrm{B}, i}^{-1} Y_{i}$,
-        where logit
-        $(\hat{\pi}_{\mathrm{B}, i})=X_{i}^{\mathrm{T}} \hat{\alpha}$
-        using a logistic regression model, and $\hat{\alpha}$ is
-        obtained by a weighted penalized regression of
-        $I_{\mathrm{B}, i}$ on $X_{i}$ based on the combined data from
-        sample $\mathrm{A}$ and sample $\mathrm{B}$, with the units in
-        sample A weighted by the known sampling weights and the units in
-        sample $\mathrm{B}$ weighted by 1 .
-
--   
-
-    (d) $p-reg$, $\hat{\mu}_{\mathrm{p} \text {-reg }}$, the penalized
-        regression estimator
-        $\hat{\mu}_{\mathrm{p}-\mathrm{reg}}=N^{-1} \Sigma_{i \in \mathcal{A}} d_{\mathrm{A}, i} m(X ; \hat{\beta})$,
-        where $\hat{\beta}$ is obtained by a penalized regression of
-        $Y_{i}$ on $X_{i}$ based on sample $\mathrm{B}$;
-
--   
-
-    (e) $p-dr0$, $\hat{\mu}_{\mathrm{p} \text {-dr } 0}$, the penalized
-        double estimating equation estimator based on the set of outcome
-        predictors $\hat{\mathcal{M}}_{\beta}$;
-
--   
-
-    (f) $p-dr$, $\hat{\mu}_{\mathrm{p}-\mathrm{dr}}$, the proposed
-        penalized double estimating equation estimator based on the
-        union of sampling and outcome predictors
-        $\hat{\mathcal{M}}_{\alpha} \cup \hat{\mathcal{M}}_{\beta}$.
-
-We also note that $\hat{\mu}_{\mathrm{dr}}$ without variable selection
-is severely biased and unstable and therefore is excluded for
-comparison.
+```{r}
+X_totals <- colSums(X)
+X_means <- colMeans(X[,-1])
+sample_A_svy <- svydesign(ids = ~ 1, probs = ~ pi_A, pps = "brewer", data = pop_data[pop_data$flag_A == 1, ])
+sample_A_svy_cal <- calibrate(sample_A_svy, 
+                              formula = as.formula(paste0("~", paste(names(X_totals)[2:p], collapse = "+"))),
+                              population = X_totals, 
+                              calfun = cal.raking)
+sample_B <- pop_data[pop_data$flag_B == 1, ]
+sample_B$dweight <- N/nrow(sample_B)
+```
 
 ## @chen2020 paper
 
