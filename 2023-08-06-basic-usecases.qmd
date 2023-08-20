@@ -28,8 +28,28 @@ when combining probability and non-probability samples with high
 dimensional data. Journal of the Royal Statistical Society. Series
 B, Statistical Methodology, 82(2), 445.
 ```
+
+All technical details regarding implementation can be found [here](https://ncn-foreigners.github.io/nonprobsvy-book/)
     
-# Install and load the required packages
+    
+## Basic information regarding the package
+
+Package implements the following approaches:
+
++ inverse probability weighting / propensity score weighting / adjustment estimator with covariate balancing / calibration constraints, 
++ mass imputation estimator (nearest neighbour, model-based),
++ doubly robust estimator (including bias minimization),
++ variace for probability sample is estimated using `survey` package.
+
+In addition:
+ + allows to select variables using `SCAD`, `lasso` and `MCP` penalties,
+ + allows for inference when only population totals, means and size is available,
+ + variance is estimated using analytical and bootstrap approach.
+ 
+
+Currently only `glm` models are implemented (i.e. gaussian, binomial, poisson).
+
+## Install and load the required packages
 
 Install `remotes` package and then install `nonprobsvy` package from
 github repository.
@@ -41,6 +61,8 @@ install.packages("survey")
 install.packages("sampling")
 ```
 
+Load required packages
+
 ```{r}
 library(sampling)
 library(survey)
@@ -48,14 +70,14 @@ library(nonprobsvy)
 ```
 
 
-# Basic setup
+## Basic setup for examples
 
-We create the data according to the following recipe:
+We generate the data using the following recipe:
 
 + $N=10000$  -- population size,
-+ $p=50$-- number of $X_p$ variables where $p-1$ were generated from $N(0,1)$ distribution,
-+ $A$ - probability sample about $n_A \approx 500$,
-+ $B$ - nonprobability sample of size about $n_B \approx 2000$,
++ $p=50$ -- number of $X_p$ variables where $p-1$ were generated from $N(0,1)$ distribution,
++ $A$ -- probability sample about $n_A \approx 500$,
++ $B$ -- nonprobability sample of size about $n_B \approx 2000$,
 + selection:
   + $A \propto (0.25 + |X_{1i}| + 0.03|Y_i|$,
   + $B$ selected according to model
@@ -63,6 +85,7 @@ We create the data according to the following recipe:
   $$
   \text{logit}(\pi_{B,i}) =\mathbf{\alpha}^TX_i %(3.5 + \mathbf{\alpha}^T(\log(\mathbf{X}_i)^2) - \sin(X_{3i} + X_{4i}) - X_{5i} - X_{6i}),
   $$ 
+  
   where $\mathbf{\alpha}=(0,0,0,3,3,3,3,0,...,0)^T$,
 + $Y$ generated according to the following model: 
 
@@ -81,15 +104,19 @@ alpha_vec1 <- c(-2, 1, 1, 1,1, rep(0, p-5))
 alpha_vec2 <- c(0,0,0,3,3,3,3, rep(0, p-7))
 beta_vec <- c(1,0,0,1,1,1,1, rep(0, p-7))
 X <- cbind("(Intercept)"=1, matrix(rnorm(N*(p-1)), nrow=N, byrow=T, dimnames = list(NULL, paste0("X",1:(p-1)))))
-#Y <- 1 + as.numeric(X %*% beta_vec) +   rnorm(N)
-Y <- 1 + exp(3*sin(as.numeric(X %*% beta_vec))) + X[, "X5"] + X[, "X6"] + rnorm(N)
-pi_B <- plogis(as.numeric(X %*% alpha_vec1))
-#pi_B <- plogis(3.5 + as.numeric(log(X^2) %*% alpha_vec2) - sin(X[, "X3"] + X[, "X4"]) - X[,"X5"] + X[, "X6"])
+#Y <- 1 + as.numeric(X %*% beta_vec) +   rnorm(N) ## linear model
+Y <- 1 + exp(3*sin(as.numeric(X %*% beta_vec))) + X[, "X5"] + X[, "X6"] + rnorm(N) ## nonlinear model
+pi_B <- plogis(as.numeric(X %*% alpha_vec1)) ## linear probability
+#pi_B <- plogis(3.5 + as.numeric(log(X^2) %*% alpha_vec2) - sin(X[, "X3"] + X[, "X4"]) - X[,"X5"] + X[, "X6"]) ## nonlinear probability
 flag_B <- rbinom(N, 1, prob = pi_B)
 pi_A <- inclusionprobabilities(0.25 + abs(X[, "X1"]) + 0.03*abs(Y), n_A)
 flag_A <- UPpoisson(pik = pi_A)
 pop_data <- data.frame(pi_A, pi_B, flag_A, flag_B, Y, X[, 2:p])
+```
 
+We calibrate probability sample `A` to known population totals and set `svydesign` with `pps=brewer`.
+
+```{r}
 ## population totals
 X_totals <- colSums(X)
 X_means <- colMeans(X[,-1])
@@ -98,14 +125,85 @@ sample_A_svy_cal <- calibrate(sample_A_svy,
                               formula = as.formula(paste0("~", paste(names(X_totals)[2:p], collapse = "+"))),
                               population = X_totals, 
                               calfun = cal.raking)
-sample_B <- pop_data[pop_data$flag_B == 1, ]
-## true Y
-y_true <- mean(Y)
 ```
 
-True population mean equals `r round(y_true,2)`.
+Then we select nonprobability sample `B` using probability based on `flag_B` variable.
 
-# Population level data is only available
+```{r}
+sample_B <- pop_data[pop_data$flag_B == 1, ]
+sample_B$dweight <- N/nrow(sample_B)
+```
+
+True mean of `Y`.
+
+```{r}
+y_true <- mean(Y)
+y_true
+```
+
+# Inverse probability weighting
+
+First, we start with inverse probability weighting estimator under different settings. 
+
+## Only population information is available
+
+Note that standard error is under-estimated as assume that `pop_totals` is known, not estimated. Here we use `mle` with calibration constraints [see mle in the documentation](https://ncn-foreigners.github.io/nonprobsvy-book/ipw.html#maximum-likelihood-estimation).
+
+```{r}
+ipw_logit_poptotals <- nonprob(selection = ~ X1 + X2 + X3 + X4,
+                               target = ~ Y,
+                               data = sample_B,
+                               pop_totals = X_totals[1:5],
+                               method_selection = "logit")
+
+cbind(ipw_logit_poptotals$output,ipw_logit_poptotals$confidence_interval)
+```
+
+We can change from `mle` to `gee` with different definitions of $h$ function (1 for $X/\pi(X,\alpha)$ or 2 for $X$). See [documentation for gee](https://ncn-foreigners.github.io/nonprobsvy-book/ipw.html#general-estimating-equations).
+
+
+```{r}
+ipw_logit_poptotals_gee <- nonprob(selection = ~ X1 + X2 + X3 + X4,
+                                   target = ~ Y,
+                                   data = sample_B,
+                                   pop_totals = X_totals[1:5],
+                                   method_selection = "logit",
+                                   control_selection = controlSel(est_method_sel = "gee", h_x = 1))
+
+cbind(ipw_logit_poptotals_gee$output,ipw_logit_poptotals_gee$confidence_interval)
+```
+Finally, we can conduct variable selection using `SCAD` under different models
+
+```{r}
+ipw_logit_poptotals_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+                                   target = ~ Y,
+                                   data = sample_B,
+                                   pop_totals = X_totals[1:11],
+                                   method_selection = "logit",
+                                   control_selection = controlSel(penalty = "lasso"),
+                                   control_inference = controlInf(vars_selection = TRUE))
+
+cbind(ipw_logit_poptotals_scad$output,ipw_logit_poptotals_scad$confidence_interval)
+```
+
+```{r}
+summary(ipw_logit_poptotals_scad)$coef
+```
+
+## Probability sample is available
+
+
+```{r}
+ipw_logit_svydes <- nonprob(selection = ~ X1 + X2 + X3 + X4,
+                               target = ~ Y,
+                               data = sample_B,
+                               svydesign = sample_A_svy_cal,
+                               method_selection = "logit")
+
+cbind(ipw_logit_svydes$output,ipw_logit_svydes$confidence_interval)
+```
+
+
 
 ## Inverse probability weighting
 
@@ -130,7 +228,6 @@ m1a <- nonprob(selection = ~ X1 + X2 + X3 + X4,
 summary(m1a)
 ```
 
-We can change estimation method to generalized estimating equations (`gee`) through `control_selection` argument and `controlSel` function. We can also change $h$ function to 1 ($X/\pi(X,\alpha)$) or 2 ($X$).
 
 ```{r ipw-basic-pop-totals-gee}
 m1b <- nonprob(selection = ~ X1+X2+X3+X4,
