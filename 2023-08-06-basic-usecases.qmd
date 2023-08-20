@@ -68,6 +68,7 @@ Load required packages
 library(sampling)
 library(survey)
 library(nonprobsvy)
+library(ggplot2)
 ```
 
 
@@ -287,7 +288,7 @@ cbind(mi_sample$output,mi_sample$confidence_interval)
 We can select variables using SCAD penalty [currently not working]
 
 ```{r mi-sample-scad}
-mi_sample <- nonprob(outcome = Y ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+mi_sample_scad <- nonprob(outcome = Y ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
                      data = sample_B,
                      svydesign = sample_A_svy_cal,
                      method_outcome = "glm",
@@ -295,7 +296,7 @@ mi_sample <- nonprob(outcome = Y ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + 
                      control_outcome = controlOut(penalty = "SCAD"),
                      control_inference = controlInf(vars_selection = TRUE))
 
-cbind(mi_sample$output,mi_sample$confidence_interval)
+cbind(mi_sample_scad$output,mi_sample_scad$confidence_interval)
 ```
 
 We can change to nearest neighbour imputation estimator but note that we use all X not predictive mean matching.
@@ -329,6 +330,149 @@ Finally, we present [doubly robust estimator](https://ncn-foreigners.github.io/n
 
 ## Only population information is available
 
+Consider the case when only population information is available
+
+```{r dr-pop-totals}
+dr_logit_poptotals <- nonprob(selection = ~ X1 + X2 + X3 + X4,
+                              outcome = Y ~ X1 + X2 + X3 + X4,
+                              data = sample_B,
+                              pop_totals = X_totals[1:5],
+                              method_selection = "logit")
+
+cbind(dr_logit_poptotals$output,dr_logit_poptotals$confidence_interval)
+```
+We can apply `gee` with `h=1` 
+
+```{r dr-pop-totals-gee}
+dr_logit_poptotals_gee <- nonprob(selection = ~ X1 + X2 + X3 + X4,
+                                  outcome = Y ~ X1 + X2 + X3 + X4,
+                                  data = sample_B,
+                                  pop_totals = X_totals[1:5],
+                                  method_selection = "logit",
+                                  control_selection = controlSel(est_method_sel = "gee", h = 1))
+
+cbind(dr_logit_poptotals_gee$output,dr_logit_poptotals_gee$confidence_interval)
+```
+Finally, we can coduct variable selection
+
+```{r dr-pop-totals-scad}
+dr_logit_poptotals_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+                                   outcome = Y ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+                                   data = sample_B,
+                                   pop_totals = X_totals[1:11],
+                                   method_selection = "logit",
+                                   control_inference = controlInf(vars_selection = TRUE))
+
+cbind(dr_logit_poptotals_scad$output,dr_logit_poptotals_scad$confidence_interval)
+```
+
+Note that we apply union of variables after variable selection.
+
 ## Probability sample is available
 
+Now consider situation when probability sample is available
+
+```{r dr-sample}
+dr_logit_sample <- nonprob(selection = ~ X1 + X2 + X3 + X4,
+                           outcome = Y ~ X1 + X2 + X3 + X4,
+                           data = sample_B,
+                           svydesign = sample_A_svy_cal,
+                           method_selection = "logit")
+
+cbind(dr_logit_sample$output,dr_logit_sample$confidence_interval)
+```
+
+Now use `gee` with `h=1` with bootstrap.
+
+```{r dr-sample-gee}
+dr_logit_sample_gee <- nonprob(selection = ~ X1 + X2 + X3 + X4,
+                               outcome = Y ~ X1 + X2 + X3 + X4,
+                               data = sample_B,
+                               svydesign = sample_A_svy_cal,
+                               method_selection = "logit",
+                               control_selection = controlSel(est_method_sel = "gee", h = 1),
+                               control_inference = controlInf(var_method = "bootstrap", num_boot = 100))
+
+cbind(dr_logit_sample_gee$output,dr_logit_sample_gee$confidence_interval)
+```
+We can also use bias minimization method as proposed in @yang2020 by setting `est_method_sel = "mm"`.
+
+```{r dr-sample-bmm}
+dr_logit_sample_mm <- nonprob(selection = ~ X1 + X2 + X3 + X4,
+                               outcome = Y ~ X1 + X2 + X3 + X4,
+                               data = sample_B,
+                               svydesign = sample_A_svy_cal,
+                               method_selection = "logit",
+                               control_selection = controlSel(est_method_sel = "mm", h = 2),
+                               control_inference = controlInf(var_method = "bootstrap", num_boot = 100))
+
+cbind(dr_logit_sample_mm$output,dr_logit_sample_mm$confidence_interval)
+```
+
+We can apply bias variable selection (`SCAD`) [not working]
+
+```{r dr-sample-scad, eval = F}
+dr_logit_sample_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+                                outcome = Y ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+                                data = sample_B,
+                                svydesign = sample_A_svy_cal,
+                                method_selection = "logit",
+                                control_selection = controlSel(penalty = "SCAD"),
+                                control_inference = controlInf(vars_selection = TRUE))
+
+cbind(dr_logit_sample_scad$output, dr_logit_sample_scad$confidence_interval)
+```
+
+Finally, we can apply method proposed by  @yang2020, i.e. variable selection using SCAD and bias minimization after selection.
+
+```{r dr-sample-mm-scad}
+dr_logit_sample_mm_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+                                    outcome = Y ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+                                    data = sample_B,
+                                    svydesign = sample_A_svy_cal,
+                                    method_selection = "logit",
+                                    control_selection = controlSel(penalty = "SCAD", est_method_sel = "mm"),
+                                    control_inference = controlInf(vars_selection = TRUE))
+
+cbind(dr_logit_sample_mm_scad$output, dr_logit_sample_mm_scad$confidence_interval)
+```
+
+# Summary
+
+Now combine estimates from all models
+
+```{r table-with-results}
+tab_res <- rbind(
+  cbind(est="ipw with poptotals", ipw_logit_poptotals$output,ipw_logit_poptotals$confidence_interval),
+  cbind(est="ipw with poptotals (gee h=1)", ipw_logit_poptotals_gee$output,ipw_logit_poptotals_gee$confidence_interval),
+  cbind(est="ipw with poptotals SCAD", ipw_logit_poptotals_scad$output,ipw_logit_poptotals_scad$confidence_interval),
+  cbind(est="ipw with sample", ipw_logit_sample$output,ipw_logit_sample$confidence_interval),
+  cbind(est="ipw with sample (gee h=1)" , ipw_logit_sample_gee$output,ipw_logit_sample_gee$confidence_interval),
+  cbind(est="ipw with sample (gee h=1 bootstrap)" , ipw_logit_sample_gee_boot$output,ipw_logit_sample_gee_boot$confidence_interval),
+  cbind(est="ipw with sample SCAD" , ipw_logit_sample_scad$output,ipw_logit_sample_scad$confidence_interval),
+  cbind(est="mi with poptotals" , mi_poptotals$output,mi_poptotals$confidence_interval),
+  cbind(est="mi with sample (glm)" , mi_sample$output,mi_sample$confidence_interval),
+  cbind(est="mi with sample (nn)" , mi_sample_nn$output,mi_sample_nn$confidence_interval),
+  cbind(est="dr with poptotals" , dr_logit_poptotals$output,dr_logit_poptotals$confidence_interval),
+  cbind(est="dr with poptotals (gee h=1)" , dr_logit_poptotals_gee$output,dr_logit_poptotals_gee$confidence_interval),
+  cbind(est="dr with poptotals SCAD" , dr_logit_poptotals_scad$output,dr_logit_poptotals_scad$confidence_interval),
+  cbind(est="dr with sample (glm)" , dr_logit_sample$output,dr_logit_sample$confidence_interval),
+  cbind(est="dr with sample (gee h=1)" , dr_logit_sample_gee$output,dr_logit_sample_gee$confidence_interval),
+  cbind(est="dr with sample (bias min)" , dr_logit_sample_mm$output,dr_logit_sample_mm$confidence_interval),
+  cbind(est="dr with sample (bias min) SCAD", dr_logit_sample_mm_scad$output, dr_logit_sample_mm_scad$confidence_interval)
+)
+
+tab_res
+```
+Plot the results
+
+```{r plot-table}
+ggplot(data = tab_res, aes(x = est, y = mean, ymin = lower_bound, ymax = upper_bound)) +
+  geom_point() +
+  geom_pointrange() +
+  geom_hline(yintercept = y_true, linetype = "dashed", color = "red") + 
+  coord_flip()
+```
+
+# Literature
 
