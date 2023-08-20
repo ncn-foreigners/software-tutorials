@@ -80,7 +80,7 @@ We generate the data using the following recipe:
 + $A$ -- probability sample about $n_A \approx 500$,
 + $B$ -- nonprobability sample of size about $n_B \approx 2000$,
 + selection:
-  + $A \propto (0.25 + |X_{1i}| + 0.03|Y_i|$,
+  + $A \propto 0.25 + |X_{1i}| + 0.03|Y_i|$,
   + $B$ selected according to model
   
   $$
@@ -143,9 +143,9 @@ y_true <- mean(Y)
 y_true
 ```
 
-# Inverse probability weighting
+# Inverse probability weighting estimator
 
-First, we start with inverse probability weighting estimator under different settings. 
+First, we start with [inverse probability weighting estimator](https://ncn-foreigners.github.io/nonprobsvy-book/ipw.html) under different settings. 
 
 ## Only population information is available
 
@@ -252,5 +252,83 @@ The output of procedures is similar to glm
 ```{r ipw-sample-scad-summary}
 summary(ipw_logit_sample_scad)
 ```
+# Mass imputation estimator
+
+Now, we start with [mass imputation estimator](https://ncn-foreigners.github.io/nonprobsvy-book/mi.html) under different settings. 
+
+## Only population information is available
+
+In the examples we assume that $f(Y|X)$ is linear so the estimator will be biased as model is mis-specified.
+
+```{r mi-pop-totals}
+mi_poptotals <- nonprob(outcome = Y ~ X3 + X4 + X5 + X6,
+                        data = sample_B,
+                        pop_totals = X_totals[c("(Intercept)", "X3", "X4", "X5", "X6")],
+                        method_outcome = "glm",
+                        family_outcome = "gaussian")
+
+cbind(mi_poptotals$output,mi_poptotals$confidence_interval)
+```
+
+## Probability sample is available
+
+Now, consider that sample
+
+```{r mi-sample}
+mi_sample <- nonprob(outcome = Y ~ X3 + X4 + X5 + X6,
+                     data = sample_B,
+                     svydesign = sample_A_svy_cal,
+                     method_outcome = "glm",
+                     family_outcome = "gaussian")
+
+cbind(mi_sample$output,mi_sample$confidence_interval)
+```
+
+We can select variables using SCAD penalty [currently not working]
+
+```{r mi-sample-scad}
+mi_sample <- nonprob(outcome = Y ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+                     data = sample_B,
+                     svydesign = sample_A_svy_cal,
+                     method_outcome = "glm",
+                     family_outcome = "gaussian",
+                     control_outcome = controlOut(penalty = "SCAD"),
+                     control_inference = controlInf(vars_selection = TRUE))
+
+cbind(mi_sample$output,mi_sample$confidence_interval)
+```
+
+We can change to nearest neighbour imputation estimator but note that we use all X not predictive mean matching.
+
+```{r mi-sample-nn}
+mi_sample_nn <- nonprob(outcome = Y ~ X3 + X4 + X5 + X6,
+                        data = sample_B,
+                        svydesign = sample_A_svy_cal,
+                        method_outcome = "nn",
+                        family_outcome = "gaussian",
+                        control_outcome = controlOut(k = 3))
+
+cbind(mi_sample_nn$output,mi_sample_nn$confidence_interval)
+```
+We can specify variance to boostrap
+
+```{r mi-sample-nn-boot}
+mi_sample_nn <- nonprob(outcome = Y ~ X3 + X4 + X5 + X6,
+                        data = sample_B,
+                        svydesign = sample_A_svy_cal,
+                        method_outcome = "nn",
+                        family_outcome = "gaussian",
+                        control_outcome = controlOut(k = 3),
+                        control_inference = controlInf(var_method = "bootstrap", num_boot = 100))
+
+cbind(mi_sample_nn$output,mi_sample_nn$confidence_interval)
+```
+# Doubly robust estimator
+
+Finally, we present [doubly robust estimator](https://ncn-foreigners.github.io/nonprobsvy-book/dr.html) under different settings. 
+
+## Only population information is available
+
+## Probability sample is available
 
 
