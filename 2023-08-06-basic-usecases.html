@@ -2618,19 +2618,16 @@ vertical-align: -.125em;
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction"><span class="toc-section-number">1</span>  Introduction</a></li>
-  <li><a href="#install-and-load-the-required-packages" id="toc-install-and-load-the-required-packages" class="nav-link" data-scroll-target="#install-and-load-the-required-packages"><span class="toc-section-number">2</span>  Install and load the required packages</a></li>
-  <li><a href="#basic-setup" id="toc-basic-setup" class="nav-link" data-scroll-target="#basic-setup"><span class="toc-section-number">3</span>  Basic setup</a></li>
-  <li><a href="#population-level-data-is-only-available" id="toc-population-level-data-is-only-available" class="nav-link" data-scroll-target="#population-level-data-is-only-available"><span class="toc-section-number">4</span>  Population level data is only available</a>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction"><span class="toc-section-number">1</span>  Introduction</a>
   <ul class="collapse">
-  <li><a href="#inverse-probability-weighting" id="toc-inverse-probability-weighting" class="nav-link" data-scroll-target="#inverse-probability-weighting"><span class="toc-section-number">4.1</span>  Inverse probability weighting</a></li>
-  <li><a href="#mass-imputation-tba" id="toc-mass-imputation-tba" class="nav-link" data-scroll-target="#mass-imputation-tba"><span class="toc-section-number">4.2</span>  Mass imputation (TBA)</a></li>
-  <li><a href="#doubly-robust-tba" id="toc-doubly-robust-tba" class="nav-link" data-scroll-target="#doubly-robust-tba"><span class="toc-section-number">4.3</span>  Doubly robust (TBA)</a></li>
+  <li><a href="#basic-information-regarding-the-package" id="toc-basic-information-regarding-the-package" class="nav-link" data-scroll-target="#basic-information-regarding-the-package"><span class="toc-section-number">1.1</span>  Basic information regarding the package</a></li>
+  <li><a href="#install-and-load-the-required-packages" id="toc-install-and-load-the-required-packages" class="nav-link" data-scroll-target="#install-and-load-the-required-packages"><span class="toc-section-number">1.2</span>  Install and load the required packages</a></li>
+  <li><a href="#basic-setup-for-examples" id="toc-basic-setup-for-examples" class="nav-link" data-scroll-target="#basic-setup-for-examples"><span class="toc-section-number">1.3</span>  Basic setup for examples</a></li>
   </ul></li>
-  <li><a href="#probability-sample-is-available" id="toc-probability-sample-is-available" class="nav-link" data-scroll-target="#probability-sample-is-available"><span class="toc-section-number">5</span>  Probability sample is available</a></li>
-  <li><a href="#variable-selection" id="toc-variable-selection" class="nav-link" data-scroll-target="#variable-selection"><span class="toc-section-number">6</span>  Variable selection</a>
+  <li><a href="#inverse-probability-weighting" id="toc-inverse-probability-weighting" class="nav-link" data-scroll-target="#inverse-probability-weighting"><span class="toc-section-number">2</span>  Inverse probability weighting</a>
   <ul class="collapse">
-  <li><a href="#ipw" id="toc-ipw" class="nav-link" data-scroll-target="#ipw"><span class="toc-section-number">6.1</span>  IPW</a></li>
+  <li><a href="#only-population-information-is-available" id="toc-only-population-information-is-available" class="nav-link" data-scroll-target="#only-population-information-is-available"><span class="toc-section-number">2.1</span>  Only population information is available</a></li>
+  <li><a href="#probability-sample-is-available" id="toc-probability-sample-is-available" class="nav-link" data-scroll-target="#probability-sample-is-available"><span class="toc-section-number">2.2</span>  Probability sample is available</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -2667,9 +2664,26 @@ vertical-align: -.125em;
 when combining probability and non-probability samples with high
 dimensional data. Journal of the Royal Statistical Society. Series
 B, Statistical Methodology, 82(2), 445.</code></pre>
+<p>All technical details regarding implementation can be found <a href="https://ncn-foreigners.github.io/nonprobsvy-book/">here</a></p>
+<section id="basic-information-regarding-the-package" class="level2" data-number="1.1">
+<h2 data-number="1.1" class="anchored" data-anchor-id="basic-information-regarding-the-package"><span class="header-section-number">1.1</span> Basic information regarding the package</h2>
+<p>Package implements the following approaches:</p>
+<ul>
+<li>inverse probability weighting / propensity score weighting / adjustment estimator with covariate balancing / calibration constraints,</li>
+<li>mass imputation estimator (nearest neighbour, model-based),</li>
+<li>doubly robust estimator (including bias minimization),</li>
+<li>variace for probability sample is estimated using <code>survey</code> package.</li>
+</ul>
+<p>In addition:</p>
+<ul>
+<li>allows to select variables using <code>SCAD</code>, <code>lasso</code> and <code>MCP</code> penalties,</li>
+<li>allows for inference when only population totals, means and size is available,</li>
+<li>variance is estimated using analytical and bootstrap approach.</li>
+</ul>
+<p>Currently only <code>glm</code> models are implemented (i.e. gaussian, binomial, poisson).</p>
 </section>
-<section id="install-and-load-the-required-packages" class="level1" data-number="2">
-<h1 data-number="2"><span class="header-section-number">2</span> Install and load the required packages</h1>
+<section id="install-and-load-the-required-packages" class="level2" data-number="1.2">
+<h2 data-number="1.2" class="anchored" data-anchor-id="install-and-load-the-required-packages"><span class="header-section-number">1.2</span> Install and load the required packages</h2>
 <p>Install <code>remotes</code> package and then install <code>nonprobsvy</code> package from github repository.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">&quot;remotes&quot;</span>)</span>
@@ -2677,276 +2691,401 @@ B, Statistical Methodology, 82(2), 445.</code></pre>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">&quot;survey&quot;</span>)</span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">&quot;sampling&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>Load required packages</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sampling)</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(survey)</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(nonprobsvy)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
-<section id="basic-setup" class="level1" data-number="3">
-<h1 data-number="3"><span class="header-section-number">3</span> Basic setup</h1>
-<p>We create the data according to the following recipe:</p>
+<section id="basic-setup-for-examples" class="level2" data-number="1.3">
+<h2 data-number="1.3" class="anchored" data-anchor-id="basic-setup-for-examples"><span class="header-section-number">1.3</span> Basic setup for examples</h2>
+<p>We generate the data using the following recipe:</p>
 <ul>
-<li><span class="math inline">\(N=10000\)</span> – population size,</li>
-<li><span class="math inline">\(p=50\)</span>– number of <span class="math inline">\(X_p\)</span> variables where <span class="math inline">\(p-1\)</span> were generated from <span class="math inline">\(N(0,1)\)</span> distribution,</li>
-<li><span class="math inline">\(A\)</span> - probability sample about <span class="math inline">\(n_A \approx 500\)</span>,</li>
-<li><span class="math inline">\(B\)</span> - nonprobability sample of size about <span class="math inline">\(n_B \approx 2000\)</span>,</li>
-<li>selection:
+<li><p><span class="math inline">\(N=10000\)</span> – population size,</p></li>
+<li><p><span class="math inline">\(p=50\)</span> – number of <span class="math inline">\(X_p\)</span> variables where <span class="math inline">\(p-1\)</span> were generated from <span class="math inline">\(N(0,1)\)</span> distribution,</p></li>
+<li><p><span class="math inline">\(A\)</span> – probability sample about <span class="math inline">\(n_A \approx 500\)</span>,</p></li>
+<li><p><span class="math inline">\(B\)</span> – nonprobability sample of size about <span class="math inline">\(n_B \approx 2000\)</span>,</p></li>
+<li><p>selection:</p>
 <ul>
 <li><span class="math inline">\(A \propto (0.25 + |X_{1i}| + 0.03|Y_i|\)</span>,</li>
-<li><span class="math inline">\(B\)</span> selected according to model <span class="math inline">\(\text{logit}(3.5 + \mathbf{\alpha}^T(\log(\mathbf{X}_i)^2) - \sin(X_{3i} + X_{4i}) - X_{5i} - X_{6i})\)</span> where <span class="math inline">\(\mathbf{\alpha}=(0,0,0,3,3,3,3,0,...,0)^T\)</span>,</li>
-</ul></li>
-<li><span class="math inline">\(Y\)</span> generated according to the following model:</li>
+<li><span class="math inline">\(B\)</span> selected according to model</li>
+</ul>
+<p><span class="math display">\[
+\text{logit}(\pi_{B,i}) =\mathbf{\alpha}^TX_i %(3.5 + \mathbf{\alpha}^T(\log(\mathbf{X}_i)^2) - \sin(X_{3i} + X_{4i}) - X_{5i} - X_{6i}),
+\]</span></p>
+<p>where <span class="math inline">\(\mathbf{\alpha}=(0,0,0,3,3,3,3,0,...,0)^T\)</span>,</p></li>
+<li><p><span class="math inline">\(Y\)</span> generated according to the following model:</p></li>
 </ul>
 <p><span class="math display">\[
 Y_i = 1 + \exp(3\sin(\mathbf{\beta}^T\mathbf{X}_i)) + X_{5i} + X_{6i} + \epsilon,
-\]</span> where <span class="math inline">\(\mathbf{\beta}=(1,0,0,1,1,1,1,0,...,0)^T\)</span>.</p>
+\]</span></p>
+<p>where <span class="math inline">\(\mathbf{\beta}=(1,0,0,1,1,1,1,0,...,0)^T\)</span>.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2023-7-6</span>)</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>N <span class="ot">&lt;-</span> <span class="dv">10000</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>n_A <span class="ot">&lt;-</span> <span class="dv">500</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="dv">50</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>alpha_vec1 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">2</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>,<span class="dv">1</span>, <span class="fu">rep</span>(<span class="dv">0</span>, p<span class="dv">-5</span>))</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>alpha_vec2 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">3</span>,<span class="dv">3</span>,<span class="dv">3</span>,<span class="dv">3</span>, <span class="fu">rep</span>(<span class="dv">0</span>, p<span class="dv">-7</span>))</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>beta_vec <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>, <span class="fu">rep</span>(<span class="dv">0</span>, p<span class="dv">-7</span>))</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">cbind</span>(<span class="st">&quot;(Intercept)&quot;</span><span class="ot">=</span><span class="dv">1</span>, <span class="fu">matrix</span>(<span class="fu">rnorm</span>(N<span class="sc">*</span>(p<span class="dv">-1</span>)), <span class="at">nrow=</span>N, <span class="at">byrow=</span>T, <span class="at">dimnames =</span> <span class="fu">list</span>(<span class="cn">NULL</span>, <span class="fu">paste0</span>(<span class="st">&quot;X&quot;</span>,<span class="dv">1</span><span class="sc">:</span>(p<span class="dv">-1</span>)))))</span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="co">#Y &lt;- 1 + as.numeric(X %*% beta_vec) +   rnorm(N)</span></span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>Y <span class="ot">&lt;-</span> <span class="dv">1</span><span class="sc">+</span> <span class="fu">exp</span>(<span class="dv">3</span><span class="sc">*</span><span class="fu">sin</span>(<span class="fu">as.numeric</span>(X <span class="sc">%*%</span> beta_vec))) <span class="sc">+</span> X[, <span class="st">&quot;X5&quot;</span>] <span class="sc">+</span> X[, <span class="st">&quot;X6&quot;</span>] <span class="sc">+</span> <span class="fu">rnorm</span>(N)</span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>pi_B <span class="ot">&lt;-</span> <span class="fu">plogis</span>(<span class="fu">as.numeric</span>(X <span class="sc">%*%</span> alpha_vec1))</span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="co">#pi_B &lt;- plogis(3.5 + as.numeric(log(X^2) %*% alpha_vec2) - sin(X[, &quot;X3&quot;] + X[, &quot;X4&quot;]) - X[,&quot;X5&quot;] + X[, &quot;X6&quot;])</span></span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>flag_B <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(N, <span class="dv">1</span>, <span class="at">prob =</span> pi_B)</span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>pi_A <span class="ot">&lt;-</span> <span class="fu">inclusionprobabilities</span>(<span class="fl">0.25</span> <span class="sc">+</span> <span class="fu">abs</span>(X[, <span class="st">&quot;X1&quot;</span>]) <span class="sc">+</span> <span class="fl">0.03</span><span class="sc">*</span><span class="fu">abs</span>(Y), n_A)</span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>flag_A <span class="ot">&lt;-</span> <span class="fu">UPpoisson</span>(<span class="at">pik =</span> pi_A)</span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>pop_data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(pi_A, pi_B, flag_A, flag_B, Y, X[, <span class="dv">2</span><span class="sc">:</span>p])</span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a><span class="do">## population totals</span></span>
-<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>X_totals <span class="ot">&lt;-</span> <span class="fu">colSums</span>(X)</span>
-<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>X_means <span class="ot">&lt;-</span> <span class="fu">colMeans</span>(X[,<span class="sc">-</span><span class="dv">1</span>])</span>
-<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>sample_A_svy <span class="ot">&lt;-</span> <span class="fu">svydesign</span>(<span class="at">ids =</span> <span class="sc">~</span> <span class="dv">1</span>, <span class="at">probs =</span> <span class="sc">~</span> pi_A, <span class="at">pps =</span> <span class="st">&quot;brewer&quot;</span>, <span class="at">data =</span> pop_data[pop_data<span class="sc">$</span>flag_A <span class="sc">==</span> <span class="dv">1</span>, ])</span>
-<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>sample_A_svy_cal <span class="ot">&lt;-</span> <span class="fu">calibrate</span>(sample_A_svy, </span>
-<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>                              <span class="at">formula =</span> <span class="fu">as.formula</span>(<span class="fu">paste0</span>(<span class="st">&quot;~&quot;</span>, <span class="fu">paste</span>(<span class="fu">names</span>(X_totals)[<span class="dv">2</span><span class="sc">:</span>p], <span class="at">collapse =</span> <span class="st">&quot;+&quot;</span>))),</span>
-<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>                              <span class="at">population =</span> X_totals, </span>
-<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>                              <span class="at">calfun =</span> cal.raking)</span>
-<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>sample_B <span class="ot">&lt;-</span> pop_data[pop_data<span class="sc">$</span>flag_B <span class="sc">==</span> <span class="dv">1</span>, ]</span>
-<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a><span class="do">## true Y</span></span>
-<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>y_true <span class="ot">&lt;-</span> <span class="fu">mean</span>(Y)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>seed_for_sim <span class="ot">&lt;-</span> <span class="dv">2023-8-15</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(seed_for_sim)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>N <span class="ot">&lt;-</span> <span class="dv">10000</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>n_A <span class="ot">&lt;-</span> <span class="dv">500</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="dv">50</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>alpha_vec1 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">2</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>,<span class="dv">1</span>, <span class="fu">rep</span>(<span class="dv">0</span>, p<span class="dv">-5</span>))</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>alpha_vec2 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">3</span>,<span class="dv">3</span>,<span class="dv">3</span>,<span class="dv">3</span>, <span class="fu">rep</span>(<span class="dv">0</span>, p<span class="dv">-7</span>))</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>beta_vec <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>, <span class="fu">rep</span>(<span class="dv">0</span>, p<span class="dv">-7</span>))</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">cbind</span>(<span class="st">&quot;(Intercept)&quot;</span><span class="ot">=</span><span class="dv">1</span>, <span class="fu">matrix</span>(<span class="fu">rnorm</span>(N<span class="sc">*</span>(p<span class="dv">-1</span>)), <span class="at">nrow=</span>N, <span class="at">byrow=</span>T, <span class="at">dimnames =</span> <span class="fu">list</span>(<span class="cn">NULL</span>, <span class="fu">paste0</span>(<span class="st">&quot;X&quot;</span>,<span class="dv">1</span><span class="sc">:</span>(p<span class="dv">-1</span>)))))</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="co">#Y &lt;- 1 + as.numeric(X %*% beta_vec) +   rnorm(N) ## linear model</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>Y <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">+</span> <span class="fu">exp</span>(<span class="dv">3</span><span class="sc">*</span><span class="fu">sin</span>(<span class="fu">as.numeric</span>(X <span class="sc">%*%</span> beta_vec))) <span class="sc">+</span> X[, <span class="st">&quot;X5&quot;</span>] <span class="sc">+</span> X[, <span class="st">&quot;X6&quot;</span>] <span class="sc">+</span> <span class="fu">rnorm</span>(N) <span class="do">## nonlinear model</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>pi_B <span class="ot">&lt;-</span> <span class="fu">plogis</span>(<span class="fu">as.numeric</span>(X <span class="sc">%*%</span> alpha_vec1)) <span class="do">## linear probability</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="co">#pi_B &lt;- plogis(3.5 + as.numeric(log(X^2) %*% alpha_vec2) - sin(X[, &quot;X3&quot;] + X[, &quot;X4&quot;]) - X[,&quot;X5&quot;] + X[, &quot;X6&quot;]) ## nonlinear probability</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>flag_B <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(N, <span class="dv">1</span>, <span class="at">prob =</span> pi_B)</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>pi_A <span class="ot">&lt;-</span> <span class="fu">inclusionprobabilities</span>(<span class="fl">0.25</span> <span class="sc">+</span> <span class="fu">abs</span>(X[, <span class="st">&quot;X1&quot;</span>]) <span class="sc">+</span> <span class="fl">0.03</span><span class="sc">*</span><span class="fu">abs</span>(Y), n_A)</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>flag_A <span class="ot">&lt;-</span> <span class="fu">UPpoisson</span>(<span class="at">pik =</span> pi_A)</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>pop_data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(pi_A, pi_B, flag_A, flag_B, Y, X[, <span class="dv">2</span><span class="sc">:</span>p])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We calibrate probability sample <code>A</code> to known population totals and set <code>svydesign</code> with <code>pps=brewer</code>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="do">## population totals</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>X_totals <span class="ot">&lt;-</span> <span class="fu">colSums</span>(X)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>X_means <span class="ot">&lt;-</span> <span class="fu">colMeans</span>(X[,<span class="sc">-</span><span class="dv">1</span>])</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>sample_A_svy <span class="ot">&lt;-</span> <span class="fu">svydesign</span>(<span class="at">ids =</span> <span class="sc">~</span> <span class="dv">1</span>, <span class="at">probs =</span> <span class="sc">~</span> pi_A, <span class="at">pps =</span> <span class="st">&quot;brewer&quot;</span>, <span class="at">data =</span> pop_data[pop_data<span class="sc">$</span>flag_A <span class="sc">==</span> <span class="dv">1</span>, ])</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>sample_A_svy_cal <span class="ot">&lt;-</span> <span class="fu">calibrate</span>(sample_A_svy, </span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>                              <span class="at">formula =</span> <span class="fu">as.formula</span>(<span class="fu">paste0</span>(<span class="st">&quot;~&quot;</span>, <span class="fu">paste</span>(<span class="fu">names</span>(X_totals)[<span class="dv">2</span><span class="sc">:</span>p], <span class="at">collapse =</span> <span class="st">&quot;+&quot;</span>))),</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>                              <span class="at">population =</span> X_totals, </span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>                              <span class="at">calfun =</span> cal.raking)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Then we select nonprobability sample <code>B</code> using probability based on <code>flag_B</code> variable.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>sample_B <span class="ot">&lt;-</span> pop_data[pop_data<span class="sc">$</span>flag_B <span class="sc">==</span> <span class="dv">1</span>, ]</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>sample_B<span class="sc">$</span>dweight <span class="ot">&lt;-</span> N<span class="sc">/</span><span class="fu">nrow</span>(sample_B)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>True mean of <code>Y</code>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>y_true <span class="ot">&lt;-</span> <span class="fu">mean</span>(Y)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>y_true</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 6.8672</code></pre>
+</div>
 </div>
 </section>
-<section id="population-level-data-is-only-available" class="level1" data-number="4">
-<h1 data-number="4"><span class="header-section-number">4</span> Population level data is only available</h1>
-<section id="inverse-probability-weighting" class="level2" data-number="4.1">
-<h2 data-number="4.1" class="anchored" data-anchor-id="inverse-probability-weighting"><span class="header-section-number">4.1</span> Inverse probability weighting</h2>
-<p>First, we start with IPW calibrated to population totals using <code>mle</code></p>
+</section>
+<section id="inverse-probability-weighting" class="level1" data-number="2">
+<h1 data-number="2"><span class="header-section-number">2</span> Inverse probability weighting</h1>
+<p>First, we start with inverse probability weighting estimator under different settings.</p>
+<section id="only-population-information-is-available" class="level2" data-number="2.1">
+<h2 data-number="2.1" class="anchored" data-anchor-id="only-population-information-is-available"><span class="header-section-number">2.1</span> Only population information is available</h2>
+<p>Note that standard error is under-estimated as assume that <code>pop_totals</code> is known, not estimated. Here we use <code>mle</code> with calibration constraints <a href="https://ncn-foreigners.github.io/nonprobsvy-book/ipw.html#maximum-likelihood-estimation">see mle in the documentation</a>.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>m1 <span class="ot">&lt;-</span> <span class="fu">nonprob</span>(<span class="at">selection =</span> <span class="sc">~</span> X1<span class="sc">+</span>X2<span class="sc">+</span>X3<span class="sc">+</span>X4,</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>              <span class="at">target =</span> <span class="sc">~</span> Y,</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>              <span class="at">data =</span> sample_B,</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>              <span class="at">pop_totals =</span> X_totals[<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>],</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>              <span class="at">method_selection =</span> <span class="st">&quot;logit&quot;</span>)</span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(m1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>ipw_logit_poptotals <span class="ot">&lt;-</span> <span class="fu">nonprob</span>(<span class="at">selection =</span> <span class="sc">~</span> X1 <span class="sc">+</span> X2 <span class="sc">+</span> X3 <span class="sc">+</span> X4,</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>                               <span class="at">target =</span> <span class="sc">~</span> Y,</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>                               <span class="at">data =</span> sample_B,</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>                               <span class="at">pop_totals =</span> X_totals[<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>],</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>                               <span class="at">method_selection =</span> <span class="st">&quot;logit&quot;</span>)</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="fu">cbind</span>(ipw_logit_poptotals<span class="sc">$</span>output,ipw_logit_poptotals<span class="sc">$</span>confidence_interval)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="kable-table">
+<table class="table table-sm table-striped">
+<thead>
+<tr class="header">
+<th style="text-align: left;"></th>
+<th style="text-align: right;">mean</th>
+<th style="text-align: right;">SE</th>
+<th style="text-align: right;">lower_bound</th>
+<th style="text-align: right;">upper_bound</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Y</td>
+<td style="text-align: right;">7.169026</td>
+<td style="text-align: right;">0.3735073</td>
+<td style="text-align: right;">6.436965</td>
+<td style="text-align: right;">7.901087</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<p>We can change from <code>mle</code> to <code>gee</code> with different definitions of <span class="math inline">\(h\)</span> function (1 for <span class="math inline">\(X/\pi(X,\alpha)\)</span> or 2 for <span class="math inline">\(X\)</span>). See <a href="https://ncn-foreigners.github.io/nonprobsvy-book/ipw.html#general-estimating-equations">documentation for gee</a>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>ipw_logit_poptotals_gee <span class="ot">&lt;-</span> <span class="fu">nonprob</span>(<span class="at">selection =</span> <span class="sc">~</span> X1 <span class="sc">+</span> X2 <span class="sc">+</span> X3 <span class="sc">+</span> X4,</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">target =</span> <span class="sc">~</span> Y,</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">data =</span> sample_B,</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">pop_totals =</span> X_totals[<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>],</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">method_selection =</span> <span class="st">&quot;logit&quot;</span>,</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">control_selection =</span> <span class="fu">controlSel</span>(<span class="at">est_method_sel =</span> <span class="st">&quot;gee&quot;</span>, <span class="at">h_x =</span> <span class="dv">1</span>))</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="fu">cbind</span>(ipw_logit_poptotals_gee<span class="sc">$</span>output,ipw_logit_poptotals_gee<span class="sc">$</span>confidence_interval)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="kable-table">
+<table class="table table-sm table-striped">
+<thead>
+<tr class="header">
+<th style="text-align: left;"></th>
+<th style="text-align: right;">mean</th>
+<th style="text-align: right;">SE</th>
+<th style="text-align: right;">lower_bound</th>
+<th style="text-align: right;">upper_bound</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Y</td>
+<td style="text-align: right;">7.169026</td>
+<td style="text-align: right;">0.3265095</td>
+<td style="text-align: right;">6.529079</td>
+<td style="text-align: right;">7.808973</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<p>Finally, we can conduct variable selection using <code>SCAD</code> under different models</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>ipw_logit_poptotals_scad <span class="ot">&lt;-</span> <span class="fu">nonprob</span>(<span class="at">selection =</span> <span class="sc">~</span> X1 <span class="sc">+</span> X2 <span class="sc">+</span> X3 <span class="sc">+</span> X4 <span class="sc">+</span> X5 <span class="sc">+</span> X6 <span class="sc">+</span> X7 <span class="sc">+</span> X8 <span class="sc">+</span> X9 <span class="sc">+</span> X10,</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">target =</span> <span class="sc">~</span> Y,</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">data =</span> sample_B,</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">pop_totals =</span> X_totals[<span class="dv">1</span><span class="sc">:</span><span class="dv">11</span>],</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">method_selection =</span> <span class="st">&quot;logit&quot;</span>,</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">control_selection =</span> <span class="fu">controlSel</span>(<span class="at">penalty =</span> <span class="st">&quot;SCAD&quot;</span>),</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">control_inference =</span> <span class="fu">controlInf</span>(<span class="at">vars_selection =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a><span class="fu">cbind</span>(ipw_logit_poptotals_scad<span class="sc">$</span>output,ipw_logit_poptotals_scad<span class="sc">$</span>confidence_interval)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="kable-table">
+<table class="table table-sm table-striped">
+<thead>
+<tr class="header">
+<th style="text-align: left;"></th>
+<th style="text-align: right;">mean</th>
+<th style="text-align: right;">SE</th>
+<th style="text-align: right;">lower_bound</th>
+<th style="text-align: right;">upper_bound</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Y</td>
+<td style="text-align: right;">7.314279</td>
+<td style="text-align: right;">0.2133017</td>
+<td style="text-align: right;">6.896215</td>
+<td style="text-align: right;">7.732343</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<p>Only X1 was selected, but note that changing the order of auxiliary variables other variable(s) may be selected.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(ipw_logit_poptotals_scad)<span class="sc">$</span>coef</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[[1]]
+(Intercept)          X1 
+ -1.3646213   0.7109603 </code></pre>
+</div>
+</div>
+</section>
+<section id="probability-sample-is-available" class="level2" data-number="2.2">
+<h2 data-number="2.2" class="anchored" data-anchor-id="probability-sample-is-available"><span class="header-section-number">2.2</span> Probability sample is available</h2>
+<p>Now consider the case when probability sample is available.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>ipw_logit_sample <span class="ot">&lt;-</span> <span class="fu">nonprob</span>(<span class="at">selection =</span> <span class="sc">~</span> X1 <span class="sc">+</span> X2 <span class="sc">+</span> X3 <span class="sc">+</span> X4,</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>                               <span class="at">target =</span> <span class="sc">~</span> Y,</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>                               <span class="at">data =</span> sample_B,</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>                               <span class="at">svydesign =</span> sample_A_svy_cal,</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>                               <span class="at">method_selection =</span> <span class="st">&quot;logit&quot;</span>)</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="fu">cbind</span>(ipw_logit_sample<span class="sc">$</span>output,ipw_logit_sample<span class="sc">$</span>confidence_interval)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="kable-table">
+<table class="table table-sm table-striped">
+<thead>
+<tr class="header">
+<th style="text-align: left;"></th>
+<th style="text-align: right;">mean</th>
+<th style="text-align: right;">SE</th>
+<th style="text-align: right;">lower_bound</th>
+<th style="text-align: right;">upper_bound</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Y</td>
+<td style="text-align: right;">6.08349</td>
+<td style="text-align: right;">1.653401</td>
+<td style="text-align: right;">2.842884</td>
+<td style="text-align: right;">9.324096</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<p>Now change to <code>gee</code> as previously</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>ipw_logit_sample_gee <span class="ot">&lt;-</span> <span class="fu">nonprob</span>(<span class="at">selection =</span> <span class="sc">~</span> X1 <span class="sc">+</span> X2 <span class="sc">+</span> X3 <span class="sc">+</span> X4,</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>                                <span class="at">target =</span> <span class="sc">~</span> Y,</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>                                <span class="at">data =</span> sample_B,</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>                                <span class="at">svydesign =</span> sample_A_svy_cal,</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>                                <span class="at">method_selection =</span> <span class="st">&quot;logit&quot;</span>,</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>                                <span class="at">control_selection =</span> <span class="fu">controlSel</span>(<span class="at">est_method_sel =</span> <span class="st">&quot;gee&quot;</span>, <span class="at">h_x =</span> <span class="dv">1</span>))</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a><span class="fu">cbind</span>(ipw_logit_sample_gee<span class="sc">$</span>output,ipw_logit_sample_gee<span class="sc">$</span>confidence_interval)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="kable-table">
+<table class="table table-sm table-striped">
+<thead>
+<tr class="header">
+<th style="text-align: left;"></th>
+<th style="text-align: right;">mean</th>
+<th style="text-align: right;">SE</th>
+<th style="text-align: right;">lower_bound</th>
+<th style="text-align: right;">upper_bound</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Y</td>
+<td style="text-align: right;">7.169026</td>
+<td style="text-align: right;">0.3356869</td>
+<td style="text-align: right;">6.511092</td>
+<td style="text-align: right;">7.82696</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<p>Moreover if we have sample we can estimate variance using bootstrap. Note that boostrap for probability sample is coducted using <code>survey::as.svrepdesign</code>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(seed_for_sim)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>ipw_logit_sample_gee_boot <span class="ot">&lt;-</span> <span class="fu">nonprob</span>(<span class="at">selection =</span> <span class="sc">~</span> X1 <span class="sc">+</span> X2 <span class="sc">+</span> X3 <span class="sc">+</span> X4,</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>                                     <span class="at">target =</span> <span class="sc">~</span> Y,</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>                                     <span class="at">data =</span> sample_B,</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>                                     <span class="at">svydesign =</span> sample_A_svy_cal,</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>                                     <span class="at">method_selection =</span> <span class="st">&quot;logit&quot;</span>,</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>                                     <span class="at">control_selection =</span> <span class="fu">controlSel</span>(<span class="at">est_method_sel =</span> <span class="st">&quot;gee&quot;</span>, <span class="at">h_x =</span> <span class="dv">1</span>),</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>                                     <span class="at">control_inference =</span> <span class="fu">controlInf</span>(<span class="at">var_method =</span> <span class="st">&quot;bootstrap&quot;</span>, <span class="at">num_boot =</span> <span class="dv">100</span>))</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a><span class="fu">cbind</span>(ipw_logit_sample_gee_boot<span class="sc">$</span>output,ipw_logit_sample_gee_boot<span class="sc">$</span>confidence_interval)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="kable-table">
+<table class="table table-sm table-striped">
+<thead>
+<tr class="header">
+<th style="text-align: left;"></th>
+<th style="text-align: right;">mean</th>
+<th style="text-align: right;">SE</th>
+<th style="text-align: right;">lower_bound</th>
+<th style="text-align: right;">upper_bound</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Y</td>
+<td style="text-align: right;">7.169026</td>
+<td style="text-align: right;">0.3482377</td>
+<td style="text-align: right;">6.486493</td>
+<td style="text-align: right;">7.851559</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<p>And finally conduct variables selection and combine it with bootstrap variance estimator.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>ipw_logit_sample_scad <span class="ot">&lt;-</span> <span class="fu">nonprob</span>(<span class="at">selection =</span> <span class="sc">~</span> X1 <span class="sc">+</span> X2 <span class="sc">+</span> X3 <span class="sc">+</span> X4 <span class="sc">+</span> X5 <span class="sc">+</span> X6 <span class="sc">+</span> X7 <span class="sc">+</span> X8 <span class="sc">+</span> X9 <span class="sc">+</span> X10,</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>                                 <span class="at">target =</span> <span class="sc">~</span> Y,</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>                                 <span class="at">data =</span> sample_B,</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>                                 <span class="at">svydesign =</span> sample_A_svy_cal,</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>                                 <span class="at">method_selection =</span> <span class="st">&quot;logit&quot;</span>,</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>                                 <span class="at">control_selection =</span> <span class="fu">controlSel</span>(<span class="at">penalty =</span> <span class="st">&quot;SCAD&quot;</span>),</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>                                 <span class="at">control_inference =</span> <span class="fu">controlInf</span>(<span class="at">vars_selection =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>                                                                <span class="at">var_method =</span> <span class="st">&quot;bootstrap&quot;</span>, </span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>                                                                <span class="at">num_boot =</span> <span class="dv">50</span>))</span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a><span class="fu">cbind</span>(ipw_logit_sample_scad<span class="sc">$</span>output,ipw_logit_sample_scad<span class="sc">$</span>confidence_interval)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="kable-table">
+<table class="table table-sm table-striped">
+<thead>
+<tr class="header">
+<th style="text-align: left;"></th>
+<th style="text-align: right;">mean</th>
+<th style="text-align: right;">SE</th>
+<th style="text-align: right;">lower_bound</th>
+<th style="text-align: right;">upper_bound</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Y</td>
+<td style="text-align: right;">6.08349</td>
+<td style="text-align: right;">0.9994702</td>
+<td style="text-align: right;">4.124564</td>
+<td style="text-align: right;">8.042415</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<p>The output of procedures is similar to glm</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(ipw_logit_sample_scad)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 Call:
-nonprob(selection = ~X1 + X2 + X3 + X4, target = ~Y, data = sample_B, 
-    pop_totals = X_totals[1:5], method_selection = &quot;logit&quot;)
+nonprob(selection = ~X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + 
+    X9 + X10, target = ~Y, data = sample_B, svydesign = sample_A_svy_cal, 
+    method_selection = &quot;logit&quot;, control_selection = controlSel(penalty = &quot;SCAD&quot;), 
+    control_inference = controlInf(vars_selection = TRUE, var_method = &quot;bootstrap&quot;, 
+        num_boot = 50))
 
 -------------------------
-Estimated population mean: 6.482 with overall std.err of: 0.3668
+Estimated population mean: 6.083 with overall std.err of: 0.999470196306146
 And std.err for nonprobability and probability samples being respectively:
-0.3668 and 0
+no division into nonprobability and probability sample in case of bootstrap variance
 
 Based on: Inverse probability weighted method
 
 95% Confidence inverval for popualtion mean:
   lower_bound upper_bound
-Y    5.762817    7.200491
+Y    4.124564    8.042415
 
-For a population of estimate size: 10000
-Obtained on a nonprobability sample of size: 2270
-With an auxiliary probability sample of size: 0
+For a population of estimate size: 
+Obtained on a nonprobability sample of size: 2249
+With an auxiliary probability sample of size: 496
 -------------------------
 
 Regression coefficients:
 -----------------------
 For glm regression on selection variable:
             Estimate Std. Error z value P(&gt;|z|)    
-(Intercept) -1.95009    0.01224 -159.35  &lt;2e-16 ***
-X1           1.18796    0.01316   90.27  &lt;2e-16 ***
-X2           1.02342    0.01292   79.22  &lt;2e-16 ***
-X3           1.02104    0.01216   83.98  &lt;2e-16 ***
-X4           1.01389    0.01197   84.67  &lt;2e-16 ***
+(Intercept) -2.40060    0.05035  -47.68  &lt;2e-16 ***
+X1           1.13716    0.03754   30.29  &lt;2e-16 ***
+X2           1.36379    0.04201   32.46  &lt;2e-16 ***
+X3           1.73329    0.04942   35.07  &lt;2e-16 ***
+X4           1.33112    0.04121   32.30  &lt;2e-16 ***
 ---
 Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 -------------------------
 
 Weights:
-   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-  1.004   1.308   1.864   4.405   3.607 198.866 
+    Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+   1.000    1.151    1.624    8.534    3.756 2756.236 
 -------------------------
 
 Residuals:
     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-0.004121 0.235218 0.463476 0.476296 0.722727 0.994972 
+-0.99716  0.03455  0.26194  0.31319  0.66046  0.99964 
 
-AIC: not available for this method
-BIC: not available for this method
-Log-Likelihood: NULL on 2265 Degrees of freedom</code></pre>
+AIC: 6294.359
+BIC: 6353.534
+Log-Likelihood: -3137.179 on 2740 Degrees of freedom</code></pre>
 </div>
-</div>
-<p>We can change optimizer through <code>control_selection</code> argument and <code>controlSel</code> function</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>m1a <span class="ot">&lt;-</span> <span class="fu">nonprob</span>(<span class="at">selection =</span> <span class="sc">~</span> X1<span class="sc">+</span>X2<span class="sc">+</span>X3<span class="sc">+</span>X4,</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>              <span class="at">target =</span> <span class="sc">~</span> Y,</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>              <span class="at">data =</span> sample_B,</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>              <span class="at">pop_totals =</span> X_totals[<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>], </span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>              <span class="at">control_selection =</span> <span class="fu">controlSel</span>(<span class="at">optimizer =</span> <span class="st">&quot;optim&quot;</span>))</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(m1a)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>
-Call:
-nonprob(selection = ~X1 + X2 + X3 + X4, target = ~Y, data = sample_B, 
-    pop_totals = X_totals[1:5], control_selection = controlSel(optimizer = &quot;optim&quot;))
-
--------------------------
-Estimated population mean: 6.482 with overall std.err of: 0.3668
-And std.err for nonprobability and probability samples being respectively:
-0.3668 and 0
-
-Based on: Inverse probability weighted method
-
-95% Confidence inverval for popualtion mean:
-  lower_bound upper_bound
-Y    5.762817    7.200491
-
-For a population of estimate size: 10000
-Obtained on a nonprobability sample of size: 2270
-With an auxiliary probability sample of size: 0
--------------------------
-
-Regression coefficients:
------------------------
-For glm regression on selection variable:
-            Estimate Std. Error z value P(&gt;|z|)    
-(Intercept) -1.95009    0.01224 -159.35  &lt;2e-16 ***
-X1           1.18796    0.01316   90.27  &lt;2e-16 ***
-X2           1.02342    0.01292   79.22  &lt;2e-16 ***
-X3           1.02104    0.01216   83.98  &lt;2e-16 ***
-X4           1.01389    0.01197   84.67  &lt;2e-16 ***
----
-Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
--------------------------
-
-Weights:
-   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-  1.004   1.308   1.864   4.405   3.607 198.866 
--------------------------
-
-Residuals:
-    Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-0.004121 0.235218 0.463476 0.476296 0.722727 0.994972 
-
-AIC: not available for this method
-BIC: not available for this method
-Log-Likelihood: NULL on 2265 Degrees of freedom</code></pre>
-</div>
-</div>
-<p>We can change estimation method to generalized estimating equations (<code>gee</code>) through <code>control_selection</code> argument and <code>controlSel</code> function. We can also change <span class="math inline">\(h\)</span> function to 1 (<span class="math inline">\(X/\pi(X,\alpha)\)</span>) or 2 (<span class="math inline">\(X\)</span>).</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>m1b <span class="ot">&lt;-</span> <span class="fu">nonprob</span>(<span class="at">selection =</span> <span class="sc">~</span> X1<span class="sc">+</span>X2<span class="sc">+</span>X3<span class="sc">+</span>X4,</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>              <span class="at">target =</span> <span class="sc">~</span> Y,</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>              <span class="at">data =</span> sample_B,</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>              <span class="at">pop_totals =</span> X_totals[<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>], </span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>              <span class="at">control_selection =</span> <span class="fu">controlSel</span>(<span class="at">optimizer =</span> <span class="st">&quot;optim&quot;</span>, <span class="at">est_method_sel =</span> <span class="st">&quot;gee&quot;</span>, <span class="at">h=</span><span class="dv">2</span>)) <span class="do">## for h=1 - NaNs</span></span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(m1b)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>
-Call:
-nonprob(selection = ~X1 + X2 + X3 + X4, target = ~Y, data = sample_B, 
-    pop_totals = X_totals[1:5], control_selection = controlSel(optimizer = &quot;optim&quot;, 
-        est_method_sel = &quot;gee&quot;, h = 2))
-
--------------------------
-Estimated population mean: 6.482 with overall std.err of: 0.3668
-And std.err for nonprobability and probability samples being respectively:
-0.3668 and 0
-
-Based on: Inverse probability weighted method
-
-95% Confidence inverval for popualtion mean:
-  lower_bound upper_bound
-Y    5.762817    7.200491
-
-For a population of estimate size: 10000
-Obtained on a nonprobability sample of size: 2270
-With an auxiliary probability sample of size: 0
--------------------------
-
-Regression coefficients:
------------------------
-For glm regression on selection variable:
-            Estimate Std. Error z value P(&gt;|z|)    
-(Intercept) -1.95009    0.01224 -159.35  &lt;2e-16 ***
-X1           1.18796    0.01316   90.27  &lt;2e-16 ***
-X2           1.02342    0.01292   79.22  &lt;2e-16 ***
-X3           1.02104    0.01216   83.98  &lt;2e-16 ***
-X4           1.01389    0.01197   84.67  &lt;2e-16 ***
----
-Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
--------------------------
-
-Weights:
-   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-  1.004   1.308   1.864   4.405   3.607 198.866 
--------------------------
-
-Residuals:
-    Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-0.004121 0.235218 0.463476 0.476296 0.722727 0.994972 
-
-AIC: not available for this method
-BIC: not available for this method
-Log-Likelihood: NULL on 2265 Degrees of freedom</code></pre>
-</div>
-</div>
-<p>It may happen that instead of <code>pop_totals</code> we know population means [<strong>NOT WORKING</strong>]</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>m1c <span class="ot">&lt;-</span> <span class="fu">nonprob</span>(<span class="at">selection =</span> <span class="sc">~</span> X1<span class="sc">+</span>X2<span class="sc">+</span>X3<span class="sc">+</span>X4,</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>              <span class="at">target =</span> <span class="sc">~</span> Y,</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>              <span class="at">data =</span> sample_B,</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>              <span class="at">pop_means =</span>  X_means[<span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>],</span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>              <span class="at">pop_size =</span> N,</span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>              <span class="at">method_selection =</span> <span class="st">&quot;logit&quot;</span>)</span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(m1c)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-</section>
-<section id="mass-imputation-tba" class="level2" data-number="4.2">
-<h2 data-number="4.2" class="anchored" data-anchor-id="mass-imputation-tba"><span class="header-section-number">4.2</span> Mass imputation (TBA)</h2>
-</section>
-<section id="doubly-robust-tba" class="level2" data-number="4.3">
-<h2 data-number="4.3" class="anchored" data-anchor-id="doubly-robust-tba"><span class="header-section-number">4.3</span> Doubly robust (TBA)</h2>
-<div class="cell">
-
-</div>
-</section>
-</section>
-<section id="probability-sample-is-available" class="level1" data-number="5">
-<h1 data-number="5"><span class="header-section-number">5</span> Probability sample is available</h1>
-</section>
-<section id="variable-selection" class="level1" data-number="6">
-<h1 data-number="6"><span class="header-section-number">6</span> Variable selection</h1>
-<section id="ipw" class="level2" data-number="6.1">
-<h2 data-number="6.1" class="anchored" data-anchor-id="ipw"><span class="header-section-number">6.1</span> IPW</h2>
-<p>We can do variable selection (<strong>but here it is not working???</strong>)</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>m1 <span class="ot">&lt;-</span> <span class="fu">nonprob</span>(<span class="at">selection =</span> <span class="sc">~</span> X1<span class="sc">+</span>X2<span class="sc">+</span>X3<span class="sc">+</span>X4<span class="sc">+</span>X5<span class="sc">+</span>X6<span class="sc">+</span>X7<span class="sc">+</span>X8<span class="sc">+</span>X9<span class="sc">+</span>X10,</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>              <span class="at">target =</span> <span class="sc">~</span> Y,</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>              <span class="at">data =</span> sample_B,</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>              <span class="at">pop_totals =</span> X_totals[<span class="dv">1</span><span class="sc">:</span><span class="dv">11</span>],</span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>              <span class="co">#svydesign = sample_A_svy_cal,</span></span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>              <span class="at">method_selection =</span> <span class="st">&quot;logit&quot;</span>,</span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>              <span class="at">control_inference =</span> <span class="fu">controlInf</span>(<span class="at">vars_selection =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>              <span class="at">control_selection =</span> <span class="fu">controlSel</span>(<span class="at">penalty =</span> <span class="st">&quot;SCAD&quot;</span>))</span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(m1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 </section>
