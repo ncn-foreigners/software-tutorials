@@ -114,7 +114,9 @@ head(pop_data)
 Now, we provide a single run. First, we generate probability sample and calibrate to known population totals from `X_totals`.
 
 ```{r probability-survey}
-sample_A_svy <- svydesign(ids = ~ 1, probs = ~ pi_A, pps = "brewer", data = pop_data[pop_data$flag_A == 1, ])
+sample_A_svy <- svydesign(ids = ~ 1, probs = ~ pi_A, 
+                          pps = poisson_sampling(pop_data$pi_A[pop_data$flag_A == 1]), 
+                          data = pop_data[pop_data$flag_A == 1, ])
 
 sample_A_svy_cal <- calibrate(sample_A_svy, 
                               formula = X_formula,
@@ -421,29 +423,33 @@ est_dr_y11 <- nonprob(outcome = as.formula(paste("Y_11 ~ ", as.character(X_formu
                      selection = X_formula,
                      data = sample_B2,
                      svydesign = sample_A_svy,
+                     #pop_totals = X_totals,
                      control_inference = controlInf(vars_selection = TRUE),
                      family_outcome = "gaussian")
 
 est_dr_y12 <- nonprob(outcome = as.formula(paste("Y_12 ~ ", as.character(X_formula)[2])),
                      selection = X_formula,
                      data = sample_B2,
-                     svydesign = sample_A_svy,
+                     #svydesign = sample_A_svy,
+                     pop_totals = X_totals,
                      control_inference = controlInf(vars_selection = TRUE),
                      family_outcome = "gaussian")
 
 est_dr_y21 <- nonprob(outcome = as.formula(paste("Y_21 ~ ", as.character(X_formula)[2])),
-                     selection = X_formula,
-                     data = sample_B2,
-                     svydesign = sample_A_svy,
-                     control_inference = controlInf(vars_selection = TRUE),
-                     family_outcome = "binomial")
+                      selection = X_formula,
+                      data = sample_B2,
+                      #svydesign = sample_A_svy,
+                      pop_totals = X_totals,
+                      control_inference = controlInf(vars_selection = TRUE),
+                      family_outcome = "binomial")
 
 est_dr_y22 <- nonprob(outcome = as.formula(paste("Y_22 ~ ", as.character(X_formula)[2])),
-                     selection = X_formula,
-                     data = sample_B2,
-                     svydesign = sample_A_svy,
-                     control_inference = controlInf(vars_selection = TRUE),
-                     family_outcome = "binomial")
+                      selection = X_formula,
+                      data = sample_B2,
+                      #svydesign = sample_A_svy,
+                      pop_totals = X_totals,
+                      control_inference = controlInf(vars_selection = TRUE),
+                      family_outcome = "binomial")
 ```
 
 DR with bias minimization with union of variables after selection of variables with SCAD.
@@ -492,19 +498,21 @@ results <- rbind(
   #cbind(est_dr_y12$output,est_dr_y12$confidence_interval),
   #cbind(est_dr_y21$output,est_dr_y21$confidence_interval),
   #cbind(est_dr_y22$output,est_dr_y22$confidence_interval),
-  #cbind(est_dr_mm_y11$output,est_dr_mm_y11$confidence_interval),
-  #cbind(est_dr_mm_y12$output,est_dr_mm_y12$confidence_interval),
-  #cbind(est_dr_mm_y21$output,est_dr_mm_y21$confidence_interval),
-  #cbind(est_dr_mm_y22$output,est_dr_mm_y22$confidence_interval),
+  cbind(est_dr_mm_y11$output,est_dr_mm_y11$confidence_interval),
+  cbind(est_dr_mm_y12$output,est_dr_mm_y12$confidence_interval),
+  cbind(est_dr_mm_y21$output,est_dr_mm_y21$confidence_interval),
+  cbind(est_dr_mm_y22$output,est_dr_mm_y22$confidence_interval),
   data.frame(mean = t(est_naive), SE = NA, lower_bound = NA, upper_bound = NA)
 )
 rownames(results) <- NULL
 results$y <- rep(c("Y_11", "Y_12", "Y_21", "Y_22"), rep = 4)
 results$estim <- rep(c("IPW", "MI", "DR (MI vars)", 
-                       #"DR (SCAD)", "DR (SCAD and BM)", 
+                       #"DR (SCAD)", 
+                       "DR (SCAD and BM)", 
                        "Naive"), each = 4)
 results$estim <- factor(results$estim, c("Naive", "IPW", "MI", "DR (MI vars)" 
-                                         #,"DR (SCAD)", "DR (SCAD and BM)"
+                                         #,"DR (SCAD)", 
+                                         "DR (SCAD and BM)"
                                          ))
 results$true  <- rep(c(mean(Y_11), mean(Y_12), mean(Y_21), mean(Y_22)), rep = 6)
 results <- results[, c("y", "estim", "mean", "SE", "lower_bound", "upper_bound", "true")]
