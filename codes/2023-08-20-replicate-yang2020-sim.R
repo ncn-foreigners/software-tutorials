@@ -17,7 +17,7 @@ X <- cbind("(Intercept)"=1, matrix(rnorm(N*(p-1)), nrow=N, byrow=T, dimnames = l
 X_formula  <- as.formula(paste("~", paste0("X",1:(p-1), collapse = " + ")))
 X_totals <- colSums(X)
 X_means <- colMeans(X[,-1])
-Y_11 <- 1 + as.numeric(X %*% beta_vec) +   rnorm(N) ## OM I: linear model
+Y_11 <- as.numeric(X %*% beta_vec) +  rnorm(N) ## OM I: linear model
 Y_12 <- 1 + exp(3*sin(as.numeric(X %*% beta_vec))) + X[, "X5"] + X[, "X6"] + rnorm(N) ## OM II: nonlinear model
 pi_Y_21 <- plogis(as.numeric(X %*% beta_vec)) ## OM III: linear model for binary Y
 pi_Y_22 <- plogis(2 - log((X %*% beta_vec)^2) - 2*X[,"X5"] + 2*X[, "X6"]) ## OM IV: nonlinear model for binary Y
@@ -26,6 +26,45 @@ Y_22 <- rbinom(N, 1, prob = pi_Y_22)
 pi_A <- inclusionprobabilities(0.25 + abs(X[, "X1"]) + 0.03*abs(Y_11), n_A) ## inclusion based on Y_11 only 
 pi_B1 <- plogis(as.numeric(X %*% alpha_vec1)) ## PSM I: linear probability
 pi_B2 <- plogis(3.5 + as.numeric(log(X^2) %*% alpha_vec2) - sin(X[, "X3"] + X[, "X4"]) - X[,"X5"] + X[, "X6"]) ## PSM II: nonlinear 
+
+## checking coverage
+result_svy <- list()
+
+for (b in 1:500) {
+  set.seed(b)
+  print(b)
+  flag_B1 <- rbinom(N, 1, prob = pi_B1)
+  flag_B2 <- rbinom(N, 1, prob = pi_B2)
+  flag_A <- UPpoisson(pik = pi_A)
+  pop_data <- data.frame(pi_A, flag_A, flag_B1, flag_B2, Y_11, Y_12, Y_21, Y_22, X[, 2:p])
+  sample_A_svy <- svydesign(ids = ~ 1, probs = ~ pi_A, 
+                            pps = poisson_sampling(pop_data$pi_A[pop_data$flag_A == 1]), 
+                            data = pop_data[pop_data$flag_A == 1, ])
+  sample_A_svy_cal <- calibrate(sample_A_svy, 
+                                formula = X_formula,
+                                population = X_totals, 
+                                calfun = cal.raking)
+  res1 <- svymean(~Y_11+Y_12+Y_21+Y_22, sample_A_svy)
+  res1_ci <- as.data.frame(confint(res1))
+  res2 <- svymean(~Y_11+Y_12+Y_21+Y_22, sample_A_svy_cal)
+  res2_ci <- as.data.frame(confint(res2))
+  result_svy[[b]] <- data.frame(
+    y = names(res1),
+    est1 = as.numeric(res1),
+    est1_lb = res1_ci$`2.5 %`,
+    est1_ub = res1_ci$`97.5 %`,
+    est2 = as.numeric(res2),
+    est2_lb = res1_ci$`2.5 %`,
+    est2_ub = res1_ci$`97.5 %`
+  )
+}
+result_svy_df <- rbindlist(result_svy, idcol = 'b')
+result_svy_df[y == "Y_11", true := mean(Y_11)]
+result_svy_df[y == "Y_12", true := mean(Y_12)]
+result_svy_df[y == "Y_21", true := mean(Y_21)]
+result_svy_df[y == "Y_22", true := mean(Y_22)]
+result_svy_df[, .(est1 = mean(est1_lb < true & est1_ub > true)), keyby=.(y)]
+result_svy_df[, .(est2 = mean(est2_lb < true & est2_ub > true)), keyby=.(y)]
 
 results_correct_x <- list()
 # no selection of X (correct vars) ----------------------------------------
@@ -359,10 +398,9 @@ results_correct_x_df[y == "Y_11"
 
 # selection of variables --------------------------------------------------
 
-
 results_mi <- list()
 ## here is sampling
-for (b in 49:100) {
+for (b in 1:50) {
   print(b)
   set.seed(b)
 
