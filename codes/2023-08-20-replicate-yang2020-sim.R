@@ -27,10 +27,336 @@ pi_A <- inclusionprobabilities(0.25 + abs(X[, "X1"]) + 0.03*abs(Y_11), n_A) ## i
 pi_B1 <- plogis(as.numeric(X %*% alpha_vec1)) ## PSM I: linear probability
 pi_B2 <- plogis(3.5 + as.numeric(log(X^2) %*% alpha_vec2) - sin(X[, "X3"] + X[, "X4"]) - X[,"X5"] + X[, "X6"]) ## PSM II: nonlinear 
 
+results_correct_x <- list()
+# no selection of X (correct vars) ----------------------------------------
+for (b in 1:500) {
+  set.seed(b)
+  print(b)
+  flag_B1 <- rbinom(N, 1, prob = pi_B1)
+  flag_B2 <- rbinom(N, 1, prob = pi_B2)
+  flag_A <- UPpoisson(pik = pi_A)
+  pop_data <- data.frame(pi_A, flag_A, flag_B1, flag_B2, Y_11, Y_12, Y_21, Y_22, X[, 2:p])
+  sample_A_svy <- svydesign(ids = ~ 1, probs = ~ pi_A, 
+                            pps = poisson_sampling(pop_data$pi_A[pop_data$flag_A == 1]), 
+                            data = pop_data[pop_data$flag_A == 1, ])
+  sample_A_svy_cal <- calibrate(sample_A_svy, 
+                                formula = X_formula,
+                                population = X_totals, 
+                                calfun = cal.raking)
+  sample_B1 <- pop_data[pop_data$flag_B1 == 1, ]
+  sample_B2 <- pop_data[pop_data$flag_B2 == 1, ]
+  # mass imputation ---------------------------------------------------------
+  mass_imp_glm <- lapply(c("Y_11", "Y_12", "Y_21", "Y_22"), FUN = function(x, data=sample_B1) {
+    if (x %in% c("Y_11", "Y_12")) {
+      est_mi_y <- nonprob(outcome = as.formula(glue("{x} ~ X3 + X4 + X5 + X6")),
+                          data = data,
+                          svydesign = sample_A_svy_cal,
+                          family_outcome = "gaussian")
+    } else {
+      est_mi_y <- nonprob(outcome = as.formula(glue("{x} ~ X3 + X4 + X5 + X6")),
+                          data = data,
+                          svydesign = sample_A_svy_cal,
+                          family_outcome = "binomial")
+    }
+    data.frame(y=x, est_mi_y$output, est_mi_y$confidence_interval)
+  })
+  mass_imp_glm_nn <- lapply(c("Y_11", "Y_12", "Y_21", "Y_22"), FUN = function(x, data=sample_B1) {
+    if (x %in% c("Y_11", "Y_12")) {
+      est_mi_y <- nonprob(outcome = as.formula(glue("{x} ~ X3 + X4 + X5 + X6")),
+                          data = data,
+                          svydesign = sample_A_svy_cal,
+                          method_outcome = "nn")
+    } else {
+      est_mi_y <- nonprob(outcome = as.formula(glue("{x} ~ X3 + X4 + X5 + X6")),
+                          data = data,
+                          svydesign = sample_A_svy_cal,
+                          method_outcome = "nn")
+    }
+    data.frame(y=x, est_mi_y$output, est_mi_y$confidence_interval)
+  })
+  mass_imp_glm2 <- lapply(c("Y_11", "Y_12", "Y_21", "Y_22"), FUN = function(x, data=sample_B2) {
+    if (x %in% c("Y_11", "Y_12")) {
+      est_mi_y <- nonprob(outcome = as.formula(glue("{x} ~ X3 + X4 + X5 + X6")),
+                          data = data,
+                          svydesign = sample_A_svy_cal,
+                          family_outcome = "gaussian")
+    } else {
+      est_mi_y <- nonprob(outcome = as.formula(glue("{x} ~ X3 + X4 + X5 + X6")),
+                          data = data,
+                          svydesign = sample_A_svy_cal,
+                          family_outcome = "binomial")
+    }
+    data.frame(y=x, est_mi_y$output, est_mi_y$confidence_interval)
+  })
+  mass_imp_glm_nn2 <- lapply(c("Y_11", "Y_12", "Y_21", "Y_22"), FUN = function(x, data=sample_B2) {
+    if (x %in% c("Y_11", "Y_12")) {
+      est_mi_y <- nonprob(outcome = as.formula(glue("{x} ~ X3 + X4 + X5 + X6")),
+                          data = data,
+                          svydesign = sample_A_svy_cal,
+                          method_outcome = "nn")
+    } else {
+      est_mi_y <- nonprob(outcome = as.formula(glue("{x} ~ X3 + X4 + X5 + X6")),
+                          data = data,
+                          svydesign = sample_A_svy_cal,
+                          method_outcome = "nn")
+    }
+    data.frame(y=x, est_mi_y$output, est_mi_y$confidence_interval)
+  })
+  # ipw B1 ---------------------------------------------------------------------
+  est_ipw_h1_1 <- nonprob(selection = ~ X1 + X2 + X3 + X4,
+                          target = ~ Y_11 + Y_12,
+                          data = sample_B1,
+                          svydesign = sample_A_svy_cal,
+                          control_selection = controlSel(h_x = "1", est_method_sel = "gee"))
+  
+  est_ipw_h1_2 <- nonprob(selection = ~ X1 + X2 + X3 + X4,
+                          target = ~ Y_21,
+                          data = sample_B1,
+                          svydesign = sample_A_svy_cal,
+                          control_selection = controlSel(h_x = "1", est_method_sel = "gee"))
+  
+  est_ipw_h1_3 <- nonprob(selection = ~ X1 + X2 + X3 + X4,
+                          target = ~ Y_22,
+                          data = sample_B1,
+                          svydesign = sample_A_svy_cal,
+                          control_selection = controlSel(h_x = "1", est_method_sel = "gee"))
+  
+  est_ipw_mle <- nonprob(selection =  ~ X1 + X2 + X3 + X4,
+                         target = ~ Y_11 + Y_12 + Y_21 + Y_22,
+                         data = sample_B1,
+                         svydesign = sample_A_svy_cal)
+  # ipw B2 ---------------------------------------------------------------------
+  est_ipw_h1_1_2 <- nonprob(selection = ~ X1 + X2 + X3 + X4,
+                          target = ~ Y_11 + Y_12,
+                          data = sample_B2,
+                          svydesign = sample_A_svy_cal,
+                          control_selection = controlSel(h_x = "1", est_method_sel = "gee"))
+  
+  est_ipw_h1_2_2 <- nonprob(selection = ~ X1 + X2 + X3 + X4,
+                          target = ~ Y_21,
+                          data = sample_B2,
+                          svydesign = sample_A_svy_cal,
+                          control_selection = controlSel(h_x = "1", est_method_sel = "gee"))
+  
+  est_ipw_h1_3_2 <- nonprob(selection = ~ X1 + X2 + X3 + X4,
+                          target = ~ Y_22,
+                          data = sample_B2,
+                          svydesign = sample_A_svy_cal,
+                          control_selection = controlSel(h_x = "1", est_method_sel = "gee"))
+  
+  est_ipw_mle_2 <- nonprob(selection =  ~ X1 + X2 + X3 + X4,
+                         target = ~ Y_11 + Y_12 + Y_21 + Y_22,
+                         data = sample_B2,
+                         svydesign = sample_A_svy_cal)
+  # dr ----------------------------------------------------------------------
+  dr_y11 <- lapply(c("Y_11", "Y_12", "Y_21", "Y_22"), FUN = function(x, data=sample_B1) {
+    if (x %in% c("Y_11", "Y_12")) {
+      dr <- nonprob(outcome = as.formula(glue("{x} ~ X3 + X4 + X5 + X6")),
+                    selection = ~ X1 + X2 + X3 + X4,
+                    data = data,
+                    svydesign = sample_A_svy_cal,
+                    family_outcome = "gaussian")
+    } else {
+      dr <- nonprob(outcome = as.formula(glue("{x} ~ X3 + X4 + X5 + X6")),
+                    selection = ~ X1 + X2 + X3 + X4,
+                    data = data,
+                    svydesign = sample_A_svy_cal,
+                    family_outcome = "binomial")
+    }
+    data.frame(y=x, dr$output, dr$confidence_interval)
+  })
+  dr_y11_h1 <- lapply(c("Y_11", "Y_12", "Y_21", "Y_22"), FUN = function(x, data=sample_B1) {
+    if (x %in% c("Y_11", "Y_12")) {
+      dr <- nonprob(outcome = as.formula(glue("{x} ~ X3 + X4 + X5 + X6")),
+                    selection = ~ X1 + X2 + X3 + X4,
+                    data = data,
+                    svydesign = sample_A_svy_cal,
+                    control_selection = controlSel(est_method_sel = "gee", h_x = "1"),
+                    family_outcome = "gaussian")
+    } else {
+      dr <- nonprob(outcome = as.formula(glue("{x} ~ X3 + X4 + X5 + X6")),
+                    selection = ~ X1 + X2 + X3 + X4,
+                    data = data,
+                    svydesign = sample_A_svy_cal,
+                    control_selection = controlSel(est_method_sel = "gee", h_x = "1"),
+                    family_outcome = "binomial")
+    }
+    data.frame(y=x, dr$output, dr$confidence_interval)
+  })
+  dr_y11_2 <- lapply(c("Y_11", "Y_12", "Y_21", "Y_22"), FUN = function(x, data=sample_B2) {
+    if (x %in% c("Y_11", "Y_12")) {
+      dr <- nonprob(outcome = as.formula(glue("{x} ~ X3 + X4 + X5 + X6")),
+                    selection = ~ X1 + X2 + X3 + X4,
+                    data = data,
+                    svydesign = sample_A_svy_cal,
+                    family_outcome = "gaussian")
+    } else {
+      dr <- nonprob(outcome = as.formula(glue("{x} ~ X3 + X4 + X5 + X6")),
+                    selection = ~ X1 + X2 + X3 + X4,
+                    data = data,
+                    svydesign = sample_A_svy_cal,
+                    family_outcome = "binomial")
+    }
+    data.frame(y=x, dr$output, dr$confidence_interval)
+  })
+  dr_y11_h1_2 <- lapply(c("Y_11", "Y_12", "Y_21", "Y_22"), FUN = function(x, data=sample_B2) {
+    if (x %in% c("Y_11", "Y_12")) {
+      dr <- nonprob(outcome = as.formula(glue("{x} ~ X3 + X4 + X5 + X6")),
+                    selection = ~ X1 + X2 + X3 + X4,
+                    data = data,
+                    svydesign = sample_A_svy_cal,
+                    control_selection = controlSel(est_method_sel = "gee", h_x = "1"),
+                    family_outcome = "gaussian")
+    } else {
+      dr <- nonprob(outcome = as.formula(glue("{x} ~ X3 + X4 + X5 + X6")),
+                    selection = ~ X1 + X2 + X3 + X4,
+                    data = data,
+                    svydesign = sample_A_svy_cal,
+                    control_selection = controlSel(est_method_sel = "gee", h_x = "1"),
+                    family_outcome = "binomial")
+    }
+    data.frame(y=x, dr$output, dr$confidence_interval)
+  })
+  
+  # dr (MM) ----------------------------------------------------------------------
+  dr_y11_mm <- lapply(c("Y_11", "Y_12", "Y_21", "Y_22"), FUN = function(x, data=sample_B1) {
+    if (x %in% c("Y_11", "Y_12")) {
+      dr <- nonprob(outcome = as.formula(glue("{x} ~ X3 + X4 + X5 + X6")),
+                    selection = ~ X1 + X2 + X3 + X4,
+                    data = data,
+                    svydesign = sample_A_svy_cal,
+                    family_outcome = "gaussian",
+                    control_selection = controlSel(est_method_sel = "mm"))
+    } else {
+      dr <- nonprob(outcome = as.formula(glue("{x} ~ X3 + X4 + X5 + X6")),
+                    selection = ~ X1 + X2 + X3 + X4,
+                    data = data,
+                    svydesign = sample_A_svy_cal,
+                    family_outcome = "binomial",
+                    control_selection = controlSel(est_method_sel = "mm"))
+    }
+    data.frame(y=x, dr$output, dr$confidence_interval)
+  })
+  dr_y11_h1_mm <- lapply(c("Y_11", "Y_12", "Y_21", "Y_22"), FUN = function(x, data=sample_B1) {
+    if (x %in% c("Y_11", "Y_12")) {
+      dr <- nonprob(outcome = as.formula(glue("{x} ~ X3 + X4 + X5 + X6")),
+                    selection = ~ X1 + X2 + X3 + X4,
+                    data = data,
+                    svydesign = sample_A_svy_cal,
+                    control_selection = controlSel(est_method_sel = "mm", h_x = "1"),
+                    family_outcome = "gaussian")
+    } else {
+      dr <- nonprob(outcome = as.formula(glue("{x} ~ X3 + X4 + X5 + X6")),
+                    selection = ~ X1 + X2 + X3 + X4,
+                    data = data,
+                    svydesign = sample_A_svy_cal,
+                    control_selection = controlSel(est_method_sel = "mm", h_x = "1"),
+                    family_outcome = "binomial")
+    }
+    data.frame(y=x, dr$output, dr$confidence_interval)
+  })
+  dr_y11_mm_2 <- lapply(c("Y_11", "Y_12", "Y_21", "Y_22"), FUN = function(x, data=sample_B2) {
+    if (x %in% c("Y_11", "Y_12")) {
+      dr <- nonprob(outcome = as.formula(glue("{x} ~ X3 + X4 + X5 + X6")),
+                    selection = ~ X1 + X2 + X3 + X4,
+                    data = data,
+                    svydesign = sample_A_svy_cal,
+                    family_outcome = "gaussian",
+                    control_selection = controlSel(est_method_sel = "mm"))
+    } else {
+      dr <- nonprob(outcome = as.formula(glue("{x} ~ X3 + X4 + X5 + X6")),
+                    selection = ~ X1 + X2 + X3 + X4,
+                    data = data,
+                    svydesign = sample_A_svy_cal,
+                    family_outcome = "binomial",
+                    control_selection = controlSel(est_method_sel = "mm"))
+    }
+    data.frame(y=x, dr$output, dr$confidence_interval)
+  })
+  dr_y11_h1_mm_2 <- lapply(c("Y_11", "Y_12", "Y_21", "Y_22"), FUN = function(x, data=sample_B2) {
+    if (x %in% c("Y_11", "Y_12")) {
+      dr <- nonprob(outcome = as.formula(glue("{x} ~ X3 + X4 + X5 + X6")),
+                    selection = ~ X1 + X2 + X3 + X4,
+                    data = data,
+                    svydesign = sample_A_svy_cal,
+                    control_selection = controlSel(est_method_sel = "mm", h_x = "1"),
+                    family_outcome = "gaussian")
+    } else {
+      dr <- nonprob(outcome = as.formula(glue("{x} ~ X3 + X4 + X5 + X6")),
+                    selection = ~ X1 + X2 + X3 + X4,
+                    data = data,
+                    svydesign = sample_A_svy_cal,
+                    control_selection = controlSel(est_method_sel = "mm", h_x = "1"),
+                    family_outcome = "binomial")
+    }
+    data.frame(y=x, dr$output, dr$confidence_interval)
+  })
+  # save results ------------------------------------------------------------
+  results_correct_x[[b]] <- rbind(
+    rbindlist(mass_imp_glm)[, ":="(dataset="PSM I", est="glm")],
+    rbindlist(mass_imp_glm2)[, ":="(dataset="PSM II", est="glm")],
+    rbindlist(mass_imp_glm_nn)[, ":="(dataset="PSM I", est="nn")],
+    rbindlist(mass_imp_glm_nn2)[, ":="(dataset="PSM II", est="nn")],
+    ## PSM I
+    data.frame(y=rownames(est_ipw_h1_1$output),
+               est_ipw_h1_1$output,est_ipw_h1_1$confidence_interval, dataset= "PSM I", est = "ipw (h=1)"),
+    data.frame(y=rownames(est_ipw_h1_2$output),
+               est_ipw_h1_2$output,est_ipw_h1_2$confidence_interval, dataset= "PSM I", est = "ipw (h=1)"),
+    data.frame(y=rownames(est_ipw_h1_3$output),
+               est_ipw_h1_3$output,est_ipw_h1_3$confidence_interval, dataset= "PSM I", est = "ipw (h=1)"),
+    data.frame(y=rownames(est_ipw_mle$output),
+               est_ipw_mle$output,est_ipw_mle$confidence_interval, dataset= "PSM I", est = "ipw (h=2)"),
+    ## PSM II
+    data.frame(y=rownames(est_ipw_h1_1_2$output),
+               est_ipw_h1_1_2$output,est_ipw_h1_1_2$confidence_interval, dataset= "PSM II", est = "ipw (h=1)"),
+    data.frame(y=rownames(est_ipw_h1_2_2$output),
+               est_ipw_h1_2_2$output,est_ipw_h1_2_2$confidence_interval, dataset= "PSM II", est = "ipw (h=1)"),
+    data.frame(y=rownames(est_ipw_h1_3_2$output),
+               est_ipw_h1_3_2$output,est_ipw_h1_3_2$confidence_interval, dataset= "PSM II", est = "ipw (h=1)"),
+    data.frame(y=rownames(est_ipw_mle_2$output),
+               est_ipw_mle_2$output,est_ipw_mle_2$confidence_interval, dataset= "PSM II", est = "ipw (h=2)"),
+    ## dr
+    rbindlist(dr_y11)[, ":="(dataset="PSM I", est="dr (h=2)")],
+    rbindlist(dr_y11_h1)[, ":="(dataset="PSM I", est="dr (h=1)")],
+    rbindlist(dr_y11_2)[, ":="(dataset="PSM II", est="dr (h=2)")],
+    rbindlist(dr_y11_h1_2)[, ":="(dataset="PSM II", est="dr (h=1)")],
+    ## dr (mm)
+    rbindlist(dr_y11_mm)[, ":="(dataset="PSM I", est="dr mm (h=2)")],
+    rbindlist(dr_y11_h1_mm)[, ":="(dataset="PSM I", est="dr mm (h=1)")],
+    rbindlist(dr_y11_mm_2)[, ":="(dataset="PSM II", est="dr mm (h=2)")],
+    rbindlist(dr_y11_h1_mm_2)[, ":="(dataset="PSM II", est="dr mm (h=1)")]
+  )
+}
+
+## PSM I ipw (h=1) has many errors
+results_correct_x_df <- rbindlist(results_correct_x, idcol = "b")
+results_correct_x_df[y == "Y_11", true := mean(Y_11)]
+results_correct_x_df[y == "Y_12", true := mean(Y_12)]
+results_correct_x_df[y == "Y_21", true := mean(Y_21)]
+results_correct_x_df[y == "Y_22", true := mean(Y_22)]
+
+saveRDS(results_correct_x_df, file = "results/yang2020-correct-x.rds")
+## coverage
+results_correct_x_df[!is.na(lower_bound), 
+              .(m = mean(lower_bound < true & upper_bound > true)), keyby=.(y, dataset, est)]
+
+ggplot(data = results_correct_x_df[!is.na(lower_bound)], aes(x = dataset, y = mean, fill = est)) + 
+  geom_boxplot(position = "dodge") +
+  geom_hline(aes(yintercept = true), color = "red", linetype = "dashed") +
+  facet_wrap(~ y, nrow = 1, scales = "free_y") 
+
+
+
+
+
+
+
+# selection of variables --------------------------------------------------
+
 
 results_mi <- list()
 ## here is sampling
-for (b in 1:10) {
+for (b in 49:100) {
   print(b)
   set.seed(b)
 
@@ -50,6 +376,8 @@ for (b in 1:10) {
   sample_B1 <- pop_data[pop_data$flag_B1 == 1, ]
   sample_B2 <- pop_data[pop_data$flag_B2 == 1, ]
   
+
+  # mass imputation ---------------------------------------------------------
   print("Mass imputation")
   # mass imputation with scad -----------------------------------------------
   mass_imp_glm <- lapply(c("Y_11", "Y_12", "Y_21", "Y_22"), FUN = function(x, data=sample_B1) {
@@ -129,25 +457,29 @@ for (b in 1:10) {
   
 
   # ipw ---------------------------------------------------------------------
+  print("Inverse probability weighting")
   est_ipw_h1 <- nonprob(selection = X_formula,
-                     target = ~ Y_11,
-                     data = sample_B1,
-                     svydesign = sample_A_svy_cal,
-                     control_selection = controlSel(h_x = "1", est_method_sel = "gee"),
-                     control_inference = controlInf(vars_selection = TRUE))
-  
-  est_ipw_h2 <- nonprob(selection = X_formula,
-                     target = ~ Y_11,
-                     data = sample_B1,
-                     svydesign = sample_A_svy_cal,
-                     control_selection = controlSel(h_x = "2", est_method_sel = "gee"),
-                     control_inference = controlInf(vars_selection = TRUE))
+                        target = ~ Y_11 + Y_12 + Y_21 + Y_22,
+                        data = sample_B1,
+                        svydesign = sample_A_svy_cal,
+                        control_selection = controlSel(h_x = "1", est_method_sel = "gee"),
+                        control_inference = controlInf(vars_selection = TRUE))
+
+  # est_ipw_h2 <- nonprob(selection = X_formula,
+  #                       target = ~ Y_11 + Y_12 + Y_21 + Y_22,
+  #                       data = sample_B1,
+  #                       svydesign = sample_A_svy_cal,
+  #                       control_selection = controlSel(h_x = "2", est_method_sel = "gee"),
+  #                       control_inference = controlInf(vars_selection = TRUE))
 
   est_ipw_mle <- nonprob(selection = X_formula,
-                        target = ~ Y_11,
+                        target = ~ Y_11 + Y_12 + Y_21 + Y_22,
                         data = sample_B1,
                         svydesign = sample_A_svy_cal,
                         control_inference = controlInf(vars_selection = TRUE))
+
+  # dr ----------------------------------------------------------------------
+
   
   # save results ------------------------------------------------------------
 
@@ -158,8 +490,10 @@ for (b in 1:10) {
     rbindlist(mass_imp_glm2)[, ":="(dataset="PSM II", est="glm")],
     rbindlist(mass_imp_glm_nn)[, ":="(dataset="PSM I", est="nn")],
     rbindlist(mass_imp_glm_nn2)[, ":="(dataset="PSM II", est="nn")],
-    data.frame(est_ipw$output,est_ipw$confidence_interval, dataset= "PSM I", est = "ipw (h=1)"),
-    data.frame(est_ipw$output,est_ipw$confidence_interval, dataset= "PSM I", est = "ipw (h=2)")
+    data.frame(y=rownames(est_ipw_h1$output),
+               est_ipw_h1$output,est_ipw_h1$confidence_interval, dataset= "PSM I", est = "ipw (h=1)"),
+    data.frame(y=rownames(est_ipw_mle$output),
+               est_ipw_mle$output,est_ipw_mle$confidence_interval, dataset= "PSM I", est = "ipw (h=2)")
   )
 }
 
@@ -171,9 +505,10 @@ results_mi_df[y == "Y_21", true := mean(Y_21)]
 results_mi_df[y == "Y_22", true := mean(Y_22)]
 
 ## coverage
-results_mi_df[, .(m = mean(lower_bound < true & upper_bound > true)), keyby=.(y, dataset, est)]
+results_mi_df[!is.na(lower_bound), 
+              .(m = mean(lower_bound < true & upper_bound > true)), keyby=.(y, dataset, est)]
 
-ggplot(data = results_mi_df, aes(x = dataset, y = mean, fill = est)) + 
+ggplot(data = results_mi_df[!is.na(lower_bound)], aes(x = dataset, y = mean, fill = est)) + 
   geom_boxplot(position = "dodge") +
   geom_hline(aes(yintercept = true), color = "red", linetype = "dashed") +
   facet_wrap(~ y, nrow = 1, scales = "free_y") 
