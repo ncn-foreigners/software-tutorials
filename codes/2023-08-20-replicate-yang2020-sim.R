@@ -262,14 +262,14 @@ for (b in 1:500) {
                     data = data,
                     svydesign = sample_A_svy_cal,
                     family_outcome = "gaussian",
-                    control_selection = controlSel(est_method_sel = "mm"))
+                    control_selection = controlSel(est_method_sel = "mm", h_x = "2"))
     } else {
       dr <- nonprob(outcome = as.formula(glue("{x} ~ X3 + X4 + X5 + X6")),
                     selection = ~ X1 + X2 + X3 + X4,
                     data = data,
                     svydesign = sample_A_svy_cal,
                     family_outcome = "binomial",
-                    control_selection = controlSel(est_method_sel = "mm"))
+                    control_selection = controlSel(est_method_sel = "mm", h_x = "2"))
     }
     data.frame(y=x, dr$output, dr$confidence_interval)
   })
@@ -334,18 +334,24 @@ results_correct_x_df[y == "Y_11", true := mean(Y_11)]
 results_correct_x_df[y == "Y_12", true := mean(Y_12)]
 results_correct_x_df[y == "Y_21", true := mean(Y_21)]
 results_correct_x_df[y == "Y_22", true := mean(Y_22)]
-
 saveRDS(results_correct_x_df, file = "results/yang2020-correct-x.rds")
+
 ## coverage
 results_correct_x_df[!is.na(lower_bound), 
               .(m = mean(lower_bound < true & upper_bound > true)), keyby=.(y, dataset, est)]
 
-ggplot(data = results_correct_x_df[!is.na(lower_bound)], aes(x = dataset, y = mean, fill = est)) + 
+ggplot(data = results_correct_x_df[!is.na(lower_bound)], 
+       aes(x = est, y = mean)) + 
   geom_boxplot(position = "dodge") +
   geom_hline(aes(yintercept = true), color = "red", linetype = "dashed") +
-  facet_wrap(~ y, nrow = 1, scales = "free_y") 
+  facet_wrap(dataset~y, ncol = 4, scales = "free_y") 
 
 
+results_correct_x_df[y == "Y_11"
+   , .(bias = (mean(mean) - mean(true))/mean(true)*100,
+       var = var(mean),
+       rmse = sqrt( (mean(mean) - mean(true))^2 + var(mean))), 
+   keyby=.(y, dataset, est)]
 
 
 
