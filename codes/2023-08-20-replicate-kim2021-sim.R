@@ -40,28 +40,32 @@ for (b in 1:B) {
     form_y_mo <- as.formula(glue("{X} ~ x"))
     form_y_ipw <- as.formula(glue("~ {X}"))
     
-    res_y1_glm <- nonprob(outcome = form_y_mo, data = sample_b, svydesign = svy_a) ## from the paper
-    res_y1_nn <- nonprob(outcome = form_y_mo, data = sample_b, svydesign = svy_a, 
-                         method_outcome = "nn")
+    ## from the paper
+    res_y1_glm <- nonprob(outcome = form_y_mo, data = sample_b, svydesign = svy_a) ## mi glm
     res_y1_ipw1 <- nonprob(target = form_y_ipw,  selection = ~ x,  data = sample_b, svydesign = svy_a,
-                           control_selection = controlSel(est_method_sel = "mle")) ## from the paper
-    res_y1_ipw2 <- nonprob(target = form_y_ipw,  selection = ~ x,  data = sample_b, svydesign = svy_a,
-                           control_selection = controlSel(est_method_sel = "gee", h = 1))
-    res_y1_dr1 <- nonprob(outcome = form_y_mo,  selection = ~ x,  data = sample_b, svydesign = svy_a,
-                          control_selection = controlSel(est_method_sel = "mle"))
-    res_y1_dr2 <- nonprob(outcome = form_y_mo,  selection = ~ x,  data = sample_b, svydesign = svy_a,
-                          control_selection = controlSel(est_method_sel = "gee", h = 1))
-    res_y1_dr3 <- nonprob(outcome = form_y_mo,  selection = ~ x,  data = sample_b, svydesign = svy_a,
-                          control_selection = controlSel(est_method_sel = "mle"),
-                          control_inference = controlInf(bias_correction = T))
-    res_y1_dr4 <- nonprob(outcome = form_y_mo,  selection = ~ x,  data = sample_b, svydesign = svy_a,
-                          control_selection = controlSel(est_method_sel = "gee", h = 1),
-                          control_inference = controlInf(bias_correction = T))
-    
-    prob_res <- svymean(~y1, svy_a)
+                           control_selection = controlSel(est_method_sel = "mle"))  ## ipw calibrated
+    prob_res <- svymean(~y1, svy_a)  ## prob a
     prob_res_df <- as.data.frame(prob_res)
     prob_res_ci <- confint(prob_res)
     
+    # additional estimators
+    res_y1_nn <- nonprob(outcome = form_y_mo, data = sample_b, svydesign = svy_a, 
+                         method_outcome = "nn") ## mi nn 
+    
+    res_y1_ipw2 <- nonprob(target = form_y_ipw,  selection = ~ x,  data = sample_b, svydesign = svy_a,
+                           control_selection = controlSel(est_method_sel = "gee", h = 1)) ## ipw calibrated h=1
+    res_y1_dr1 <- nonprob(outcome = form_y_mo,  selection = ~ x,  data = sample_b, svydesign = svy_a,
+                          control_selection = controlSel(est_method_sel = "mle")) ## dr 
+    res_y1_dr2 <- nonprob(outcome = form_y_mo,  selection = ~ x,  data = sample_b, svydesign = svy_a,
+                          control_selection = controlSel(est_method_sel = "gee", h = 1)) ## dr
+    res_y1_dr3 <- nonprob(outcome = form_y_mo,  selection = ~ x,  data = sample_b, svydesign = svy_a,
+                          control_selection = controlSel(est_method_sel = "mle"), ## dr with bias corr
+                          control_inference = controlInf(bias_correction = T))
+    res_y1_dr4 <- nonprob(outcome = form_y_mo,  selection = ~ x,  data = sample_b, svydesign = svy_a,
+                          control_selection = controlSel(est_method_sel = "gee", h = 1),
+                          control_inference = controlInf(bias_correction = T)) ## dr with bias cor
+    
+    ## results
     rbind(data.frame(mean=mean(sample_b[,X]), SE=NA, lower_bound=NA, upper_bound=NA,est='naive'),
           data.frame(mean=prob_res_df[,1],SE=prob_res_df[,2], lower_bound=prob_res_ci[1], upper_bound=prob_res_ci[2], est='prob'),
           cbind(res_y1_glm$output, res_y1_glm$confidence_interval, est='mi (glm)'),
