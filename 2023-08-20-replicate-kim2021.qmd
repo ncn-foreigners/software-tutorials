@@ -1,0 +1,156 @@
+---
+title: "Short software tutorial on `nonprobsvy` package -- replicating results from the Kim et al. (2021)"
+author: Maciej Beręsewicz
+format: 
+  html:
+    number-sections: true
+    self-contained: true
+    toc: true
+    df-print: kable
+lang: en
+bibliography: references.bib
+biblio-style: apalike
+execute: 
+  warning: false
+  cache: false
+  message: false
+---
+
+
+# Basic information
+
+## Theory
+
+This notebook is desinged to replicate results from the paper
+
+```
+Kim, J. K., Park, S., Chen, Y., & Wu, C. (2021). Combining
+non-probability and probability survey samples through mass
+imputation. Journal of the Royal Statistical Society Series A:
+Statistics in Society, 184(3), 941-963.
+```
+
+We generate the data using the following recipe from section 6 of this paper:
+
+The simulation is based on the following assumptions:
+
+-   population size $N=100,000$,
+-   probability sample $A$ of $500$ size,
+-   non-probability sample $B$ of size $500$ and $1000$,
+-   $x_{i} \sim N(2,1)$ and $e_{i} \sim (0,1)$,
+-   the study variable $y_{i}$ is constructed differently for each
+    model:
+    -   Model I -- $y_{i}=1+2 x_{i}+e_{i}$ ($R^2=0.8$),
+    -   Model II -- $y_{i}=3+x_{i}+2e_{i}$ ($R^2=0.2$),
+    -   Model III -- $y_{i}=2.5 + 0.5x_{i}^2+e_{i}$,
+-   SRS to obtain $A$ from each of three populations,
+-   Sample $B$ is obtained by SRS within two strata:
+    -   Strata 1: $x_i <= 2$ with size $n_1=0.7n_b$,
+    -   Strata 2: $x_i > 2$ with size $n_2 = 0.3n_b$
+-   Using the two samples $A$ and $B$, for estimators of
+    $\theta_{N}=N^{-1} \sum_{i=1}^{N} y_{i}$ are computed:
+    -   The sample mean from sample $A$ :
+        $\widehat{\theta}_{A}=n_{A}^{-1} \sum_{i \in A} y_{i}$,
+    -   The naive estimator (sample mean) from sample
+        $B: \widehat{\theta}_{B}=n_{B}^{-1} \sum_{i \in B} y_{i}$.
+    -   The mass imputation estimator from sample $A$ given in
+        Equation (6) using
+        $\widehat{y}_{i}=\widehat{\beta}_{0}+\widehat{\beta}_{1} x_{i}$
+        where $(\widehat{\beta}_{0}, \widehat{\boldsymbol{\beta}}_{1})$
+        are the estimated regression coefficients obtained from sample
+        $B$.
+    -   The IPW estimator proposed by @chen2020:
+        $\widehat{\theta}_{I P W}=N^{-1} \sum_{i \in B} \widehat{\pi}_{i}^{-1} y_{i}$,
+        where the propensity scores,
+        $\pi_{i}=\pi(\mathbf{x}_{i} ; \boldsymbol{\phi})=\left\{1+\exp (-\phi_{0}-\phi_{1} x_{i})\right\}^{-1}$
+        with $\mathbf{x}_{i}=(1, x_{i})^{\prime}$ and
+        $\boldsymbol{\phi}=(\phi_{0}, \phi_{1})^{\prime}$, are estimated
+        by using $\widehat{\boldsymbol{\phi}}$ which solves the
+        following score equations: $$
+        U(\boldsymbol{\phi})=\sum_{i \in B} \mathbf{x}_{i}-\sum_{i \in A} w_{i} \pi(\mathbf{x}_{i} ; \boldsymbol{\phi}) \mathbf{x}_{i}=\mathbf{0}
+        $$
+
+# Replication
+
+```{r}
+library(nonprobsvy)
+library(survey)
+library(sampling)
+library(glue)
+library(data.table)
+library(ggplot2)
+```
+
+
+## Single run
+
+
+```{r mi-sim-data}
+set.seed(123123123)
+N <- 100000
+n_a <- 500
+n_b <- 1000
+n_b1 <- 0.7*n_b
+n_b2 <- 0.3*n_b
+x <- rnorm(N, 2, 1)
+e <- rnorm(N)
+y1 <- 1 + 2*x + e
+y2 <- 3 + x + 2*e
+y3 <- 2.5 + 0.5*x^2 + e
+strata <- x <= 2
+pop <- data.frame(x, y1, y2, y3, strata)
+sample_a <- pop[sample(1:N, n_a),]
+sample_a$w_a <- N/n_a
+svy_a <- svydesign(ids= ~1, weights = ~ w_a, data = sample_a)
+svy_a_cal <- calibrate(svy_a, formula=~ x, population=c(`(Intercept)`=N, x = sum(x)))
+pop1 <- subset(pop, strata == TRUE)
+pop2 <- subset(pop, strata == FALSE)
+sample_b <- rbind(pop1[sample(1:nrow(pop1), n_b1), ],
+                  pop2[sample(1:nrow(pop2), n_b2), ])
+sample_b$w_b <- N/n_b
+
+## mass imputation
+res_y1 <- nonprob(outcome = y1 ~ x, data = sample_b, svydesign = svy_a)
+res_y2 <- nonprob(outcome= y2 ~ x,  data = sample_b,   svydesign = svy_a)
+res_y3 <- nonprob(outcome= y3 ~ x,   data = sample_b, svydesign = svy_a)
+
+
+data.frame(est = c("mi_y1","mi_y2", "mi_y3"),
+           true = c(mean(y1), mean(y2), mean(y3)),
+           naive_B = c(mean(sample_b$y1),mean(sample_b$y2), mean(sample_b$y3)),
+           mi = c(res_y1$output$mean, res_y2$output$mean, res_y3$output$mean))
+```
+
+## Simulation
+
+Code for simulation is available [here](codes/2023-08-20-replicate-kim2021-sim.R). 
+
+```{r}
+results <- readRDS("results/kim2021-replicates.rds")
+```
+
+
+Coverage of confidence intervals
+
+```{r}
+results[!is.na(lower_bound), .(m = mean(lower_bound < true & upper_bound > true)), keyby=.(y, est)]
+```
+
+Table with main results
+```{r}
+results[, .(bias = mean(mean) - mean(true), var = var(mean)*1000,
+                  mse = (mean(mean) - mean(true))^2 + var(mean),
+                  rmse = sqrt((mean(mean) - mean(true))^2 + var(mean))), 
+              keyby=.(y, est)][, ReMSE:=mse/mse[est=="prob"]*100][]
+```
+
+Plot with results
+
+```{r}
+ggplot(data = results, aes(x = est, y = mean)) + 
+  geom_boxplot(position = "dodge") +
+  geom_hline(aes(yintercept = true), color = "red", linetype = "dashed") +
+  facet_wrap(~y, ncol = 3, scales = "free_y") +
+  theme(axis.text.x=element_text(angle = 45, vjust = 1, hjust = 1))
+```
+

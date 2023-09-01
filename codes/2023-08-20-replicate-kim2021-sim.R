@@ -90,20 +90,3 @@ results_paper[y == 1, true := mean(y1)]
 results_paper[y == 2, true := mean(y2)]
 results_paper[y == 3, true := mean(y3)]
 saveRDS(results_paper, file = "results/kim2021-replicates.rds")
-
-## coverage
-results_paper[!is.na(lower_bound), .(m = mean(lower_bound < true & upper_bound > true)), keyby=.(y, est)]
-
-## plot
-ggplot(data = results_paper, aes(x = est, y = mean)) + 
-  geom_boxplot(position = "dodge") +
-  geom_hline(aes(yintercept = true), color = "red", linetype = "dashed") +
-  facet_wrap(~y, ncol = 3, scales = "free_y") +
-  theme(axis.text.x=element_text(angle = 45, vjust = 1, hjust = 1))
-
-
-## bias, var and mse
-results_paper[, .(bias = mean(mean) - mean(true), var = var(mean)*1000,
-                  mse = (mean(mean) - mean(true))^2 + var(mean),
-                  rmse = sqrt((mean(mean) - mean(true))^2 + var(mean))), 
-              keyby=.(y, est)][, ReMSE:=mse/mse[est=="prob"]*100][]
