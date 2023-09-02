@@ -49,18 +49,18 @@ The simulation is based on the following assumptions:
     -   Strata 2: $x_i > 2$ with size $n_2 = 0.3n_b$
 -   Using the two samples $A$ and $B$, for estimators of
     $\theta_{N}=N^{-1} \sum_{i=1}^{N} y_{i}$ are computed:
-    -   The sample mean from sample $A$ :
+    -   The sample mean from sample $A$ (denoted as `prob`) :
         $\widehat{\theta}_{A}=n_{A}^{-1} \sum_{i \in A} y_{i}$,
-    -   The naive estimator (sample mean) from sample
+    -   The naive estimator (sample mean) from sample (denoted as `naive`)
         $B: \widehat{\theta}_{B}=n_{B}^{-1} \sum_{i \in B} y_{i}$.
-    -   The mass imputation estimator from sample $A$ given in
+    -   The mass imputation estimator from sample $A$ (denoted as `mi (glm)`) given in
         Equation (6) using
         $\widehat{y}_{i}=\widehat{\beta}_{0}+\widehat{\beta}_{1} x_{i}$
         where $(\widehat{\beta}_{0}, \widehat{\boldsymbol{\beta}}_{1})$
         are the estimated regression coefficients obtained from sample
         $B$.
     -   The IPW estimator proposed by @chen2020:
-        $\widehat{\theta}_{I P W}=N^{-1} \sum_{i \in B} \widehat{\pi}_{i}^{-1} y_{i}$,
+        $\widehat{\theta}_{I P W}=N^{-1} \sum_{i \in B} \widehat{\pi}_{i}^{-1} y_{i}$ (denoted as `ipw (mle)`),
         where the propensity scores,
         $\pi_{i}=\pi(\mathbf{x}_{i} ; \boldsymbol{\phi})=\left\{1+\exp (-\phi_{0}-\phi_{1} x_{i})\right\}^{-1}$
         with $\mathbf{x}_{i}=(1, x_{i})^{\prime}$ and
@@ -72,11 +72,10 @@ The simulation is based on the following assumptions:
 
 # Replication
 
+Load required packages
+
 ```{r}
 library(nonprobsvy)
-library(survey)
-library(sampling)
-library(glue)
 library(data.table)
 library(ggplot2)
 ```
@@ -84,6 +83,7 @@ library(ggplot2)
 
 ## Single run
 
+Here's an example of a single run 
 
 ```{r mi-sim-data}
 set.seed(123123123)
@@ -102,13 +102,10 @@ pop <- data.frame(x, y1, y2, y3, strata)
 sample_a <- pop[sample(1:N, n_a),]
 sample_a$w_a <- N/n_a
 svy_a <- svydesign(ids= ~1, weights = ~ w_a, data = sample_a)
-svy_a_cal <- calibrate(svy_a, formula=~ x, population=c(`(Intercept)`=N, x = sum(x)))
 pop1 <- subset(pop, strata == TRUE)
 pop2 <- subset(pop, strata == FALSE)
 sample_b <- rbind(pop1[sample(1:nrow(pop1), n_b1), ],
                   pop2[sample(1:nrow(pop2), n_b2), ])
-sample_b$w_b <- N/n_b
-
 ## mass imputation
 res_y1 <- nonprob(outcome = y1 ~ x, data = sample_b, svydesign = svy_a)
 res_y2 <- nonprob(outcome= y2 ~ x,  data = sample_b,   svydesign = svy_a)
@@ -123,26 +120,38 @@ data.frame(est = c("mi_y1","mi_y2", "mi_y3"),
 
 ## Simulation
 
-Code for simulation is available [here](codes/2023-08-20-replicate-kim2021-sim.R). 
+Code for simulation is available [here](../codes/2023-08-20-replicate-kim2021-sim.R) where:
+
++ `naive` -- based on non-probability sample 
++ `prob` -- based on probability sample
++ `mi (glm)` -- based on mass imputation
++ `ipw (mle)` -- based on IPW with calibration constraints
 
 ```{r}
-results <- readRDS("results/kim2021-replicates.rds")
+results <- readRDS("../results/kim2021-replicates.rds")
+results <- subset(results, est %in% c("naive", "prob", "mi (glm)", "ipw (mle)"))
+results[, est := factor(est, c("prob","naive",  "mi (glm)", "ipw (mle)"))]
 ```
 
-
-Coverage of confidence intervals
+Coverage of confidence intervals using analytical variance
 
 ```{r}
-results[!is.na(lower_bound), .(m = mean(lower_bound < true & upper_bound > true)), keyby=.(y, est)]
+results[!is.na(lower_bound), .(m = mean(lower_bound < true & upper_bound > true)), keyby=.(y, est)] |> 
+  dcast(y ~ est, value.var = "m")
 ```
 
 Table with main results
+
 ```{r}
 results[, .(bias = mean(mean) - mean(true), var = var(mean)*1000,
                   mse = (mean(mean) - mean(true))^2 + var(mean),
                   rmse = sqrt((mean(mean) - mean(true))^2 + var(mean))), 
               keyby=.(y, est)][, ReMSE:=mse/mse[est=="prob"]*100][]
 ```
+
+We can compare the results with table 3 from @kim2021
+
+![](../figs/jrssa-mi-paper-tab3.png){fig-align="center" width="700"}
 
 Plot with results
 
