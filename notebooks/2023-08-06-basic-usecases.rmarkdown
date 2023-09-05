@@ -16,6 +16,7 @@ execute:
   message: false
 ---
 
+
 # Introduction
 
 This tutorial shows basic usage of the
@@ -55,6 +56,7 @@ Currently only `glm` models are implemented (i.e. gaussian, binomial, poisson).
 Install `remotes` package and then install `nonprobsvy` package from
 github repository.
 
+
 ```{r install-packages, eval=FALSE}
 install.packages("remotes")
 remotes::install_github("ncn-foreigners/nonprobsvy")
@@ -62,7 +64,9 @@ install.packages("survey")
 install.packages("sampling")
 ```
 
+
 Load required packages
+
 
 ```{r load-packages}
 library(sampling)
@@ -70,6 +74,7 @@ library(survey)
 library(nonprobsvy)
 library(ggplot2)
 ```
+
 
 
 ## Basic setup for examples
@@ -97,6 +102,7 @@ $$
 
 where $\mathbf{\beta}=(1,0,0,1,1,1,1,0,...,0)^T$. 
 
+
 ```{r generate-data}
 seed_for_sim <- 2023-8-15
 set.seed(seed_for_sim)
@@ -117,7 +123,9 @@ flag_A <- UPpoisson(pik = pi_A)
 pop_data <- data.frame(pi_A, pi_B, flag_A, flag_B, Y, X[, 2:p])
 ```
 
+
 We set `svydesign` with `pps=poisson_sampling()` and then calibrate to known population totals of $X$.
+
 
 ```{r calibrate-prob-sample}
 ## population totals
@@ -133,18 +141,23 @@ sample_A_svy_cal <- calibrate(sample_A_svy,
                               calfun = cal.raking)
 ```
 
+
 Then we select nonprobability sample `B` using probability based on `flag_B` variable.
+
 
 ```{r generate-nonprob}
 sample_B <- pop_data[pop_data$flag_B == 1, ]
 ```
 
+
 True mean of `Y`.
+
 
 ```{r true-y}
 y_true <- mean(Y)
 y_true
 ```
+
 
 # Inverse probability weighting estimator
 
@@ -153,6 +166,7 @@ First, we start with [inverse probability weighting estimator](https://ncn-forei
 ## Only population information is available
 
 Note that standard error is under-estimated as assume that `pop_totals` is known, not estimated. Here we use `mle` with calibration constraints [see mle in the documentation](https://ncn-foreigners.github.io/nonprobsvy-book/ipw.html#maximum-likelihood-estimation).
+
 
 ```{r ipw-pop-totals}
 ipw_logit_poptotals <- nonprob(selection = ~ X1 + X2 + X3 + X4,
@@ -164,7 +178,9 @@ ipw_logit_poptotals <- nonprob(selection = ~ X1 + X2 + X3 + X4,
 cbind(ipw_logit_poptotals$output,ipw_logit_poptotals$confidence_interval)
 ```
 
+
 We can change from `mle` to `gee` with different definitions of $h$ function (1 for $X/\pi(X,\alpha)$ or 2 for $X$). See [documentation for gee](https://ncn-foreigners.github.io/nonprobsvy-book/ipw.html#general-estimating-equations).
+
 
 
 ```{r ipw-pop-totals-gee}
@@ -180,6 +196,7 @@ cbind(ipw_logit_poptotals_gee$output,ipw_logit_poptotals_gee$confidence_interval
 
 Finally, we can conduct variable selection using `SCAD` under different models
 
+
 ```{r ipw-pop-totals-scad}
 ipw_logit_poptotals_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
                                     target = ~ Y,
@@ -191,15 +208,19 @@ ipw_logit_poptotals_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + 
 
 cbind(ipw_logit_poptotals_scad$output,ipw_logit_poptotals_scad$confidence_interval)
 ```
+
 Only X1 was selected, but note that changing the order of auxiliary variables other variable(s) may be selected.
 
+
 ```{r ipw-pop-totals-scad-coef}
-ipw_logit_poptotals_scad$parameters
+summary(ipw_logit_poptotals_scad)$coef
 ```
+
 
 ## Probability sample is available
 
 Now consider the case when probability sample is available.
+
 
 ```{r ipw-sample}
 ipw_logit_sample <- nonprob(selection = ~ X1 + X2 + X3 + X4,
@@ -210,7 +231,9 @@ ipw_logit_sample <- nonprob(selection = ~ X1 + X2 + X3 + X4,
 
 cbind(ipw_logit_sample$output,ipw_logit_sample$confidence_interval)
 ```
+
 Now change to `gee` as previously
+
 
 ```{r ipw-sample-gee}
 ipw_logit_sample_gee <- nonprob(selection = ~ X1 + X2 + X3 + X4,
@@ -222,7 +245,9 @@ ipw_logit_sample_gee <- nonprob(selection = ~ X1 + X2 + X3 + X4,
 
 cbind(ipw_logit_sample_gee$output,ipw_logit_sample_gee$confidence_interval)
 ```
-Moreover if we have sample we can estimate variance using bootstrap. Note that boostrap for probability sample is conducted using `survey::as.svrepdesign`.
+
+Moreover if we have sample we can estimate variance using bootstrap. Note that boostrap for probability sample is coducted using `survey::as.svrepdesign`.
+
 
 ```{r ipw-sample-gee-boot}
 set.seed(seed_for_sim)
@@ -236,7 +261,9 @@ ipw_logit_sample_gee_boot <- nonprob(selection = ~ X1 + X2 + X3 + X4,
 
 cbind(ipw_logit_sample_gee_boot$output,ipw_logit_sample_gee_boot$confidence_interval)
 ```
+
 And finally conduct variables selection and combine it with bootstrap variance estimator.
+
 
 ```{r ipw-sample-scad}
 ipw_logit_sample_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
@@ -254,9 +281,11 @@ cbind(ipw_logit_sample_scad$output,ipw_logit_sample_scad$confidence_interval)
 
 The output of procedures is similar to glm
 
+
 ```{r ipw-sample-scad-summary}
 summary(ipw_logit_sample_scad)
 ```
+
 # Mass imputation estimator
 
 Now, we start with [mass imputation estimator](https://ncn-foreigners.github.io/nonprobsvy-book/mi.html) under different settings. 
@@ -264,6 +293,7 @@ Now, we start with [mass imputation estimator](https://ncn-foreigners.github.io/
 ## Only population information is available
 
 In the examples we assume that $f(Y|X)$ is linear so the estimator will be biased as model is mis-specified.
+
 
 ```{r mi-pop-totals}
 mi_poptotals <- nonprob(outcome = Y ~ X3 + X4 + X5 + X6,
@@ -275,9 +305,11 @@ mi_poptotals <- nonprob(outcome = Y ~ X3 + X4 + X5 + X6,
 cbind(mi_poptotals$output,mi_poptotals$confidence_interval)
 ```
 
+
 ## Probability sample is available
 
 Now, consider that sample
+
 
 ```{r mi-sample}
 mi_sample <- nonprob(outcome = Y ~ X3 + X4 + X5 + X6,
@@ -289,21 +321,25 @@ mi_sample <- nonprob(outcome = Y ~ X3 + X4 + X5 + X6,
 cbind(mi_sample$output,mi_sample$confidence_interval)
 ```
 
-We can select variables using SCAD penalty.
+
+We can select variables using SCAD penalty [currently not working]
+
 
 ```{r mi-sample-scad}
 mi_sample_scad <- nonprob(outcome = Y ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
-                          data = sample_B,
-                          svydesign = sample_A_svy_cal,
-                          method_outcome = "glm",
-                          family_outcome = "gaussian",
-                          control_outcome = controlOut(penalty = "SCAD"),
-                          control_inference = controlInf(vars_selection = TRUE))
+                     data = sample_B,
+                     svydesign = sample_A_svy_cal,
+                     method_outcome = "glm",
+                     family_outcome = "gaussian",
+                     control_outcome = controlOut(penalty = "SCAD"),
+                     control_inference = controlInf(vars_selection = TRUE))
 
 cbind(mi_sample_scad$output,mi_sample_scad$confidence_interval)
 ```
 
+
 We can change to nearest neighbour imputation estimator but note that we use all X not predictive mean matching.
+
 
 ```{r mi-sample-nn}
 mi_sample_nn <- nonprob(outcome = Y ~ X3 + X4 + X5 + X6,
@@ -315,7 +351,9 @@ mi_sample_nn <- nonprob(outcome = Y ~ X3 + X4 + X5 + X6,
 
 cbind(mi_sample_nn$output,mi_sample_nn$confidence_interval)
 ```
+
 We can specify variance to boostrap
+
 
 ```{r mi-sample-nn-boot}
 mi_sample_nn <- nonprob(outcome = Y ~ X3 + X4 + X5 + X6,
@@ -328,6 +366,7 @@ mi_sample_nn <- nonprob(outcome = Y ~ X3 + X4 + X5 + X6,
 
 cbind(mi_sample_nn$output,mi_sample_nn$confidence_interval)
 ```
+
 # Doubly robust estimator
 
 Finally, we present [doubly robust estimator](https://ncn-foreigners.github.io/nonprobsvy-book/dr.html) under different settings. 
@@ -335,6 +374,7 @@ Finally, we present [doubly robust estimator](https://ncn-foreigners.github.io/n
 ## Only population information is available
 
 Consider the case when only population information is available
+
 
 ```{r dr-pop-totals}
 dr_logit_poptotals <- nonprob(selection = ~ X1 + X2 + X3 + X4,
@@ -345,7 +385,9 @@ dr_logit_poptotals <- nonprob(selection = ~ X1 + X2 + X3 + X4,
 
 cbind(dr_logit_poptotals$output,dr_logit_poptotals$confidence_interval)
 ```
+
 We can apply `gee` with `h=1` 
+
 
 ```{r dr-pop-totals-gee}
 dr_logit_poptotals_gee <- nonprob(selection = ~ X1 + X2 + X3 + X4,
@@ -357,28 +399,28 @@ dr_logit_poptotals_gee <- nonprob(selection = ~ X1 + X2 + X3 + X4,
 
 cbind(dr_logit_poptotals_gee$output,dr_logit_poptotals_gee$confidence_interval)
 ```
+
 Finally, we can coduct variable selection
 
+
 ```{r dr-pop-totals-scad}
-dr_logit_poptotals_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10 + X11,
-                                   outcome = Y ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10 + X12,
+dr_logit_poptotals_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
+                                   outcome = Y ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
                                    data = sample_B,
-                                   pop_totals = X_totals[1:13],
+                                   pop_totals = X_totals[1:11],
                                    method_selection = "logit",
                                    control_inference = controlInf(vars_selection = TRUE))
 
 cbind(dr_logit_poptotals_scad$output,dr_logit_poptotals_scad$confidence_interval)
 ```
 
-Note that we apply union of variables after variable selection.
 
-```{r}
-dr_logit_poptotals_scad$parameters
-```
+Note that we apply union of variables after variable selection.
 
 ## Probability sample is available
 
 Now consider situation when probability sample is available
+
 
 ```{r dr-sample}
 dr_logit_sample <- nonprob(selection = ~ X1 + X2 + X3 + X4,
@@ -390,7 +432,9 @@ dr_logit_sample <- nonprob(selection = ~ X1 + X2 + X3 + X4,
 cbind(dr_logit_sample$output,dr_logit_sample$confidence_interval)
 ```
 
+
 Now use `gee` with `h=1` with bootstrap.
+
 
 ```{r dr-sample-gee}
 dr_logit_sample_gee <- nonprob(selection = ~ X1 + X2 + X3 + X4,
@@ -404,23 +448,24 @@ dr_logit_sample_gee <- nonprob(selection = ~ X1 + X2 + X3 + X4,
 cbind(dr_logit_sample_gee$output,dr_logit_sample_gee$confidence_interval)
 ```
 
-We can also use bias minimization method as proposed in @yang2020 by setting `bias_correction = TRUE`.
+We can also use bias minimization method as proposed in @yang2020 by setting `est_method_sel = "mm"`.
 
-```{r dr-sample-bmm, eval = FALSE}
+
+```{r dr-sample-bmm}
 dr_logit_sample_mm <- nonprob(selection = ~ X1 + X2 + X3 + X4,
-                              outcome = Y ~ X1 + X2 + X3 + X4,
-                              data = sample_B,
-                              svydesign = sample_A_svy_cal,
-                              method_selection = "logit",
-                              verbose = FALSE,
-                              control_inference = controlInf(var_method = "bootstrap",
-                                                             num_boot = 100,
-                                                             bias_correction = TRUE))
+                               outcome = Y ~ X1 + X2 + X3 + X4,
+                               data = sample_B,
+                               svydesign = sample_A_svy_cal,
+                               method_selection = "logit",
+                               control_selection = controlSel(est_method_sel = "mm", h = 2),
+                               control_inference = controlInf(var_method = "bootstrap", num_boot = 100))
 
 cbind(dr_logit_sample_mm$output,dr_logit_sample_mm$confidence_interval)
 ```
 
-We can apply variable selection (`SCAD`) 
+
+We can apply bias variable selection (`SCAD`) [not working]
+
 
 ```{r dr-sample-scad, eval = F}
 dr_logit_sample_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
@@ -434,7 +479,9 @@ dr_logit_sample_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 +
 cbind(dr_logit_sample_scad$output, dr_logit_sample_scad$confidence_interval)
 ```
 
+
 Finally, we can apply method proposed by  @yang2020, i.e. variable selection using SCAD and bias minimization after selection.
+
 
 ```{r dr-sample-mm-scad}
 dr_logit_sample_mm_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
@@ -442,15 +489,17 @@ dr_logit_sample_mm_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X
                                     data = sample_B,
                                     svydesign = sample_A_svy_cal,
                                     method_selection = "logit",
-                                    control_selection = controlSel(penalty = "SCAD"),
-                                    control_inference = controlInf(vars_selection = TRUE, bias_correction = TRUE))
+                                    control_selection = controlSel(penalty = "SCAD", est_method_sel = "mm"),
+                                    control_inference = controlInf(vars_selection = TRUE))
 
 cbind(dr_logit_sample_mm_scad$output, dr_logit_sample_mm_scad$confidence_interval)
 ```
 
+
 # Summary
 
 Now combine estimates from all models
+
 
 ```{r table-with-results}
 tab_res <- rbind(
@@ -475,7 +524,9 @@ tab_res <- rbind(
 
 tab_res
 ```
+
 Plot the results
+
 
 ```{r plot-table}
 ggplot(data = tab_res, aes(x = est, y = mean, ymin = lower_bound, ymax = upper_bound)) +
@@ -485,5 +536,7 @@ ggplot(data = tab_res, aes(x = est, y = mean, ymin = lower_bound, ymax = upper_b
   coord_flip()
 ```
 
+
 # Literature
+
 
