@@ -107,8 +107,8 @@ alpha_vec1 <- c(-2, 1, 1, 1,1, rep(0, p-5))
 alpha_vec2 <- c(0,0,0,3,3,3,3, rep(0, p-7))
 beta_vec <- c(1,0,0,1,1,1,1, rep(0, p-7))
 X <- cbind("(Intercept)"=1, matrix(rnorm(N*(p-1)), nrow=N, byrow=T, dimnames = list(NULL, paste0("X",1:(p-1)))))
-#Y <- 1 + as.numeric(X %*% beta_vec) +   rnorm(N) ## linear model
-Y <- 1 + exp(3*sin(as.numeric(X %*% beta_vec))) + X[, "X5"] + X[, "X6"] + rnorm(N) ## nonlinear model
+Y <- 1 + as.numeric(X %*% beta_vec) +   rnorm(N) ## linear model
+#Y <- 1 + exp(3*sin(as.numeric(X %*% beta_vec))) + X[, "X5"] + X[, "X6"] + rnorm(N) ## nonlinear model
 pi_B <- plogis(as.numeric(X %*% alpha_vec1)) ## linear probability
 #pi_B <- plogis(3.5 + as.numeric(log(X^2) %*% alpha_vec2) - sin(X[, "X3"] + X[, "X4"]) - X[,"X5"] + X[, "X6"]) ## nonlinear probability
 flag_B <- rbinom(N, 1, prob = pi_B)
@@ -159,7 +159,7 @@ ipw_logit_poptotals <- nonprob(selection = ~ X1 + X2 + X3 + X4,
                                target = ~ Y,
                                data = sample_B,
                                pop_totals = X_totals[1:5],
-                               method_selection = "logit")
+                               method_selection = "logit") ## cloglog error 
 
 cbind(ipw_logit_poptotals$output,ipw_logit_poptotals$confidence_interval)
 ```
@@ -187,14 +187,15 @@ ipw_logit_poptotals_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + 
                                     pop_totals = X_totals[1:11],
                                     method_selection = "logit",
                                     control_selection = controlSel(penalty = "SCAD"),
-                                    control_inference = controlInf(vars_selection = TRUE))
+                                    control_inference = controlInf(vars_selection = TRUE),
+                                    verbose = TRUE)
 
 cbind(ipw_logit_poptotals_scad$output,ipw_logit_poptotals_scad$confidence_interval)
 ```
 Only X1 was selected, but note that changing the order of auxiliary variables other variable(s) may be selected.
 
 ```{r ipw-pop-totals-scad-coef}
-ipw_logit_poptotals_scad$parameters
+ipw_logit_poptotals_scad$selection$coefficients
 ```
 
 ## Probability sample is available
@@ -218,7 +219,7 @@ ipw_logit_sample_gee <- nonprob(selection = ~ X1 + X2 + X3 + X4,
                                 data = sample_B,
                                 svydesign = sample_A_svy_cal,
                                 method_selection = "logit",
-                                control_selection = controlSel(est_method_sel = "gee", h = 1))
+                                control_selection = controlSel(est_method_sel = "gee", h = 2)) 
 
 cbind(ipw_logit_sample_gee$output,ipw_logit_sample_gee$confidence_interval)
 ```
@@ -232,7 +233,8 @@ ipw_logit_sample_gee_boot <- nonprob(selection = ~ X1 + X2 + X3 + X4,
                                      svydesign = sample_A_svy_cal,
                                      method_selection = "logit",
                                      control_selection = controlSel(est_method_sel = "gee", h = 1),
-                                     control_inference = controlInf(var_method = "bootstrap", num_boot = 100))
+                                     control_inference = controlInf(var_method = "bootstrap", num_boot = 100),
+                                     verbose = TRUE)
 
 cbind(ipw_logit_sample_gee_boot$output,ipw_logit_sample_gee_boot$confidence_interval)
 ```
@@ -247,7 +249,8 @@ ipw_logit_sample_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 
                                  control_selection = controlSel(penalty = "SCAD"),
                                  control_inference = controlInf(vars_selection = TRUE,
                                                                 var_method = "bootstrap", 
-                                                                num_boot = 50))
+                                                                num_boot = 50),
+                                 verbose = TRUE)
 
 cbind(ipw_logit_sample_scad$output,ipw_logit_sample_scad$confidence_interval)
 ```
@@ -324,7 +327,7 @@ mi_sample_nn <- nonprob(outcome = Y ~ X3 + X4 + X5 + X6,
                         method_outcome = "nn",
                         family_outcome = "gaussian",
                         control_outcome = controlOut(k = 3),
-                        control_inference = controlInf(var_method = "bootstrap", num_boot = 100))
+                        control_inference = controlInf(var_method = "bootstrap", num_boot = 50))
 
 cbind(mi_sample_nn$output,mi_sample_nn$confidence_interval)
 ```
@@ -344,6 +347,7 @@ dr_logit_poptotals <- nonprob(selection = ~ X1 + X2 + X3 + X4,
                               method_selection = "logit")
 
 cbind(dr_logit_poptotals$output,dr_logit_poptotals$confidence_interval)
+
 ```
 We can apply `gee` with `h=1` 
 
@@ -367,13 +371,14 @@ dr_logit_poptotals_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X
                                    method_selection = "logit",
                                    control_inference = controlInf(vars_selection = TRUE))
 
-cbind(dr_logit_poptotals_scad$output,dr_logit_poptotals_scad$confidence_interval)
+cbind(dr_logit_poptotals_scad$output, dr_logit_poptotals_scad$confidence_interval)
 ```
 
 Note that we apply union of variables after variable selection.
 
 ```{r}
-dr_logit_poptotals_scad$parameters
+data.frame(sel = dr_logit_poptotals_scad$selection$coefficients,
+           out = dr_logit_poptotals_scad$outcome$coefficients)
 ```
 
 ## Probability sample is available
@@ -399,22 +404,23 @@ dr_logit_sample_gee <- nonprob(selection = ~ X1 + X2 + X3 + X4,
                                svydesign = sample_A_svy_cal,
                                method_selection = "logit",
                                control_selection = controlSel(est_method_sel = "gee", h = 1),
-                               control_inference = controlInf(var_method = "bootstrap", num_boot = 100))
+                               control_inference = controlInf(var_method = "bootstrap", num_boot = 50),
+                               verbose = TRUE)
 
 cbind(dr_logit_sample_gee$output,dr_logit_sample_gee$confidence_interval)
 ```
 
 We can also use bias minimization method as proposed in @yang2020 by setting `bias_correction = TRUE`.
 
-```{r dr-sample-bmm, eval = FALSE}
+```{r dr-sample-bmm}
 dr_logit_sample_mm <- nonprob(selection = ~ X1 + X2 + X3 + X4,
                               outcome = Y ~ X1 + X2 + X3 + X4,
                               data = sample_B,
                               svydesign = sample_A_svy_cal,
                               method_selection = "logit",
-                              verbose = FALSE,
+                              verbose = TRUE,
                               control_inference = controlInf(var_method = "bootstrap",
-                                                             num_boot = 100,
+                                                             num_boot = 50,
                                                              bias_correction = TRUE))
 
 cbind(dr_logit_sample_mm$output,dr_logit_sample_mm$confidence_interval)
@@ -422,7 +428,7 @@ cbind(dr_logit_sample_mm$output,dr_logit_sample_mm$confidence_interval)
 
 We can apply variable selection (`SCAD`) 
 
-```{r dr-sample-scad, eval = F}
+```{r dr-sample-scad}
 dr_logit_sample_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
                                 outcome = Y ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10,
                                 data = sample_B,
@@ -443,7 +449,8 @@ dr_logit_sample_mm_scad <- nonprob(selection = ~ X1 + X2 + X3 + X4 + X5 + X6 + X
                                     svydesign = sample_A_svy_cal,
                                     method_selection = "logit",
                                     control_selection = controlSel(penalty = "SCAD"),
-                                    control_inference = controlInf(vars_selection = TRUE, bias_correction = TRUE))
+                                    control_inference = controlInf(vars_selection = TRUE, 
+                                                                   bias_correction = TRUE))
 
 cbind(dr_logit_sample_mm_scad$output, dr_logit_sample_mm_scad$confidence_interval)
 ```
