@@ -36,7 +36,7 @@ We generate the data using the following recipe from section 6 of this paper:
 + $p=50$ -- number of $X_p$ variables where $p-1$ were generated from $N(0,1)$ distribution,
 + $A$ -- probability sample about $n_A \approx 500$,
 + $B$ -- non-probability sample of size about $n_B \approx 2000$,
-+ selection to probability sample $A \propto 0.25 + |X_{1i}| + 0.03|Y_i|$
++ selection to probability sample $A \propto 0.25 + |X_{1i}| + 0.03|Y_i|$ (hence 4 probability samples),
 + non-probability selected using the following definitions
     + $\text{logit}(\pi_{B,i}) =\mathbf{\alpha}^TX_i$ (model PSM I), or   
     + $\text{logit}(\pi_{B,i}) = (3.5 + \mathbf{\alpha}^T(\log(\mathbf{X}_i)^2) - \sin(X_{3i} + X_{4i}) - X_{5i} - X_{6i})$ (model PSM II),
@@ -66,26 +66,39 @@ library(sampling)
 library(ggplot2)
 ```
 
+Package version
+
+```{r}
+packageVersion("nonprobsvy")
+```
+
 Generate data according to the theory presented above
 
 ```{r generate-data}
-seed_for_sim <- 2023-8-15
+seed_for_sim <- 2024
 set.seed(seed_for_sim)
+
 N <- 10000
 n_A <- 500
 p <- 50
-alpha_vec1 <- c(-2, 1, 1, 1,1, rep(0, p-5))
-alpha_vec2 <- c(0,0,0,3,3,3,3, rep(0, p-7))
-beta_vec <- c(1,0,0,1,1,1,1, rep(0, p-7))
+KK <- 5
+alpha_vec1 <- c(-2, 1, 1, 1, 1, rep(0, p - 5))
+alpha_vec2 <- c(0, 0, 0, 3, 3, 3, 3, rep(0, p - 7))
+beta_vec <- c(1, 0, 0, 1, 1, 1, 1, rep(0, p - 7))
 
 ## generate X
-X <- cbind("(Intercept)"=1, matrix(rnorm(N*(p-1)), nrow=N, byrow=T, dimnames = list(NULL, paste0("X",1:(p-1)))))
-X_formula  <- as.formula(paste("~", paste0("X",1:(p-1), collapse = " + ")))
-X_totals <- colSums(X)
-X_means <- colMeans(X[,-1])
+X <- cbind(
+  "(Intercept)" = 1, 
+  matrix(
+    rnorm(N * (p - 1)), 
+    nrow = N, byrow = TRUE, 
+    dimnames = list(NULL, paste0("X", 1:(p - 1)))
+  )
+)
+X_formula  <- as.formula(paste("~", paste0("X", 1:(p - 1), collapse = " + ")))
 
 ## generate Y
-Y_11 <- 1 + as.numeric(X %*% beta_vec) +   rnorm(N) ## OM I: linear model
+Y_11 <- as.numeric(X %*% beta_vec) +  rnorm(N) ## OM I: linear model
 Y_12 <- 1 + exp(3*sin(as.numeric(X %*% beta_vec))) + X[, "X5"] + X[, "X6"] + rnorm(N) ## OM II: nonlinear model
 pi_Y_21 <- plogis(as.numeric(X %*% beta_vec)) ## OM III: linear model for binary Y
 pi_Y_22 <- plogis(2 - log((X %*% beta_vec)^2) - 2*X[,"X5"] + 2*X[, "X6"]) ## OM IV: nonlinear model for binary Y
@@ -93,42 +106,48 @@ Y_21 <- rbinom(N, 1, prob = pi_Y_21)
 Y_22 <- rbinom(N, 1, prob = pi_Y_22)
 
 ## generate probs
-pi_A <- inclusionprobabilities(0.25 + abs(X[, "X1"]) + 0.03*abs(Y_11), n_A) ## inclusion based on Y_11 only 
+pi_A_Y11 <- inclusionprobabilities(0.25 + abs(X[, "X1"]) + 0.03*abs(Y_11), n_A)
+pi_A_Y12 <- inclusionprobabilities(0.25 + abs(X[, "X1"]) + 0.03*abs(Y_12), n_A)
+pi_A_Y21 <- inclusionprobabilities(0.25 + abs(X[, "X1"]) + 0.03*abs(Y_21), n_A)
+pi_A_Y22 <- inclusionprobabilities(0.25 + abs(X[, "X1"]) + 0.03*abs(Y_22), n_A)
+
 pi_B1 <- plogis(as.numeric(X %*% alpha_vec1)) ## PSM I: linear probability
 pi_B2 <- plogis(3.5 + as.numeric(log(X^2) %*% alpha_vec2) - sin(X[, "X3"] + X[, "X4"]) - X[,"X5"] + X[, "X6"]) ## PSM II: nonlinear 
 
-## generate
-flag_B1 <- rbinom(N, 1, prob = pi_B1)
-flag_B2 <- rbinom(N, 1, prob = pi_B2)
-flag_A <- UPpoisson(pik = pi_A)
 
 ## generate data
-pop_data <- data.frame(pi_A, flag_A, flag_B1, flag_B2, Y_11, Y_12, Y_21, Y_22, X[, 2:p])
-head(pop_data)
+population <- data.frame(pi_A_Y11, pi_A_Y12, pi_A_Y21, pi_A_Y22, Y_11, Y_12, Y_21, Y_22, X[, 2:p])
+
 ```
 
 ## Single run
 
 ### Generate samples
 
-Now, we provide a single run. First, we generate probability sample and calibrate to known population totals from `X_totals`.
+Now, we provide a single run. First, we generate 4 probability samples.
 
 ```{r probability-survey}
-sample_A_svy <- svydesign(ids = ~ 1, probs = ~ pi_A, 
-                          pps = poisson_sampling(pop_data$pi_A[pop_data$flag_A == 1]), 
-                          data = pop_data[pop_data$flag_A == 1, ])
-
-sample_A_svy_cal <- calibrate(sample_A_svy, 
-                              formula = X_formula,
-                              population = X_totals, 
-                              calfun = cal.raking)
+set.seed(seed_for_sim)
+flag_A_Y11 <- UPpoisson(pik = pi_A_Y11)
+flag_A_Y12 <- UPpoisson(pik = pi_A_Y12)
+flag_A_Y21 <- UPpoisson(pik = pi_A_Y21)
+flag_A_Y22 <- UPpoisson(pik = pi_A_Y22)
+  
+sample_A_svy_Y11 <- svydesign(ids = ~ 1, probs = ~ pi_A_Y11, pps = "brewer", data = population[flag_A_Y11 == 1, ])
+sample_A_svy_Y12 <- svydesign(ids = ~ 1, probs = ~ pi_A_Y12, pps = "brewer", data = population[flag_A_Y12 == 1, ])
+sample_A_svy_Y21 <- svydesign(ids = ~ 1, probs = ~ pi_A_Y21, pps = "brewer", data = population[flag_A_Y21 == 1, ])
+sample_A_svy_Y22 <- svydesign(ids = ~ 1, probs = ~ pi_A_Y22, pps = "brewer", data = population[flag_A_Y22 == 1, ])
 ```
 
 Next, we generate two samples based on `flag_B1` and `flag_B2`.
 
 ```{r nonprob-survey}
-sample_B1 <- pop_data[pop_data$flag_B1 == 1, ]
-sample_B2 <- pop_data[pop_data$flag_B2 == 1, ]
+set.seed(seed_for_sim)
+flag_B1 <- rbinom(N, 1, prob = pi_B1)
+flag_B2 <- rbinom(N, 1, prob = pi_B2)
+
+sample_B1 <- population[flag_B1 == 1, ]
+sample_B2 <- population[flag_B2 == 1, ]
 ```
 
 ### Estimators under PSM I
@@ -137,16 +156,35 @@ Naive estimator.
 
 ```{r naive, eval = FALSE}
 est_naive <- aggregate(cbind(Y_11,Y_12,Y_21,Y_22) ~ 1, sample_B1, mean)
+est_naive
 ```
 
 IPW with variable selection using SCAD penalty (note that this IPW is IPW with calibration constraints on selected variables).
 
 ```{r ipw-with-scad, cache=TRUE, eval = FALSE}
-est_ipw <- nonprob(selection = X_formula,
-                   target = ~ Y_11 + Y_12 + Y_21 + Y_22,
-                   data = sample_B1, 
-                   svydesign = sample_A_svy_cal, 
-                   control_inference = controlInf(vars_selection = TRUE))
+est_ipw_y11 <- nonprob(selection = X_formula,
+                       target = ~ Y_11,
+                       data = sample_B1,
+                       svydesign = sample_A_svy_Y11,
+                       control_inference = controlInf(vars_selection = TRUE))
+
+est_ipw_y12 <- nonprob(selection = X_formula,
+                       target = ~ Y_12,
+                       data = sample_B1,
+                       svydesign = sample_A_svy_Y12,
+                       control_inference = controlInf(vars_selection = TRUE))
+
+est_ipw_y21 <- nonprob(selection = X_formula,
+                       target = ~ Y_21,
+                       data = sample_B1,
+                       svydesign = sample_A_svy_Y21,
+                       control_inference = controlInf(vars_selection = TRUE))
+
+est_ipw_y22 <- nonprob(selection = X_formula,
+                       target = ~ Y_22,
+                       data = sample_B1,
+                       svydesign = sample_A_svy_Y22,
+                       control_inference = controlInf(vars_selection = TRUE))
 ```
 
 
@@ -155,22 +193,22 @@ Mass imputation with SCAD penalty.
 ```{r mi-with-scad, eval = FALSE}
 est_mi_y11 <- nonprob(outcome = as.formula(paste("Y_11 ~ ", as.character(X_formula)[2])),
                       data = sample_B1,
-                      svydesign = sample_A_svy_cal,
+                      svydesign = sample_A_svy_Y11,
                       control_inference = controlInf(vars_selection = TRUE),
                       family_outcome = "gaussian")
 est_mi_y12 <- nonprob(outcome = as.formula(paste("Y_12 ~ ", as.character(X_formula)[2])),
                       data = sample_B1,
-                      svydesign = sample_A_svy_cal,
+                      svydesign = sample_A_svy_Y12,
                       control_inference = controlInf(vars_selection = TRUE),
                       family_outcome = "gaussian")
 est_mi_y21 <- nonprob(outcome = as.formula(paste("Y_21 ~ ", as.character(X_formula)[2])),
                       data = sample_B1,
-                      svydesign = sample_A_svy_cal,
+                      svydesign = sample_A_svy_Y21,
                       control_inference = controlInf(vars_selection = TRUE),
                       family_outcome = "binomial")
 est_mi_y22 <- nonprob(outcome = as.formula(paste("Y_22 ~ ", as.character(X_formula)[2])),
                       data = sample_B1,
-                      svydesign = sample_A_svy_cal,
+                      svydesign = sample_A_svy_Y22,
                       control_inference = controlInf(vars_selection = TRUE),
                       family_outcome = "binomial")
 ```
@@ -179,40 +217,40 @@ DR with variables based on mass imputation with SCAD penalty.
 
 ```{r dr-afer-mi-with-scad, eval = FALSE}
 est_dr_pred_y11 <- nonprob(outcome = as.formula(paste("Y_11 ~ ", 
-                                                      paste(names(est_mi_y11$parameters[,1])[-1],
+                                                      paste(names(est_mi_y11$outcome$Y_11$coefficients)[-1],
                                                             collapse = "+"))),
                            selection = as.formula(paste(" ~ ", 
-                                                      paste(names(est_mi_y11$parameters[,1])[-1],
+                                                      paste(names(est_mi_y11$outcome$Y_11$coefficients)[-1],
                                                             collapse = "+"))),
                            data = sample_B1,
-                           svydesign = sample_A_svy,
+                           svydesign = sample_A_svy_Y11,
                            family_outcome = "gaussian")
 est_dr_pred_y12 <- nonprob(outcome = as.formula(paste("Y_12 ~ ", 
-                                                      paste(names(est_mi_y12$parameters[,1])[-1],
+                                                      paste(names(est_mi_y12$outcome$Y_12$coefficients)[-1],
                                                             collapse = "+"))),
                            selection = as.formula(paste(" ~ ", 
-                                                      paste(names(est_mi_y12$parameters[,1])[-1],
+                                                      paste(names(est_mi_y12$outcome$Y_12$coefficients)[-1],
                                                             collapse = "+"))),
                            data = sample_B1,
-                           svydesign = sample_A_svy,
+                           svydesign = sample_A_svy_Y12,
                            family_outcome = "gaussian")
 est_dr_pred_y21 <- nonprob(outcome = as.formula(paste("Y_21 ~ ", 
-                                                      paste(names(est_mi_y21$parameters[,1])[-1],
+                                                      paste(names(est_mi_y21$outcome$Y_21$coefficients)[-1],
                                                             collapse = "+"))),
                            selection = as.formula(paste(" ~ ", 
-                                                      paste(names(est_mi_y21$parameters[,1])[-1],
+                                                      paste(names(est_mi_y21$outcome$Y_21$coefficients)[-1],
                                                             collapse = "+"))),
                            data = sample_B1,
-                           svydesign = sample_A_svy,
+                           svydesign = sample_A_svy_Y21,
                            family_outcome = "binomial")
 est_dr_pred_y22 <- nonprob(outcome = as.formula(paste("Y_22 ~ ", 
-                                                      paste(names(est_mi_y22$parameters[,1])[-1],
+                                                      paste(names(est_mi_y22$outcome$Y_22$coefficients)[-1],
                                                             collapse = "+"))),
                            selection = as.formula(paste(" ~ ", 
-                                                      paste(names(est_mi_y22$parameters[,1])[-1],
+                                                      paste(names(est_mi_y22$outcome$Y_22$coefficients)[-1],
                                                             collapse = "+"))),
                            data = sample_B1,
-                           svydesign = sample_A_svy,
+                           svydesign = sample_A_svy_Y22,
                            family_outcome = "binomial")
 ```
 
@@ -222,25 +260,25 @@ DR without bias minimization but with union of variables.
 est_dr_y11 <- nonprob(outcome = as.formula(paste("Y_11 ~ ", as.character(X_formula)[2])),
                      selection = X_formula,
                      data = sample_B1,
-                     svydesign = sample_A_svy,
+                     svydesign = sample_A_svy_Y11,
                      control_inference = controlInf(vars_selection = TRUE),
                      family_outcome = "gaussian")
 est_dr_y12 <- nonprob(outcome = as.formula(paste("Y_12 ~ ", as.character(X_formula)[2])),
                      selection = X_formula,
                      data = sample_B1,
-                     svydesign = sample_A_svy,
+                     svydesign = sample_A_svy_Y12,
                      control_inference = controlInf(vars_selection = TRUE),
                      family_outcome = "gaussian")
 est_dr_y21 <- nonprob(outcome = as.formula(paste("Y_21 ~ ", as.character(X_formula)[2])),
                      selection = X_formula,
                      data = sample_B1,
-                     svydesign = sample_A_svy,
+                     svydesign = sample_A_svy_Y21,
                      control_inference = controlInf(vars_selection = TRUE),
                      family_outcome = "binomial")
 est_dr_y22 <- nonprob(outcome = as.formula(paste("Y_22 ~ ", as.character(X_formula)[2])),
                      selection = X_formula,
                      data = sample_B1,
-                     svydesign = sample_A_svy,
+                     svydesign = sample_A_svy_Y22,
                      control_inference = controlInf(vars_selection = TRUE),
                      family_outcome = "binomial")
 ```
@@ -248,29 +286,29 @@ est_dr_y22 <- nonprob(outcome = as.formula(paste("Y_22 ~ ", as.character(X_formu
 DR with bias minimization with union of variables after selection of variables with SCAD.
 
 ```{r dr-with-scad-mm, cache = TRUE, eval = FALSE}
-est_dr_mm_y11 <- nonprob(outcome = as.formula(paste("Y_11 ~ ", paste(rownames(est_dr_y11$parameters)[-1], collapse = "+"))),
-                         selection = as.formula(paste(" ~ ", paste(rownames(est_dr_y11$parameters)[-1], collapse = "+"))),
+est_dr_mm_y11 <- nonprob(outcome = as.formula(paste("Y_11 ~ ", paste(names(est_dr_y11$outcome$Y_11$coefficients)[-1], collapse = "+"))),
+                         selection = as.formula(paste(" ~ ", paste(names(est_dr_y11$selection$coefficients)[-1], collapse = "+"))),
                          data = sample_B1,
-                         svydesign = sample_A_svy,
-                         control_selection = controlSel(est_method_sel = "mm"),
+                         svydesign = sample_A_svy_Y11,
+                         control_inference = controlInf(bias_correction = TRUE),
                          family_outcome = "gaussian")
-est_dr_mm_y12 <- nonprob(outcome = as.formula(paste("Y_12 ~ ", paste(rownames(est_dr_y12$parameters)[-1], collapse = "+"))),
-                         selection = as.formula(paste(" ~ ", paste(rownames(est_dr_y12$parameters)[-1], collapse = "+"))),
+est_dr_mm_y12 <- nonprob(outcome = as.formula(paste("Y_12 ~ ", paste(names(est_dr_y12$outcome$Y_12$coefficients)[-1], collapse = "+"))),
+                         selection = as.formula(paste(" ~ ", paste(names(est_dr_y12$selection$coefficients)[-1], collapse = "+"))),
                          data = sample_B1,
-                         svydesign = sample_A_svy,
-                         control_selection = controlSel(est_method_sel = "mm"),
+                         svydesign = sample_A_svy_Y12,
+                         control_inference = controlInf(bias_correction = TRUE),
                          family_outcome = "gaussian")
-est_dr_mm_y21 <- nonprob(outcome = as.formula(paste("Y_21 ~ ", paste(rownames(est_dr_y21$parameters)[-1], collapse = "+"))),
-                         selection = as.formula(paste(" ~ ", paste(rownames(est_dr_y21$parameters)[-1], collapse = "+"))),
+est_dr_mm_y21 <- nonprob(outcome = as.formula(paste("Y_21 ~ ", paste(names(est_dr_y21$outcome$Y_21$coefficients)[-1], collapse = "+"))),
+                         selection = as.formula(paste(" ~ ", paste(names(est_dr_y21$selection$coefficients)[-1], collapse = "+"))),
                          data = sample_B1,
-                         svydesign = sample_A_svy,
-                         control_selection = controlSel(est_method_sel = "mm"),
+                         svydesign = sample_A_svy_Y21,
+                         control_inference = controlInf(bias_correction = TRUE),
                          family_outcome = "binomial")
-est_dr_mm_y22 <- nonprob(outcome = as.formula(paste("Y_22 ~ ", paste(rownames(est_dr_y22$parameters)[-1], collapse = "+"))),
-                         selection = as.formula(paste(" ~ ", paste(rownames(est_dr_y22$parameters)[-1], collapse = "+"))),
+est_dr_mm_y22 <- nonprob(outcome = as.formula(paste("Y_22 ~ ", paste(names(est_dr_y22$outcome$Y_22$coefficients)[-1], collapse = "+"))),
+                         selection = as.formula(paste(" ~ ", paste(names(est_dr_y22$selection$coefficients)[-1], collapse = "+"))),
                          data = sample_B1,
-                         svydesign = sample_A_svy,
-                         control_selection = controlSel(est_method_sel = "mm"),
+                         svydesign = sample_A_svy_Y22,
+                         control_inference = controlInf(bias_correction = TRUE),
                          family_outcome = "binomial")
 ```
 
@@ -278,7 +316,10 @@ Compare results
 
 ```{r, eval = FALSE}
 results <- rbind(
-  cbind(est_ipw$output,est_ipw$confidence_interval),
+  cbind(est_ipw_y11$output,est_ipw_y11$confidence_interval),
+  cbind(est_ipw_y12$output,est_ipw_y12$confidence_interval),
+  cbind(est_ipw_y21$output,est_ipw_y21$confidence_interval),
+  cbind(est_ipw_y22$output,est_ipw_y22$confidence_interval),
   cbind(est_mi_y11$output,est_mi_y11$confidence_interval),
   cbind(est_mi_y12$output,est_mi_y12$confidence_interval),
   cbind(est_mi_y21$output,est_mi_y21$confidence_interval),
@@ -307,11 +348,11 @@ results <- results[order(results$y, results$estim),]
 ```
 
 ```{r save, echo = FALSE, eval = FALSE}
-saveRDS(results, file = "results/yang_et_al_2022_one_run_ps1.rds")
+saveRDS(results, file = "../results/yang_et_al_2022_one_run_ps1.rds")
 ```
 
 ```{r load, echo = FALSE}
-results <- readRDS("results/yang_et_al_2022_one_run_ps1.rds")
+results <- readRDS("../results/yang_et_al_2022_one_run_ps1.rds")
 results
 ```
 Plot results from one go
@@ -341,11 +382,29 @@ est_naive <- aggregate(cbind(Y_11,Y_12,Y_21,Y_22) ~ 1, sample_B2, mean)
 IPW with variable selection using SCAD penalty (note that this IPW is IPW with calibration constraints on selected variables).
 
 ```{r ipw-with-scad-ps2, cache=TRUE, eval = FALSE}
-est_ipw <- nonprob(selection = X_formula,
-                   target = ~ Y_11 + Y_12 + Y_21 + Y_22,
-                   data = sample_B2, 
-                   svydesign = sample_A_svy_cal, 
-                   control_inference = controlInf(vars_selection = TRUE))
+est_ipw_y11 <- nonprob(selection = X_formula,
+                       target = ~ Y_11,
+                       data = sample_B2,
+                       svydesign = sample_A_svy_Y11,
+                       control_inference = controlInf(vars_selection = TRUE))
+
+est_ipw_y12 <- nonprob(selection = X_formula,
+                       target = ~ Y_12,
+                       data = sample_B2,
+                       svydesign = sample_A_svy_Y12,
+                       control_inference = controlInf(vars_selection = TRUE))
+
+est_ipw_y21 <- nonprob(selection = X_formula,
+                       target = ~ Y_21,
+                       data = sample_B2,
+                       svydesign = sample_A_svy_Y21,
+                       control_inference = controlInf(vars_selection = TRUE))
+
+est_ipw_y22 <- nonprob(selection = X_formula,
+                       target = ~ Y_22,
+                       data = sample_B2,
+                       svydesign = sample_A_svy_Y22,
+                       control_inference = controlInf(vars_selection = TRUE))
 ```
 
 
@@ -354,22 +413,22 @@ Mass imputation with SCAD penalty.
 ```{r mi-with-scad-ps2, eval = FALSE}
 est_mi_y11 <- nonprob(outcome = as.formula(paste("Y_11 ~ ", as.character(X_formula)[2])),
                       data = sample_B2,
-                      svydesign = sample_A_svy_cal,
+                      svydesign = sample_A_svy_Y11,
                       control_inference = controlInf(vars_selection = TRUE),
                       family_outcome = "gaussian")
 est_mi_y12 <- nonprob(outcome = as.formula(paste("Y_12 ~ ", as.character(X_formula)[2])),
                       data = sample_B2,
-                      svydesign = sample_A_svy_cal,
+                      svydesign = sample_A_svy_Y12,
                       control_inference = controlInf(vars_selection = TRUE),
                       family_outcome = "gaussian")
 est_mi_y21 <- nonprob(outcome = as.formula(paste("Y_21 ~ ", as.character(X_formula)[2])),
                       data = sample_B2,
-                      svydesign = sample_A_svy_cal,
+                      svydesign = sample_A_svy_Y21,
                       control_inference = controlInf(vars_selection = TRUE),
                       family_outcome = "binomial")
 est_mi_y22 <- nonprob(outcome = as.formula(paste("Y_22 ~ ", as.character(X_formula)[2])),
                       data = sample_B2,
-                      svydesign = sample_A_svy_cal,
+                      svydesign = sample_A_svy_Y22,
                       control_inference = controlInf(vars_selection = TRUE),
                       family_outcome = "binomial")
 ```
@@ -378,41 +437,40 @@ DR with variables based on mass imputation with SCAD penalty.
 
 ```{r dr-afer-mi-with-scad-ps2, eval = FALSE}
 est_dr_pred_y11 <- nonprob(outcome = as.formula(paste("Y_11 ~ ", 
-                                                      paste(names(est_mi_y11$parameters[,1])[-1],
+                                                      paste(names(est_mi_y11$outcome$Y_11$coefficients)[-1],
                                                             collapse = "+"))),
                            selection = as.formula(paste(" ~ ", 
-                                                      paste(names(est_mi_y11$parameters[,1])[-1],
+                                                      paste(names(est_mi_y11$outcome$Y_11$coefficients)[-1],
                                                             collapse = "+"))),
                            data = sample_B2,
-                           svydesign = sample_A_svy,
+                           svydesign = sample_A_svy_Y11,
                            family_outcome = "gaussian")
 est_dr_pred_y12 <- nonprob(outcome = as.formula(paste("Y_12 ~ ", 
-                                                      paste(names(est_mi_y12$parameters[,1])[-1],
+                                                      paste(names(est_mi_y12$outcome$Y_12$coefficients)[-1],
                                                             collapse = "+"))),
                            selection = as.formula(paste(" ~ ", 
-                                                      paste(names(est_mi_y12$parameters[,1])[-1],
+                                                      paste(names(est_mi_y12$outcome$Y_12$coefficients)[-1],
                                                             collapse = "+"))),
                            data = sample_B2,
-                           svydesign = sample_A_svy,
+                           svydesign = sample_A_svy_Y12,
                            family_outcome = "gaussian")
 est_dr_pred_y21 <- nonprob(outcome = as.formula(paste("Y_21 ~ ", 
-                                                      paste(names(est_mi_y21$parameters[,1])[-1],
+                                                      paste(names(est_mi_y21$outcome$Y_21$coefficients)[-1],
                                                             collapse = "+"))),
                            selection = as.formula(paste(" ~ ", 
-                                                      paste(names(est_mi_y21$parameters[,1])[-1],
+                                                      paste(names(est_mi_y21$outcome$Y_21$coefficients)[-1],
                                                             collapse = "+"))),
                            data = sample_B2,
-                           svydesign = sample_A_svy,
+                           svydesign = sample_A_svy_Y21,
                            family_outcome = "binomial")
-
 est_dr_pred_y22 <- nonprob(outcome = as.formula(paste("Y_22 ~ ", 
-                                                      paste(names(est_mi_y22$parameters[,1])[-1],
+                                                      paste(names(est_mi_y22$outcome$Y_22$coefficients)[-1],
                                                             collapse = "+"))),
                            selection = as.formula(paste(" ~ ", 
-                                                      paste(names(est_mi_y22$parameters[,1])[-1],
+                                                      paste(names(est_mi_y22$outcome$Y_22$coefficients)[-1],
                                                             collapse = "+"))),
                            data = sample_B2,
-                           svydesign = sample_A_svy,
+                           svydesign = sample_A_svy_Y22,
                            family_outcome = "binomial")
 ```
 
@@ -422,62 +480,55 @@ DR without bias minimization but with union of variables.
 est_dr_y11 <- nonprob(outcome = as.formula(paste("Y_11 ~ ", as.character(X_formula)[2])),
                      selection = X_formula,
                      data = sample_B2,
-                     svydesign = sample_A_svy,
-                     #pop_totals = X_totals,
+                     svydesign = sample_A_svy_Y11,
                      control_inference = controlInf(vars_selection = TRUE),
                      family_outcome = "gaussian")
-
 est_dr_y12 <- nonprob(outcome = as.formula(paste("Y_12 ~ ", as.character(X_formula)[2])),
                      selection = X_formula,
                      data = sample_B2,
-                     #svydesign = sample_A_svy,
-                     pop_totals = X_totals,
+                     svydesign = sample_A_svy_Y12,
                      control_inference = controlInf(vars_selection = TRUE),
                      family_outcome = "gaussian")
-
 est_dr_y21 <- nonprob(outcome = as.formula(paste("Y_21 ~ ", as.character(X_formula)[2])),
-                      selection = X_formula,
-                      data = sample_B2,
-                      #svydesign = sample_A_svy,
-                      pop_totals = X_totals,
-                      control_inference = controlInf(vars_selection = TRUE),
-                      family_outcome = "binomial")
-
+                     selection = X_formula,
+                     data = sample_B2,
+                     svydesign = sample_A_svy_Y21,
+                     control_inference = controlInf(vars_selection = TRUE),
+                     family_outcome = "binomial")
 est_dr_y22 <- nonprob(outcome = as.formula(paste("Y_22 ~ ", as.character(X_formula)[2])),
-                      selection = X_formula,
-                      data = sample_B2,
-                      #svydesign = sample_A_svy,
-                      pop_totals = X_totals,
-                      control_inference = controlInf(vars_selection = TRUE),
-                      family_outcome = "binomial")
+                     selection = X_formula,
+                     data = sample_B2,
+                     svydesign = sample_A_svy_Y22,
+                     control_inference = controlInf(vars_selection = TRUE),
+                     family_outcome = "binomial")
 ```
 
 DR with bias minimization with union of variables after selection of variables with SCAD.
 
 ```{r dr-with-scad-mm-ps2, cache = TRUE, eval = FALSE}
-est_dr_mm_y11 <- nonprob(outcome = as.formula(paste("Y_11 ~ ", paste(rownames(est_dr_y11$parameters)[-1], collapse = "+"))),
-                         selection = as.formula(paste(" ~ ", paste(rownames(est_dr_y11$parameters)[-1], collapse = "+"))),
+est_dr_mm_y11 <- nonprob(outcome = as.formula(paste("Y_11 ~ ", paste(names(est_dr_y11$outcome$Y_11$coefficients)[-1], collapse = "+"))),
+                         selection = as.formula(paste(" ~ ", paste(names(est_dr_y11$selection$coefficients)[-1], collapse = "+"))),
                          data = sample_B2,
-                         svydesign = sample_A_svy,
-                         control_selection = controlSel(est_method_sel = "mm"),
+                         svydesign = sample_A_svy_Y11,
+                         control_inference = controlInf(bias_correction = TRUE),
                          family_outcome = "gaussian")
-est_dr_mm_y12 <- nonprob(outcome = as.formula(paste("Y_12 ~ ", paste(rownames(est_dr_y12$parameters)[-1], collapse = "+"))),
-                         selection = as.formula(paste(" ~ ", paste(rownames(est_dr_y12$parameters)[-1], collapse = "+"))),
+est_dr_mm_y12 <- nonprob(outcome = as.formula(paste("Y_12 ~ ", paste(names(est_dr_y12$outcome$Y_12$coefficients)[-1], collapse = "+"))),
+                         selection = as.formula(paste(" ~ ", paste(names(est_dr_y12$selection$coefficients)[-1], collapse = "+"))),
                          data = sample_B2,
-                         svydesign = sample_A_svy,
-                         control_selection = controlSel(est_method_sel = "mm"),
+                         svydesign = sample_A_svy_Y12,
+                         control_inference = controlInf(bias_correction = TRUE),
                          family_outcome = "gaussian")
-est_dr_mm_y21 <- nonprob(outcome = as.formula(paste("Y_21 ~ ", paste(rownames(est_dr_y21$parameters)[-1], collapse = "+"))),
-                         selection = as.formula(paste(" ~ ", paste(rownames(est_dr_y21$parameters)[-1], collapse = "+"))),
+est_dr_mm_y21 <- nonprob(outcome = as.formula(paste("Y_21 ~ ", paste(names(est_dr_y21$outcome$Y_21$coefficients)[-1], collapse = "+"))),
+                         selection = as.formula(paste(" ~ ", paste(names(est_dr_y21$selection$coefficients)[-1], collapse = "+"))),
                          data = sample_B2,
-                         svydesign = sample_A_svy,
-                         control_selection = controlSel(est_method_sel = "mm"),
+                         svydesign = sample_A_svy_Y21,
+                         control_inference = controlInf(bias_correction = TRUE),
                          family_outcome = "binomial")
-est_dr_mm_y22 <- nonprob(outcome = as.formula(paste("Y_22 ~ ", paste(rownames(est_dr_y22$parameters)[-1], collapse = "+"))),
-                         selection = as.formula(paste(" ~ ", paste(rownames(est_dr_y22$parameters)[-1], collapse = "+"))),
+est_dr_mm_y22 <- nonprob(outcome = as.formula(paste("Y_22 ~ ", paste(names(est_dr_y22$outcome$Y_22$coefficients)[-1], collapse = "+"))),
+                         selection = as.formula(paste(" ~ ", paste(names(est_dr_y22$selection$coefficients)[-1], collapse = "+"))),
                          data = sample_B2,
-                         svydesign = sample_A_svy,
-                         control_selection = controlSel(est_method_sel = "mm"),
+                         svydesign = sample_A_svy_Y22,
+                         control_inference = controlInf(bias_correction = TRUE),
                          family_outcome = "binomial")
 ```
 
@@ -485,7 +536,10 @@ Compare results
 
 ```{r ps2-results, eval = FALSE}
 results <- rbind(
-  cbind(est_ipw$output,est_ipw$confidence_interval),
+  cbind(est_ipw_y11$output,est_ipw_y11$confidence_interval),
+  cbind(est_ipw_y12$output,est_ipw_y12$confidence_interval),
+  cbind(est_ipw_y21$output,est_ipw_y21$confidence_interval),
+  cbind(est_ipw_y22$output,est_ipw_y22$confidence_interval),
   cbind(est_mi_y11$output,est_mi_y11$confidence_interval),
   cbind(est_mi_y12$output,est_mi_y12$confidence_interval),
   cbind(est_mi_y21$output,est_mi_y21$confidence_interval),
@@ -494,10 +548,10 @@ results <- rbind(
   cbind(est_dr_pred_y12$output,est_dr_pred_y12$confidence_interval),
   cbind(est_dr_pred_y21$output,est_dr_pred_y21$confidence_interval),
   cbind(est_dr_pred_y22$output,est_dr_pred_y22$confidence_interval),
-  #cbind(est_dr_y11$output,est_dr_y11$confidence_interval),
-  #cbind(est_dr_y12$output,est_dr_y12$confidence_interval),
-  #cbind(est_dr_y21$output,est_dr_y21$confidence_interval),
-  #cbind(est_dr_y22$output,est_dr_y22$confidence_interval),
+  cbind(est_dr_y11$output,est_dr_y11$confidence_interval),
+  cbind(est_dr_y12$output,est_dr_y12$confidence_interval),
+  cbind(est_dr_y21$output,est_dr_y21$confidence_interval),
+  cbind(est_dr_y22$output,est_dr_y22$confidence_interval),
   cbind(est_dr_mm_y11$output,est_dr_mm_y11$confidence_interval),
   cbind(est_dr_mm_y12$output,est_dr_mm_y12$confidence_interval),
   cbind(est_dr_mm_y21$output,est_dr_mm_y21$confidence_interval),
@@ -507,11 +561,11 @@ results <- rbind(
 rownames(results) <- NULL
 results$y <- rep(c("Y_11", "Y_12", "Y_21", "Y_22"), rep = 4)
 results$estim <- rep(c("IPW", "MI", "DR (MI vars)", 
-                       #"DR (SCAD)", 
+                       "DR (SCAD)", 
                        "DR (SCAD and BM)", 
                        "Naive"), each = 4)
 results$estim <- factor(results$estim, c("Naive", "IPW", "MI", "DR (MI vars)" 
-                                         #,"DR (SCAD)", 
+                                         ,"DR (SCAD)", 
                                          "DR (SCAD and BM)"
                                          ))
 results$true  <- rep(c(mean(Y_11), mean(Y_12), mean(Y_21), mean(Y_22)), rep = 6)
@@ -520,11 +574,11 @@ results <- results[order(results$y, results$estim),]
 ```
 
 ```{r save-ps2, echo = FALSE, eval = FALSE}
-saveRDS(results, file = "results/yang_et_al_2022_one_run_ps2.rds")
+saveRDS(results, file = "../results/yang_et_al_2022_one_run_ps2.rds")
 ```
 
 ```{r load-ps2, echo = FALSE}
-results <- readRDS("results/yang_et_al_2022_one_run_ps2.rds")
+results <- readRDS("../results/yang_et_al_2022_one_run_ps2.rds")
 results
 ```
 
