@@ -21,7 +21,7 @@ execute:
 
 ## Theory
 
-This notebook is desinged to replicate results from the paper
+This notebook is designed to replicate results from the paper
 
 ```
 Yang, S., Kim, J. K., & Song, R. (2020). Doubly robust inference

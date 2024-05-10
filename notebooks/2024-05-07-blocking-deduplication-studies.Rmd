@@ -1,0 +1,56 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# Packages
+
+```{r}
+library(blocking)
+library(data.table)
+library(stringi)
+```
+
+# Exercies 1
+
+CD data
+
+https://hpi.de/naumann/projects/repeatability/datasets/cd-datasets.html#c4374
+
++ data in TSV
+
+```{r}
+cd_data <- fread("https://hpi.de/fileadmin/user_upload/fachgebiete/naumann/projekte/repeatability/freeDB/mdedup/cddb.tsv", sep = "\t", colClasses = "character")
+cd_data_pairs <- fread("https://hpi.de/fileadmin/user_upload/fachgebiete/naumann/projekte/repeatability/freeDB/cddb_DPL.tsv")
+cd_data[, txt:=paste0(artist, genre, title, tracks, year)]
+cd_data[, txt2:= stri_replace_all_regex(txt, "[^A-Za-z0-9 ]", "")]
+```
+
+```{r}
+cd_data[id %in% c(1818, 7075), (txt2)]
+```
+
+```{r}
+test <- blocking(x = cd_data$txt2, ann = "nnd", distance = "cosine", verbose = 1, n_threads = 8)
+```
+
+
+```{r}
+test$result[, id1:=as.integer(cd_data$id[x])]
+test$result[, id2:=as.integer(cd_data$id[y])]
+```
+
+
+```{r}
+test_result <- test$result
+test_result[cd_data_pairs, on = c("id1", "id2"), true:=TRUE]
+cd_data_pairs[test_result, on = c("id1", "id2"), true:=TRUE]
+cd_data_pairs[,.N, true]
+test_result[,.N, true]
+```
+
+```{r}
+cd_data[id %in% c(1828, 2110)]
+```
+
+# Exercies 1

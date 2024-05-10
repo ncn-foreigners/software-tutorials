@@ -1,0 +1,120 @@
+---
+title: "Febrl - Freely extensible biomedical record linkage"
+author: Maciej Beręsewicz
+format: 
+  html:
+    number-sections: true
+    self-contained: true
+    toc: true
+    df-print: kable
+lang: en
+bibliography: references.bib
+biblio-style: apalike
+execute: 
+  warning: false
+  cache: false
+  message: false
+---
+
+
+# Introduction
+
+Datasets taken from the [`recordlinkage`](https://recordlinkage.readthedocs.io/en/latest/ref-datasets.html) module in Python. Based on thee [FEBRL](http://users.cecs.anu.edu.au/~Peter.Christen/Febrl/febrl-0.3/febrldoc-0.3/manual.html) project.
+
+# Packages
+
+```{r}
+library(blocking)
+library(data.table)
+library(stringr)
+```
+
+
+# Dataset 4
+
+```
+Generated as one data set with 10000 records (5000 originals and 5000 duplicates, with one duplicate per original), the originals have been split from the duplicates, into dataset4a.csv (containing the 5000 original records) and dataset4b.csv (containing the 5000 duplicate records) These two data sets can be used for testing linkage procedures.
+```
+
+Read the data.
+
+```{r}
+febrl4_a <- fread("../datasets/dataset4a.csv")
+febrl4_b <- fread("../datasets/dataset4b.csv")
+```
+
+Convert dates and street numbers.
+
+```{r}
+febrl4_a[, date_of_birth:=as.character(date_of_birth)]
+febrl4_a[, street_number:=as.character(street_number)]
+febrl4_a[is.na(date_of_birth), date_of_birth:=""]
+febrl4_a[is.na(street_number), street_number:=""]
+febrl4_b[, date_of_birth:=as.character(date_of_birth)]
+febrl4_b[, street_number:=as.character(street_number)]
+febrl4_b[is.na(date_of_birth), date_of_birth:=""]
+febrl4_b[is.na(street_number), street_number:=""]
+```
+
+Create variable for blocking.
+
+```{r}
+febrl4_a[, txt:=paste0(given_name, surname, street_number, address_1, address_2, suburb, postcode, state, date_of_birth)]
+febrl4_b[, txt:=paste0(given_name, surname, street_number, address_1, address_2, suburb, postcode, state, date_of_birth)]
+```
+
+Generate table with true pairs based on `rec_id` column.
+
+```{r}
+true_pairs <- merge(x = febrl4_a[, .(x=1:.N, rec_id = str_extract(rec_id, "rec-\\d{1,4}"))],
+                    y = febrl4_b[, .(y=1:.N, rec_id = str_extract(rec_id, "rec-\\d{1,4}"))])
+
+true_pairs[, block:=1:.N]
+dim(true_pairs)
+```
+
+Blocking with `nnd` algorithm and calculating quality based on `true_pairs`.
+
+```{r}
+set.seed(2024)
+test1_nnd <- blocking(x = febrl4_a$txt,
+                      y = febrl4_b$txt,
+                      ann = "nnd",
+                      verbose = 1, 
+                      n_threads = 8,
+                      true_blocks = true_pairs[, .(x,y,block)])
+```
+
+Summary of the object.
+
+```{r}
+test1_nnd
+```
+
+We can see that algirthm missed `r test1_nnd$confusion[1,2]` pairs.
+
+```{r}
+test1_nnd$confusion
+```
+
+Let's increase `eps` in the search and see the result.
+
+```{r}
+set.seed(2024)
+control_params <- controls_ann()
+control_params$nnd$epsilon <- 0.2
+test2_nnd <- blocking(x = febrl4_a$txt,
+                      y = febrl4_b$txt,
+                      ann = "nnd",
+                      verbose = 1, 
+                      n_threads = 8,
+                      true_blocks = true_pairs[, .(x,y,block)],
+                      control_ann = control_params)
+```
+
+Now, the FDR is 0 so all duplicates were identified.
+
+```{r}
+test2_nnd
+```
+
