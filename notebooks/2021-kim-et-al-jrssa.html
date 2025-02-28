@@ -3432,7 +3432,7 @@ U(\boldsymbol{\phi})=\sum_{i \in B} \mathbf{x}_{i}-\sum_{i \in A} w_{i} \pi(\mat
 </section>
 <section id="simulation" class="level2" data-number="2.2">
 <h2 data-number="2.2" class="anchored" data-anchor-id="simulation"><span class="header-section-number">2.2</span> Simulation</h2>
-<p>Code for simulation is available <a href="../codes/2023-08-20-replicate-kim2021-sim.R">here</a> where:</p>
+<p>Code for simulation is available <a href="../codes/2021-kim-et-al-jrssa.R">here</a> where:</p>
 <ul>
 <li><code>naive</code> – based on non-probability sample</li>
 <li><code>prob</code> – based on probability sample</li>
@@ -3445,33 +3445,32 @@ U(\boldsymbol{\phi})=\sum_{i \in B} \mathbf{x}_{i}-\sum_{i \in A} w_{i} \pi(\mat
 </div>
 <p>Coverage of confidence intervals using analytical variance</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>results[<span class="sc">!</span><span class="fu">is.na</span>(lower_bound), .(<span class="at">m =</span> <span class="fu">mean</span>(lower_bound <span class="sc">&lt;</span> true <span class="sc">&amp;</span> upper_bound <span class="sc">&gt;</span> true)), keyby<span class="ot">=</span>.(y, est)] <span class="sc">|&gt;</span> </span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">dcast</span>(y <span class="sc">~</span> est, <span class="at">value.var =</span> <span class="st">&quot;m&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>results[<span class="sc">!</span><span class="fu">is.na</span>(lower_bound), .(<span class="at">m =</span> <span class="fu">mean</span>(lower_bound <span class="sc">&lt;</span> true <span class="sc">&amp;</span> upper_bound <span class="sc">&gt;</span> true)), keyby<span class="ot">=</span>.(y, est)][est <span class="sc">==</span> <span class="st">&quot;mi&quot;</span>] </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div class="kable-table">
 <table class="caption-top table table-sm table-striped small">
 <thead>
 <tr class="header">
 <th style="text-align: right;">y</th>
-<th style="text-align: right;">mi</th>
-<th style="text-align: right;">ipw</th>
+<th style="text-align: left;">est</th>
+<th style="text-align: right;">m</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td style="text-align: right;">1</td>
+<td style="text-align: left;">mi</td>
 <td style="text-align: right;">0.944</td>
-<td style="text-align: right;">1</td>
 </tr>
 <tr class="even">
 <td style="text-align: right;">2</td>
+<td style="text-align: left;">mi</td>
 <td style="text-align: right;">0.958</td>
-<td style="text-align: right;">1</td>
 </tr>
 <tr class="odd">
 <td style="text-align: right;">3</td>
+<td style="text-align: left;">mi</td>
 <td style="text-align: right;">0.903</td>
-<td style="text-align: right;">1</td>
 </tr>
 </tbody>
 </table>

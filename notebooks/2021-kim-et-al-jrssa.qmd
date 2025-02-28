@@ -137,8 +137,7 @@ results[, est := factor(est, c("prob","naive",  "mi", "ipw"))]
 Coverage of confidence intervals using analytical variance
 
 ```{r}
-results[!is.na(lower_bound), .(m = mean(lower_bound < true & upper_bound > true)), keyby=.(y, est)] |> 
-  dcast(y ~ est, value.var = "m")
+results[!is.na(lower_bound), .(m = mean(lower_bound < true & upper_bound > true)), keyby=.(y, est)][est == "mi"] 
 ```
 
 Table with main results
