@@ -1,0 +1,183 @@
+---
+title: "Short software tutorial on `nonprobsvy` package -- replicating results from the Chen et al. (2020)"
+author: Maciej Beręsewicz
+format: 
+  html:
+    number-sections: true
+    self-contained: true
+    toc: true
+    df-print: kable
+lang: en
+bibliography: references.bib
+biblio-style: apalike
+execute: 
+  warning: false
+  cache: false
+  message: false
+---
+
+# Basic information
+
+## Theory
+
+This notebook is desinged to replicate results from the paper
+
+```         
+Chen, Y., Li, P., & Wu, C. (2020). Doubly robust inference with nonprobability survey
+samples. Journal of the American Statistical Association, 115(532), 2011-2021.
+```
+
+We generate the data using the following recipe from section 5 of this
+paper:
+
+-   Population size $N=20,000$
+-   Response variable $y$ and auxiliary variables $\boldsymbol{x}$
+    following regression model ($\xi$):
+    $y_i=2+x_{1i}+x_{2i}+x_{3i}+x_{4i}+\sigma \varepsilon_i$
+-   Variable construction:
+    -   $x_{1i}=z_{1i}$ where $z_{1i} \sim \text{Bernoulli}(0.5)$
+    -   $x_{2i}=z_{2i}+0.3 x_{1i}$ where
+        $z_{2i} \sim \text{Uniform}(0,2)$
+    -   $x_{3i}=z_{3i}+0.2(x_{1i}+x_{2i})$ where
+        $z_{3i} \sim \text{Exponential}(1)$
+    -   $x_{4i}=z_{4i}+0.1(x_{1i}+x_{2i}+x_{3i})$ where
+        $z_{4i} \sim \chi^2(4)$
+    -   $\varepsilon_i \sim N(0,1)$
+    -   $\sigma$ chosen for correlation $\rho \in \{0.3, 0.5, 0.8\}$
+-   Parameter of interest: finite population mean $\mu_y$
+-   Nonprobability sample $\mathcal{S}_{\mathrm{A}}$ with propensity
+    scores:
+    $\log(\frac{\pi_i^{\mathrm{A}}}{1-\pi_i^{\mathrm{A}}})=\theta_0+0.1 x_{1i}+0.2 x_{2i}+0.1 x_{3i}+0.2 x_{4i}$
+-   Probability sample $\mathcal{S}_{\mathrm{B}}$ using randomized PPS sampling
+    with $\pi_i^{\mathrm{B}} \propto z_i=c+x_{3i}$
+-   Model specification scenarios:
+    -   TT: both models correct
+    -   FT: $\xi$ misspecified (omits $x_{4i}$), $q$ correct
+    -   TF: $\xi$ correct, $q$ misspecified (omits $x_{4i}$)
+    -   FF: both models misspecified (both omit $x_{4i}$)
+-   Sample size combinations $(n_{\mathrm{A}}, n_{\mathrm{B}})$:
+    $(500,500)$, $(500,1000)$, $(1000,500)$, $(1000,1000)$
+
+In this replication we report $(500,1000)$ case as in the paper
+
+# Replication
+
+Load required packages
+
+```{r load-packages}
+library(nonprobsvy)
+library(survey)
+library(sampling)
+library(data.table)
+library(ggplot2)
+packageVersion("nonprobsvy")
+```
+
+## Single run
+
+Here's an example of a single run
+
+```{r mi-sim-data}
+set.seed(123)
+# sizes of population and probability sample
+N <- 20000 # population
+n_a <- 500 # nonprob
+n_b <- 1000 # probability
+# data
+z1 <- rbinom(N, 1, 0.7)
+z2 <- runif(N, 0, 2)
+z3 <- rexp(N, 1)
+z4 <- rchisq(N, 4)
+
+# covariates
+x1 <- z1
+x2 <- z2 + 0.3 * z2
+x3 <- z3 + 0.2 * (z1 + z2)
+x4 <- z4 + 0.1 * (z1 + z2 + z3)
+epsilon <- rnorm(N)
+sigma_30 <- 10.4
+sigma_50 <- 5.2
+sigma_80 <- 2.4
+
+# response variables
+y30 <- 2 + x1 + x2 + x3 + x4 + sigma_30 * epsilon
+y50 <- 2 + x1 + x2 + x3 + x4 + sigma_50 * epsilon
+y80 <- 2 + x1 + x2 + x3 + x4 + sigma_80 * epsilon
+
+# population
+bb <- uniroot(f = function(x) sum(plogis(x + 0.1 * x1 + 0.2 * x2 + 0.1 * x3 + 0.2 * x4)) - 500, 
+              lower=-10, upper=10)
+
+sim_data <- data.frame(y30, y50, y80, x1, x2, x3, x4,
+                       rho = plogis(bb$root + 0.1 * x1 + 0.2 * x2 + 0.1 * x3 + 0.2 * x4),
+                       p_prob=inclusionprobabilities(x3 + 0.2051, n = n_a))
+
+sim_data$flag_nonprob <- UPpoisson(sim_data$rho) ## sampling nonprob
+sim_data$flag_prob <-  UPrandomsystematic(sim_data$p_prob) ## different from the paper (as example)
+
+sample_nonp <- subset(sim_data, flag_nonprob == 1)
+sample_prob <- subset(sim_data, flag_prob == 1)
+    
+# Create survey design
+sample_prob_svy <- svydesign(ids=~1, probs=~p_prob, data=sample_prob)
+    
+dr_tt <- nonprob(outcome = y30+y50+y80 ~ x1 + x2 + x3 + x4, 
+                 selection = ~ x1 + x2 + x3 + x4, 
+                 data = sample_nonp, 
+                 svydesign = sample_prob_svy)
+
+cbind(dr_tt$output, dr_tt$confidence_interval)
+```
+
+```{r}
+dr_tt
+```
+
+## Simulation
+
+Code for simulation is available [here](../codes/2020-chen-et-al-jasa.R)
+where:
+
+```{r}
+results <- readRDS("../results/chen2020-replicates.rds")
+results[, est := factor(results$est, levels = unique(results$est))]
+head(results)
+```
+
+
+Table with main results
+
+```{r}
+results[, .(RB = mean((mean-true)/true)*100, MSE = mean( (mean-true)^2)), keyby=.(y, est)] |>
+  melt(id.vars = c("y", "est")) |>
+  transform(y=factor(paste(y, variable), c("y30 RB", "y30 MSE", "y50 RB", "y50 MSE", "y80 RB", "y80 MSE")),
+            variable = NULL,
+            value = round(value,2)) |>
+  dcast(est ~ y, value.var = "value") 
+  
+```
+
+We can compare the results with table 3 from @chen2020
+
+![](../figs/chen2022-jasa-tab-1.png){fig-align="center" width="700"}
+
+Coverage of confidence intervals using analytical variance
+
+```{r}
+results[!is.na(lower_bound), .(m = mean(lower_bound < true & upper_bound > true)*100), 
+        keyby=.(y, est)][grepl("dr", est)] |>
+  dcast(est ~ y, value.var = "m")
+```
+
+![](../figs/chen2022-jasa-tab-2.png){fig-align="center" width="700"}
+
+
+Plot with results
+
+```{r}
+ggplot(data = results, aes(x = est, y = mean)) + 
+  geom_boxplot(position = "dodge") +
+  geom_hline(aes(yintercept = true), color = "red", linetype = "dashed") +
+  facet_wrap(~y, ncol = 3, scales = "free_y") +
+  theme(axis.text.x=element_text(angle = 45, vjust = 1, hjust = 1))
+```
