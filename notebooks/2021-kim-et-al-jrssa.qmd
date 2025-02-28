@@ -53,14 +53,14 @@ The simulation is based on the following assumptions:
         $\widehat{\theta}_{A}=n_{A}^{-1} \sum_{i \in A} y_{i}$,
     -   The naive estimator (sample mean) from sample (denoted as `naive`)
         $B: \widehat{\theta}_{B}=n_{B}^{-1} \sum_{i \in B} y_{i}$.
-    -   The mass imputation estimator from sample $A$ (denoted as `mi (glm)`) given in
+    -   The mass imputation estimator from sample $A$ (denoted as `mi`) given in
         Equation (6) using
         $\widehat{y}_{i}=\widehat{\beta}_{0}+\widehat{\beta}_{1} x_{i}$
         where $(\widehat{\beta}_{0}, \widehat{\boldsymbol{\beta}}_{1})$
         are the estimated regression coefficients obtained from sample
         $B$.
     -   The IPW estimator proposed by @chen2020:
-        $\widehat{\theta}_{I P W}=N^{-1} \sum_{i \in B} \widehat{\pi}_{i}^{-1} y_{i}$ (denoted as `ipw (mle)`),
+        $\widehat{\theta}_{I P W}=N^{-1} \sum_{i \in B} \widehat{\pi}_{i}^{-1} y_{i}$ (denoted as `ipw`),
         where the propensity scores,
         $\pi_{i}=\pi(\mathbf{x}_{i} ; \boldsymbol{\phi})=\left\{1+\exp (-\phi_{0}-\phi_{1} x_{i})\right\}^{-1}$
         with $\mathbf{x}_{i}=(1, x_{i})^{\prime}$ and
@@ -74,10 +74,11 @@ The simulation is based on the following assumptions:
 
 Load required packages
 
-```{r}
+```{r load-packages}
 library(nonprobsvy)
 library(data.table)
 library(ggplot2)
+packageVersion("nonprobsvy")
 ```
 
 
@@ -107,15 +108,16 @@ pop2 <- subset(pop, strata == FALSE)
 sample_b <- rbind(pop1[sample(1:nrow(pop1), n_b1), ],
                   pop2[sample(1:nrow(pop2), n_b2), ])
 ## mass imputation
-res_y1 <- nonprob(outcome = y1 ~ x, data = sample_b, svydesign = svy_a)
-res_y2 <- nonprob(outcome= y2 ~ x,  data = sample_b,   svydesign = svy_a)
-res_y3 <- nonprob(outcome= y3 ~ x,   data = sample_b, svydesign = svy_a)
+res_y <- nonprob(outcome = y1 + y2 + y3 ~ x, data = sample_b, svydesign = svy_a)
 
 
 data.frame(est = c("mi_y1","mi_y2", "mi_y3"),
-           true = c(mean(y1), mean(y2), mean(y3)),
-           naive_B = c(mean(sample_b$y1),mean(sample_b$y2), mean(sample_b$y3)),
-           mi = c(res_y1$output$mean, res_y2$output$mean, res_y3$output$mean))
+           true = colMeans(sample_a[, c("y1", "y2", "y3")]),
+           naive_B = colMeans(sample_b[, c("y1", "y2", "y3")]),
+           mi = res_y$output$mean)
+```
+```{r}
+res_y
 ```
 
 ## Simulation
@@ -124,13 +126,12 @@ Code for simulation is available [here](../codes/2023-08-20-replicate-kim2021-si
 
 + `naive` -- based on non-probability sample 
 + `prob` -- based on probability sample
-+ `mi (glm)` -- based on mass imputation
-+ `ipw (mle)` -- based on IPW with calibration constraints
++ `mi` -- based on Mass Imputation (GLM linear regression)
++ `ipw` -- based on IPW estimator
 
 ```{r}
 results <- readRDS("../results/kim2021-replicates.rds")
-results <- subset(results, est %in% c("naive", "prob", "mi (glm)", "ipw (mle)"))
-results[, est := factor(est, c("prob","naive",  "mi (glm)", "ipw (mle)"))]
+results[, est := factor(est, c("prob","naive",  "mi", "ipw"))]
 ```
 
 Coverage of confidence intervals using analytical variance
