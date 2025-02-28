@@ -1,0 +1,60 @@
+---
+title: "Reclin2 -- town names"
+author: Maciej Beręsewicz
+format: 
+  html:
+    number-sections: true
+    self-contained: true
+    toc: true
+    df-print: kable
+lang: en
+bibliography: references.bib
+biblio-style: apalike
+execute: 
+  warning: false
+  cache: false
+  message: false
+---
+
+
+# Introduction
+
+```{r}
+library(blocking)
+library(reclin2)
+library(data.table)
+```
+
+## Deduplication
+
+## 
+```{r}
+data(town_names)
+setDT(town_names)
+head(town_names)
+```
+
+```{r}
+town_names[, ":="(name=as.character(name),
+                  official_name = as.character(official_name),
+                  id = 1:.N)]
+
+block_res <- blocking(x = town_names$name, 
+                      y = town_names$official_name,
+                      verbose = TRUE, 
+                      graph = T)
+
+```
+
+
+
+```{r}
+plot(block_res$graph, vertex.size=1, vertex.label = NA)
+```
+
+```{r}
+town_names[block_res$result[, .(block, id=y)], on = "id", block := i.block]
+town_names[, .(un = uniqueN(official_name)), block][, .N, un]
+
+```
+

@@ -7,6 +7,8 @@
     -   [`singleRcapture` introduction -- tutorial 1](notebooks/2022-06-15-singleRcapture-showcase.Rmd)
 -   `nonprobsvy`
     -   [`nonprobsvy` package -- basic use cases](https://htmlpreview.github.io/?https://github.com/ncn-foreigners/software-tutorials/main/notebooks/2023-nonprobsvy-basic-usecases.html)
+- `blocking`
+  - 
 
 ### Replication studies
 

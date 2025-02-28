@@ -91,7 +91,7 @@ Summary of the object.
 test1_nnd
 ```
 
-We can see that algirthm missed `r test1_nnd$confusion[1,2]` pairs.
+We can see that algorithm missed `r test1_nnd$confusion[1,2]` pairs.
 
 ```{r}
 test1_nnd$confusion
