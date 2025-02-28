@@ -43,8 +43,10 @@
     and
     methodology](https://academic.oup.com/jssam/article-abstract/10/1/1/5983829),
     10(1), 1-24.
--   [TBA]() -- Chen, Y., Li, P., & Wu, C. (2020). [Doubly robust
-    inference with nonprobability survey
+-   [Replication
+    report](https://htmlpreview.github.io/?https://github.com/ncn-foreigners/software-tutorials/main/notebooks/2020-chen-et-al-jasa.html)
+    -- Chen, Y., Li, P., & Wu, C. (2020). [Doubly robust inference with
+    nonprobability survey
     samples](https://doi.org/10.1080/01621459.2019.1677241). Journal of
     the American Statistical Association, 115(532), 2011-2021.
 
