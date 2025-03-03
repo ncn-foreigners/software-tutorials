@@ -33,7 +33,8 @@
     imputation](https://academic.oup.com/jrsssa/article/184/3/941/7068406).
     Journal of the Royal Statistical Society Series A: Statistics in
     Society, 184(3), 941-963.
--   [TBA]() -- Yang, S., Kim, J. K., & Hwang, Y. (2021). [Integration of
+-   [Replication
+    report](https://htmlpreview.github.io/?https://github.com/ncn-foreigners/software-tutorials/main/notebooks/2021-yang-et-al-surveymeth.html) -- Yang, S., Kim, J. K., & Hwang, Y. (2021). [Integration of
     data from probability surveys and big found data for finite
     population inference using mass
     imputation](https://www150.statcan.gc.ca/n1/pub/12-001-x/2021001/article/00004-eng.htm).

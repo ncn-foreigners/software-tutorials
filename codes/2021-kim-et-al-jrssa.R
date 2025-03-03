@@ -26,7 +26,7 @@ results <- list()
 
 for (b in 1:B) {
   set.seed(b)
-  if (b %% 50 == 0) print(glue("Iteration: {b} out of {B}."))
+  print(glue("Iteration: {b} out of {B}."))
   sample_a <- pop[sample(1:N, n_a),]
   sample_a$w_a <- N/n_a
   svy_a <- svydesign(ids= ~1, weights = ~ w_a, data = sample_a)

@@ -1,0 +1,156 @@
+---
+title: "Short software tutorial on `nonprobsvy` package -- replicating results from the Yang et al. (2021)"
+author: Maciej Beręsewicz
+format: 
+  html:
+    number-sections: true
+    self-contained: true
+    toc: true
+    df-print: kable
+lang: en
+bibliography: references.bib
+biblio-style: apalike
+execute: 
+  warning: false
+  cache: false
+  message: false
+---
+
+
+# Basic information
+
+## Theory
+
+This notebook is desinged to replicate results from the paper
+
+```
+Yang, S., Kim, J. K., & Hwang, Y. (2021). Integration of
+data from probability surveys and big found data for finite
+population inference using mass imputation. Survey Methodology, 47(1).
+```
+
+We generate the data using the following recipe from section 6 of this paper:
+
+The simulation is based on the following assumptions:
+
+# Replication
+
+Load required packages
+
+```{r load-packages}
+library(nonprobsvy)
+library(data.table)
+library(ggplot2)
+packageVersion("nonprobsvy")
+```
+
+
+## Single run
+
+Here's an example of a single run 
+
+```{r mi-sim-data}
+set.seed(123123123)
+N <- 1000000
+n_a <- 1000
+x1 <- rnorm(N,1,1)
+x2 <- rexp(N,1)
+alp <- rnorm(N)
+epsilon <- rnorm(N)
+y11 <- 1 + x1 + x2 + alp + epsilon
+y12 <- 0.5*(x1-1.5)^2 + x2^2 + alp + epsilon
+y21 <- rbinom(N,1,plogis(1 + x1 + x2 + alp))
+y22 <- rbinom(N,1,plogis(0.5*(x1-1.5)^2 + x2^2 + alp))
+p1 <- plogis(x2)
+p2 <- plogis(-3+(x1-1.5)^2+(x2-2)^2)
+pop <- data.frame(x1,x2,y11,y12,y21,y22,p1,p2)
+
+sample_a <- pop[sample(1:N, n_a),]
+sample_a$w_a <- N/n_a
+sample_a_svy <- svydesign(ids=~1, weights=~w_a, data=sample_a)
+  
+sample_b1 <- pop[rbinom(n = N, size = 1, prob = pop$p1) == 1, ]
+sample_b2 <- pop[rbinom(n = N, size = 1, prob = pop$p2) == 1, ]
+```
+
+```{r}
+ys_hat_nni_b1 <- nonprob(data=sample_b1, 
+                           outcome=y11+y12+y21+y22~x1 + x2,
+                           svydesign = sample_a_svy,
+                           method_outcome = "nn",
+                           control_outcome = control_out(k=1))
+ys_hat_nni_b1
+```
+
+```{r}
+ys_hat_knn_b1 <- nonprob(data=sample_b1, 
+                           outcome=y11+y12+y21+y22~x1 + x2,
+                           svydesign = sample_a_svy,
+                           method_outcome = "nn",
+                           control_outcome = control_out(k=5))
+ys_hat_knn_b1
+```
+
+```{r}
+ys_hat_nni_b2 <- nonprob(data=sample_b2, 
+                           outcome=y11+y12+y21+y22~x1 + x2,
+                           svydesign = sample_a_svy,
+                           method_outcome = "nn",
+                           control_outcome = control_out(k=1))
+ys_hat_nni_b2
+```{r}
+
+
+```{r}
+ys_hat_knn_b2 <- nonprob(data=sample_b2, 
+                           outcome=y11+y12+y21+y22~x1 + x2,
+                           svydesign = sample_a_svy,
+                           method_outcome = "nn",
+                           control_outcome = control_out(k=5))
+ys_hat_knn_b2
+```
+
+
+## Simulation
+
+Code for simulation is available [here](../codes/2021-yang-et-al-survmeth.R) where:
+
+
+```{r}
+results <- readRDS("../results/yang2021-replicates.rds")
+results[, est := rep(c("ht", "naive", "nn", "knn"), each = 4, times = 4*10)]
+results[, est := factor(est, c("ht","naive",  "nn", "knn"))]
+```
+
+Coverage of confidence intervals using analytical variance
+
+```{r}
+results[!is.na(lower_bound), .(m = mean(lower_bound < true & upper_bound > true)), keyby=.(source, y, est)]
+```
+
+Table with main results
+
+```{r}
+results[, .(bias = (mean(mean) - mean(true))*100, 
+            se = sd(mean)*100),
+        keyby=.(source, y, est)] |>
+  melt(id.vars = c("source", "y", "est")) |>
+  transform(y = paste(y, variable, sep = "_"),
+            variable = NULL) |>
+  dcast(source + est ~ y, value.var = "value")
+```
+
+We can compare the results with table 3 from @yang2021
+
+![](../figs/surveymeth-nn-paper-tab61.png){fig-align="center" width="700"}
+
+Plot with results
+
+```{r}
+ggplot(data = results, aes(x = est, y = mean)) + 
+  geom_boxplot(position = "dodge") +
+  geom_hline(aes(yintercept = true), color = "red", linetype = "dashed") +
+  facet_grid(source~y) +
+  theme(axis.text.x=element_text(angle = 45, vjust = 1, hjust = 1))
+```
+
