@@ -8,7 +8,7 @@ library(ggplot2)
 # data --------------------------------------------------------------------
 
 set.seed(123123123)
-N <- 1000000
+N <- 100000
 n_a <- 1000
 x1 <- rnorm(N,1,1)
 x2 <- rexp(N,1)
@@ -66,7 +66,7 @@ for (b in 1:B) {
                            control_outcome = control_out(k=5))
   
   results[[b]] <- data.frame(y = rep(y_vars, times = 2*8),
-                             source = rep(c("b1", "b2"), each = 4, times = 4),
+                             source = rep(c("b1", "b2"), each = 4*4),
                              mean = c(as.numeric(ys_hat), 
                                       as.numeric(ys_naive_b1), 
                                       ys_hat_nni_b1$output$mean, 
@@ -99,7 +99,7 @@ for (b in 1:B) {
                                           rep(NA, 4),
                                           ys_hat_nni_b2$confidence_interval$upper_bound, 
                                           ys_hat_kni_b2$confidence_interval$upper_bound),
-                          est = rep(c("ht", "naive", "nn", "knn"), each = 4, times = 4))
+                          est = rep(c("ht", "naive", "nn", "knn"), each = 4, times = 2))
 }
 
 ## collect errors

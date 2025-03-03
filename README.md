@@ -14,6 +14,8 @@
 
 -   `blocking`
 
+-   `BlockingPy`
+
 ### Replication studies
 
 #### Non-probability samples with the `nonprobsvy` package

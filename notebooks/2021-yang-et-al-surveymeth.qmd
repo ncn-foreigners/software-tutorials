@@ -51,7 +51,7 @@ Here's an example of a single run
 
 ```{r mi-sim-data}
 set.seed(123123123)
-N <- 1000000
+N <- 100000
 n_a <- 1000
 x1 <- rnorm(N,1,1)
 x2 <- rexp(N,1)
@@ -75,38 +75,38 @@ sample_b2 <- pop[rbinom(n = N, size = 1, prob = pop$p2) == 1, ]
 
 ```{r}
 ys_hat_nni_b1 <- nonprob(data=sample_b1, 
-                           outcome=y11+y12+y21+y22~x1 + x2,
-                           svydesign = sample_a_svy,
-                           method_outcome = "nn",
-                           control_outcome = control_out(k=1))
+                         outcome=y11 + y12 + y21 + y22 ~ x1 + x2,
+                         svydesign = sample_a_svy,
+                         method_outcome = "nn",
+                         control_outcome = control_out(k=1))
 ys_hat_nni_b1
 ```
 
 ```{r}
 ys_hat_knn_b1 <- nonprob(data=sample_b1, 
-                           outcome=y11+y12+y21+y22~x1 + x2,
-                           svydesign = sample_a_svy,
-                           method_outcome = "nn",
-                           control_outcome = control_out(k=5))
+                         outcome=y11 + y12 + y21 + y22 ~ x1 + x2,
+                         svydesign = sample_a_svy,
+                         method_outcome = "nn",
+                         control_outcome = control_out(k=5))
 ys_hat_knn_b1
 ```
 
 ```{r}
 ys_hat_nni_b2 <- nonprob(data=sample_b2, 
-                           outcome=y11+y12+y21+y22~x1 + x2,
-                           svydesign = sample_a_svy,
-                           method_outcome = "nn",
-                           control_outcome = control_out(k=1))
+                         outcome=y11 + y12 + y21 + y22 ~ x1 + x2,
+                         svydesign = sample_a_svy,
+                         method_outcome = "nn",
+                         control_outcome = control_out(k=1))
 ys_hat_nni_b2
 ```{r}
 
 
 ```{r}
 ys_hat_knn_b2 <- nonprob(data=sample_b2, 
-                           outcome=y11+y12+y21+y22~x1 + x2,
-                           svydesign = sample_a_svy,
-                           method_outcome = "nn",
-                           control_outcome = control_out(k=5))
+                         outcome=y11 + y12 + y21 + y22 ~ x1 + x2,
+                         svydesign = sample_a_svy,
+                         method_outcome = "nn",
+                         control_outcome = control_out(k=5))
 ys_hat_knn_b2
 ```
 
@@ -118,7 +118,7 @@ Code for simulation is available [here](../codes/2021-yang-et-al-survmeth.R) whe
 
 ```{r}
 results <- readRDS("../results/yang2021-replicates.rds")
-results[, est := rep(c("ht", "naive", "nn", "knn"), each = 4, times = 4*10)]
+#results[, est := rep(c("ht", "naive", "nn", "knn"), each = 4, times = 4*10)]
 results[, est := factor(est, c("ht","naive",  "nn", "knn"))]
 ```
 
@@ -140,7 +140,7 @@ results[, .(bias = (mean(mean) - mean(true))*100,
   dcast(source + est ~ y, value.var = "value")
 ```
 
-We can compare the results with table 3 from @yang2021
+We can compare the results with table 6.1 from @yang2021
 
 ![](../figs/surveymeth-nn-paper-tab61.png){fig-align="center" width="700"}
 
