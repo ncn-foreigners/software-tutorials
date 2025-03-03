@@ -45,7 +45,7 @@ for (b in 1:B) {
                        svydesign = svy_a,
                        control_selection = control_sel(est_method =  "mle")) 
   
-
+  
   results[[b]] <- data.frame(y = rep(1:3, times = 4),
                              mean = c(res_y_glm$output$mean, res_y_ipw$output$mean, 
                                       res_y_prob, res_y_non),

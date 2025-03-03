@@ -41,7 +41,8 @@
     population inference using mass
     imputation](https://www150.statcan.gc.ca/n1/pub/12-001-x/2021001/article/00004-eng.htm).
     Survey Methodology, 47(1).
--   [TBA]() -- Chen, S., Yang, S., & Kim, J. K. (2022). [Nonparametric
+-   [Replication
+    report](https://htmlpreview.github.io/?https://github.com/ncn-foreigners/software-tutorials/main/notebooks/2022-chen-et-al-jssam.html) -- Chen, S., Yang, S., & Kim, J. K. (2022). [Nonparametric
     mass imputation for data integration. Journal of survey statistics
     and
     methodology](https://academic.oup.com/jssam/article-abstract/10/1/1/5983829),

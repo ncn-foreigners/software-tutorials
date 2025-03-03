@@ -1,0 +1,146 @@
+---
+title: "Short software tutorial on `nonprobsvy` package -- replicating results from the Chen et al. (2022)"
+author: Maciej Beręsewicz
+format: 
+  html:
+    number-sections: true
+    self-contained: true
+    toc: true
+    df-print: kable
+lang: en
+bibliography: references.bib
+biblio-style: apalike
+execute: 
+  warning: false
+  cache: false
+  message: false
+---
+
+
+# Basic information
+
+## Theory
+
+This notebook is desinged to replicate results from the paper
+
+```
+Kim, J. K., Park, S., Chen, Y., & Wu, C. (2021). Combining
+non-probability and probability survey samples through mass
+imputation. Journal of the Royal Statistical Society Series A:
+Statistics in Society, 184(3), 941-963.
+```
+
+We generate the data using the following recipe from section 6 of this paper:
+
+The simulation is based on the following assumptions:
+
+-   population size $N=100,000$,
+-   probability sample $A$ of $500$ size,
+-   non-probability sample $B$ of size $500$ and $1000$,
+-   $x_{1i} \sim N(2,1)$ and $x_{2i} \sim N(2,1)$,
+-   the study variable $y_{i}$ is constructed differently for each
+    model:
+    -   Model I -- $y_{1i} \sim N(0.3 + 2*x_{1i}+ 2*x_{2i},1)$,
+    -   Model II -- $y_{2i} \sim N(0.3 + 0.5*x_{1i}^2+ 0.5*x_{2i}^2,1)$,
+-   SRS to obtain $A$ from each of three populations,
+-   Sample $B$ is obtained by SRS within two strata:
+    -   Strata 1: $x_i <= 2$ with size $n_1=0.7n_b$,
+    -   Strata 2: $x_i > 2$ with size $n_2 = 0.3n_b$
+
+# Replication
+
+Load required packages
+
+```{r load-packages}
+library(nonprobsvy)
+library(data.table)
+library(ggplot2)
+packageVersion("nonprobsvy")
+```
+
+
+## Single run
+
+Here's an example of a single run 
+
+```{r mi-sim-data}
+set.seed(123123123)
+N <- 10000
+n_a <- 500
+n_b <- 1000
+n_b1 <- 0.7*n_b
+n_b2 <- 0.3*n_b
+x1 <- rnorm(N, 2, 1)
+x2 <- rnorm(N, 2, 1)
+y1 <- rnorm(N, 0.3 + 2*x1+ 2*x2, 1)
+y2 <- rnorm(N, 0.3 + 0.5*x1^2+ 0.5*x2^2, 1)
+strata <- x1 <= 2
+pop <- data.frame(x1, x2, y1, y2, strata)
+sample_a <- pop[sample(1:N, n_a),]
+sample_a$w_a <- N/n_a
+sample_a_svy <- svydesign(ids=~1, weights=~w_a, data=sample_a)
+pop1 <- subset(pop, strata == TRUE)
+pop2 <- subset(pop, strata == FALSE)
+sample_b <- rbind(pop1[sample(1:nrow(pop1), n_b1), ],
+                  pop2[sample(1:nrow(pop2), n_b2), ])
+
+## mass imputation
+res_y_npar <- nonprob(outcome = y1 + y2 ~ x1 + x2, 
+                        data = sample_b, 
+                        svydesign = sample_a_svy, 
+                        method_outcome = "npar")
+
+
+data.frame(est = c("mi_y1","mi_y2"),
+           true = colMeans(sample_a[, c("y1", "y2")]),
+           naive_B = colMeans(sample_b[, c("y1", "y2")]),
+           mi = res_y_npar$output$mean)
+```
+
+```{r}
+res_y_npar
+```
+
+## Simulation
+
+Code for simulation is available [here](../codes/2021-kim-et-al-jrssa.R) where:
+
++ `naive` -- based on non-probability sample 
++ `prob` -- based on probability sample
++ `mi` -- based on Mass Imputation (GLM linear regression)
++ `ipw` -- based on IPW estimator
+
+```{r}
+results <- readRDS("../results/chen2022-replicates.rds")
+results[, est := factor(est, c("naive", "prob", "glm", "npar"))]
+```
+
+Coverage of confidence intervals using analytical variance
+
+```{r}
+results[!is.na(lower_bound), .(m = mean(lower_bound < true & upper_bound > true)), keyby=.(y, est)][est == "npar"]
+```
+
+Table with main results
+
+```{r}
+results[, .(rb = (mean(mean) - mean(true))/mean(true)*100, 
+            rse = sd(mean)/mean(mean)*100,
+            rrmse = sqrt((mean(mean) - mean(true))^2 + var(mean))/mean(mean)*100), 
+        keyby=.(y, est)]
+```
+
+We can compare the results with table 3 from @kim2021
+
+![](../figs/jssam-np-paper-tab2.png){fig-align="center" width="700"}
+
+Plot with results
+
+```{r}
+ggplot(data = results, aes(x = est, y = mean)) + 
+  geom_boxplot(position = "dodge") +
+  geom_hline(aes(yintercept = true), color = "red", linetype = "dashed") +
+  facet_wrap(~y, ncol = 3, scales = "free_y") +
+  theme(axis.text.x=element_text(angle = 45, vjust = 1, hjust = 1))
+```
+
