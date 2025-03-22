@@ -21,7 +21,7 @@
 #### Non-probability samples with the `nonprobsvy` package
 
 -   [Replication
-    report](https://htmlpreview.github.io/?https://github.com/ncn-foreigners/software-tutorials/main/notebooks/2023-08-20-replicate-yang2020.html)
+    report](https://htmlpreview.github.io/?https://github.com/ncn-foreigners/software-tutorials/main/notebooks/2020-yang-et-al-jrssb.html)
     -- Yang, S., Kim, J. K., & Song, R. (2020). [Doubly robust inference
     when combining probability and non-probability samples with high
     dimensional
