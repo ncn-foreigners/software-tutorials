@@ -13,7 +13,7 @@ set.seed(seed_for_sim)
 
 N <- 10000
 n_A <- 500
-sims <- 50 ## 10: 7 min, 
+sims <- 100 ## ~1h
 p <- 50
 alpha_vec1 <- c(-2, 1, 1, 1, 1, rep(0, p - 5))
 alpha_vec2 <- c(0, 0, 0, 3, 3, 3, 3, rep(0, p - 7))
