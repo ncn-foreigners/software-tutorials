@@ -125,9 +125,7 @@ control_sel_paper <- control_sel(nfolds = 5, nlambda = 5)
 control_sel_paper_h <- control_sel(nfolds = 5, 
                                    nlambda = 5, 
                                    est_method = "gee",
-                                   nleqslv_method = "Newton"
-                                   #, nleqslv_global = "qline",
-                                   #nleqslv_xscalm = "auto"
+                                   nleqslv_xscalm = "auto"
                                    )
 
 ```

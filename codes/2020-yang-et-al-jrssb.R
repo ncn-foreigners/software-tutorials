@@ -13,9 +13,8 @@ set.seed(seed_for_sim)
 
 N <- 10000
 n_A <- 500
-sims <- 10 ## ~25 min
+sims <- 50 ## 10: 7 min, 
 p <- 50
-KK <- 5
 alpha_vec1 <- c(-2, 1, 1, 1, 1, rep(0, p - 5))
 alpha_vec2 <- c(0, 0, 0, 3, 3, 3, 3, rep(0, p - 7))
 beta_vec <- c(1, 0, 0, 1, 1, 1, 1, rep(0, p - 7))
@@ -62,7 +61,7 @@ control_sel_paper <- control_sel(nfolds = 5,
 control_sel_paper_h <- control_sel(nfolds = 5, 
                                    nlambda = 5, 
                                    est_method = "gee",
-                                   nleqslv_method = "Newton")
+                                   nleqslv_xscalm = "auto")
 
 A <- Sys.time()
 
@@ -240,7 +239,7 @@ res <- foreach(k=1:sims, .combine = rbind,
                    control_inference = controls_inf_paper,
                    pop_size = N
                  )
-                 ## check this one
+                 ## check this one (switch to nleqslv_method = "Newton")
                  est_b1_dr_y21 <- nonprob(
                    outcome = as.formula(paste("Y_21", X_formula)),
                    selection = X_formula,
@@ -248,7 +247,11 @@ res <- foreach(k=1:sims, .combine = rbind,
                    svydesign = sample_A_svy_Y21,
                    method_outcome = "glm",
                    family_outcome = "binomial",
-                   control_selection = control_sel_paper_h,
+                   control_selection = control_sel(nfolds = 5, 
+                                                   nlambda = 5, 
+                                                   est_method = "gee",
+                                                   nleqslv_method = "Newton"
+                                                   ),
                    control_inference = controls_inf_paper,
                    pop_size = N
                  )
@@ -379,7 +382,7 @@ setDT(res)
 
 results_simulation1_process <- res |> melt(id.vars = 1:4)
 results_simulation1_process[, c("est", "ci"):=tstrsplit(variable, "_")]
-
+results_simulation1_process <- results_simulation1_process[!is.na(value)]
 
 saveRDS(results_simulation1_process, file = "results/yang2020-500.rds")
 
